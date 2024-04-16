@@ -130,20 +130,15 @@ def run_bvft(num_interval,FQE_number_epoch,FQE_episode_step,initial_state,m,k):
     bvft_ranking = rank_elements(best_avg_q)
     k_precision = calculate_top_k_precision(initial_state,env,policy_list,bvft_ranking,k)
     k_regret = calculate_top_k_normalized_regret(bvft_ranking,policy_list,env,k)
+    delete_files_in_folder(Bvft_folder)
     return k_precision, k_regret
 
 
 
 
 
-if __name__ == '__main__':
-    num_interval = 5
-    FQE_number_epoch = 45
-    FQE_episode_step = 20000
-    initial_state = 12345
-    m = 5
-    num_runs = 30
-    k = 1
+def calculate_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initial_state,m,k,num_runs):
+
     k_precision_list = []
     k_regret_list = []
     for i in range(num_runs):
@@ -161,8 +156,29 @@ if __name__ == '__main__':
     k_precision_name = str(k)+"_precision"
     k_regret_name = str(k)+"_regret"
     k_pre_saving_path = os.path.join(Bvft_k_save_path,k_precision_name)
-    k_regre_saving_path = os.path.join(Bvft_k_save_path,k_regret_name)
+    k_reg_saving_path = os.path.join(Bvft_k_save_path,k_regret_name)
     save_as_pkl(k_pre_saving_path, [k_precision])
-    save_as_pkl(k_pre_saving_path,[k_regret])
+    save_as_pkl(k_reg_saving_path,[k_regret])
     save_as_txt(k_pre_saving_path, [k_precision])
-    save_as_txt(k_pre_saving_path,[k_regret])
+    save_as_txt(k_reg_saving_path,[k_regret])
+
+def main():
+    parser = argparse.ArgumentParser(description="Run specific FQE function based on learning rate and combination.")
+    parser.add_argument("--num_interval", type=int, default=5, help="number of iteration to load as a valid q function")
+    parser.add_argument("--FQE_number_epoch", type=int, default=45, help="Total number of epochfor FQE training")
+    parser.add_argument("--FQE_episode_step", type=int, default=60000,
+                        help="Number of steps in one episode for FQE training")
+    parser.add_argument("--initial_state", type=int, default=12345,
+                        help="Initial state in real environment")
+    parser.add_argument("--m", type=int, default=10,
+                        help="how many random policy to pick")
+    parser.add_argument("--k", type=int, default=2,
+                        help="top k policy to evaluate")
+    parser.add_argument("--num_runs", type=int, default=200,
+                        help="how many number of runs to sample")
+    args = parser.parse_args()
+    function_to_run = calculate_normalized_k(args.num_interval,args.FQE_number_epoch,args.FQE_episode_step,args.initial_state,args.m,args.k,args.num_runs)
+    function_to_run()
+#--num_interval 5 --FQE_number_epoch 45 --FQE_episode_step 20000 --initial_state 12345 --m 10 --k 1 --num_runs 4
+if __name__ == "__main__":
+    main()

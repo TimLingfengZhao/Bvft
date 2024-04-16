@@ -508,7 +508,9 @@ def calculate_top_k_normalized_regret(ranking_list, policy_list,env,k=2):
                                                          num_run=30))
     ground_truth_value = max(policy_performance)
     worth_value = min(policy_performance)
-
+    if((ground_truth_value - worth_value) == 0):
+        print("the maximum is equal to worth value, error!!!!")
+        return 99999
     gap_list = []
     for i in range(len(ranking_list)):
         if(ranking_list[i]<=k-1):
@@ -516,3 +518,30 @@ def calculate_top_k_normalized_regret(ranking_list, policy_list,env,k=2):
             norm = (ground_truth_value - value) / (ground_truth_value - worth_value)
             gap_list.append(norm)
     return min(gap_list)
+
+
+def plot_multiple_graphs(data_groups, save_path, graph_names, y_axis_name, colors):
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    plt.figure(figsize=(15, 5))  #
+
+    for data, name, color in zip(data_groups, graph_names, colors):
+        means = np.mean(data, axis=0)
+        std_errors = np.std(data, axis=0, ddof=1) / np.sqrt(len(data))
+        conf_intervals = 2 * std_errors
+        x_values = list(range(1, len(means) + 1))
+
+        plt.errorbar(x_values, means, yerr=conf_intervals, label=name, color=color)
+
+
+    plt.xlabel('k')
+    plt.ylabel(y_axis_name)
+    plt.title('K regret and K precision graph')
+    plt.legend()
+
+    plt.savefig(os.path.join(save_path, 'regret-precision.png'))
+    plt.close()
+
+
+
