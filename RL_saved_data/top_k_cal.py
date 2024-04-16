@@ -65,33 +65,20 @@ from d3rlpy.models.q_functions import IQNQFunctionFactory
 from d3rlpy.ope import FQE, FQEConfig
 from d3rlpy.models.encoders import VectorEncoderFactory
 import torch
-from gym.envs.mujoco import HopperEnv
-class ContinuousPolicyNetwork(nn.Module):
-    def __init__(self, state_dim, action_dim):
-        super(ContinuousPolicyNetwork, self).__init__()
-        random_int = np.random.randint(32, 1025)
-        self.fc1 = nn.Linear(state_dim, random_int)
-        self.fc2 = nn.Linear(random_int, random_int)
-        self.fc3 = nn.Linear(random_int, action_dim)
-
-    def forward(self, x):
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
 
 
-class RandomPolicyModel:
-    def __init__(self, state_dim, action_dim, noise_std=0.1):
-        self.policy_network = ContinuousPolicyNetwork(state_dim, action_dim)
-        self.noise_std = noise_std
+def top_k_indices(lst, k):
 
-    def predict(self, state):
-        state_tensor = torch.FloatTensor(state)
-        action_values = self.policy_network(state_tensor)
-        noise = np.random.normal(0, self.noise_std, size=action_values.shape)
-        noisy_action = action_values.detach().numpy().flatten() + noise
-        return noisy_action
+    if k > len(lst):
+        raise ValueError("k cannot be greater than the list length")
+
+    top_k_values = heapq.nlargest(k, lst)
+
+    top_k_indices = []
+    for value in top_k_values:
+        top_k_indices.extend([i for i, x in enumerate(lst) if x == value])
+
+    return top_k_indices[:k]
 def plot_value(k_list):
     directory = "k_figure"
     if not os.path.exists(directory):
@@ -122,104 +109,35 @@ def plot_value_precision(k_list):
     plt.grid(True)
     plt.savefig(file_path)
     plt.show()
-def calculate_top_k_normalized_regret(best, ground_truth_values,worth_value,k=1):
-    norm = (ground_truth_values-best)/(ground_truth_values-worth_value)
-    return norm
-def calculate_top_k_normalized_regret_l(ranking_list, ground_truth_values,worth_value,k=2):
-    norm_cul = 0
-    for ele in ranking_list:
-        norm = (ground_truth_values - ele) / (ground_truth_values - worth_value)
-        norm_cul+=norm
-    return norm_cul/k
+
 def rank_elements(lst):
     sorted_pairs = sorted(enumerate(lst), key=lambda x: x[1], reverse=True)
     ranks = [0] * len(lst)
     for rank, (original_index, _) in enumerate(sorted_pairs, start=1):
         ranks[original_index] = rank
     return ranks
-def calculate_top_k_precision(replay_buffer,env, policies,num_sample,rank_list, k=2):
-    #ranking_list 给了前k个policy的坐标
-    num_trajectory = 5
-    trajectory_length = 1000
-    state_dim = 11
-    action_dim = 3
-    noise_std = 0.1
-    cur_policy = policies
-    num_sa = 5
-    proportions = []
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    for i in range(num_sample):
-        proportion = 0
-        traj = replay_buffer.sample_trajectory_batch(num_trajectory,trajectory_length)
-        cu = cur_policy.copy()
-        for j in range(num_sa):
-            model = RandomPolicyConfig(action_scaler=MinMaxActionScaler(),
-                    observation_scaler=StandardObservationScaler(),
-                    ).create(device=device)
-            model.fit(
-                traj,
-                n_steps=num_trajectory*trajectory_length,
-                n_steps_per_epoch=trajectory_length,
-            )
-            cu.append(model)
-        cul_rewards = []
-        for ele in cu:
-            reward_cul = 0
-            for s in traj.observations:
-                for u in range(trajectory_length):
-                    env.reset()
-                    env.state = s[u]
-                    ui = env.step(ele.predict(np.array([s[u]]))[0])
-                    reward_cul += ui[1]
-            cul_rewards.append(reward_cul)
-        rank_= rank_elements(cul_rewards)
-        for pos in rank_list:
-            if (rank_[pos] <= k-1):
-                proportion = proportion + 1
-        proportion = proportion / len(rank_list)
-        proportions.append(proportion)
-    return sum(proportions) / len(proportions)
 
 
+def rank_elements(lst):
+    enumerated_list = list(enumerate(lst))
+    sorted_enumerated_list = sorted(enumerated_list, key=lambda x: x[1])
 
+    rank_dict = {}
+    current_rank = 0
 
-# class ExtendedCHopperEnv(HopperEnv):
-#     def state_revise(self,state):
-#         self.state = state
-#
-#         self.steps_beyond_done = None
-#         return np.array(self.state, dtype=np.float32)
+    for i, (index, value) in enumerate(sorted_enumerated_list):
+        if i == 0 or value != sorted_enumerated_list[i - 1][1]:
+            rank_dict[value] = current_rank
+            current_rank += 1
+        else:
+            rank_dict[value] = current_rank - 1
 
+    rank_list = [0] * len(lst)
+    for index, value in enumerated_list:
+        rank_list[index] = rank_dict[value]
 
+    return rank_list
 
-#
-# def calculate_policy_value_with_dataset(env, policy, gamma=0.995, num_trajectories=10):
-#     total_rewards = 0
-#     for trajectory_index in range(num_trajectories):
-#         cumulative_reward = 0
-#         discount_factor = 1
-#         observation, info = env.reset(seed=12345)
-#         action = policy.predict(np.array([observation]))
-#         ui  = env.step(action[0])
-#         state = ui[0]
-#         reward = ui[1]
-#         done = ui[2]
-#         step = 1
-#         while(not done):
-#             # Update the cumulative reward
-#             action = policy.predict(np.array([state]))
-#             ui = env.step(action[0])
-#             state = ui[0]
-#             reward = ui[1]
-#             done = ui[2]
-#             cumulative_reward += reward * discount_factor
-#             discount_factor *= gamma
-#             step+=1
-#             print("step :   ",step)
-#         total_rewards += cumulative_reward
-#     average_reward = total_rewards / num_trajectories
-#
-#     return total_rewards, average_reward
 
 def plot_histogram(policy_names, total_rewards,save_path, file_name="total_rewards_histogram.png"):
     os.makedirs(save_path, exist_ok=True)
@@ -560,3 +478,41 @@ def generate_unique_colors(number_of_colors):
     else:
         colors = [cmap(i) for i in np.linspace(0, 1, number_of_colors)]
     return colors
+def calculate_top_k_precision(initial_state,env, policies,rank_list, k=2):
+    #ranking_list 给了前k个policy的坐标
+    num_trajectory = 5
+    trajectory_length = 1000
+    state_dim = 11
+    action_dim = 3
+    noise_std = 0.1
+    cur_policy = policies
+
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    proportion = 0
+
+    policy_performance = []
+    for i in range(len(policies)):
+        policy_performance.append(calculate_policy_value(env, policies[i], gamma=0.99, num_run=30))
+    policy_ranking_groundtruth = rank_elements(policy_performance)
+    for pos in rank_list :
+        if (rank_list[pos]<=k-1 and policy_ranking_groundtruth[pos] <= k-1):
+            proportion+=1
+    proportion = proportion/k
+
+    return proportion
+def calculate_top_k_normalized_regret(ranking_list, policy_list,env,k=2):
+    print("calcualte top k normalized regret")
+    policy_performance = []
+    for i in range(len(policy_list)):
+        policy_performance.append(calculate_policy_value(env,policy_list[i],gamma=0.99,
+                                                         num_run=30))
+    ground_truth_value = max(policy_performance)
+    worth_value = min(policy_performance)
+
+    gap_list = []
+    for i in range(len(ranking_list)):
+        if(ranking_list[i]<=k-1):
+            value = policy_performance[i]
+            norm = (ground_truth_value - value) / (ground_truth_value - worth_value)
+            gap_list.append(norm)
+    return min(gap_list)
