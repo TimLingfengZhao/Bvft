@@ -184,7 +184,8 @@ def plot_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initial_sta
     save_as_txt(total_k_reg_saving_path, plot_regret_list)
 
     plot_list = []
-    plot_list.append(plot_precision_list,plot_regret_list)
+    plot_list.append(plot_precision_list)
+    plot_list.append(plot_regret_list)
 
     Bvft_plot_folder = os.path.join(Bvft_saving_place,"Bvft_plot")
     if not os.path.exists(Bvft_plot_folder):
