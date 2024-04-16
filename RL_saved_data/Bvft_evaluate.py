@@ -186,7 +186,7 @@ def plot_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initial_sta
     plot_list = []
     plot_list.append(plot_precision_list)
     plot_list.append(plot_regret_list)
-
+    print("plot list : ",plot_list)
     Bvft_plot_folder = os.path.join(Bvft_saving_place,"Bvft_plot")
     if not os.path.exists(Bvft_plot_folder):
         os.makedirs(Bvft_plot_folder)
@@ -211,8 +211,7 @@ def main():
     parser.add_argument("--num_runs", type=int, default=200,
                         help="how many number of runs to sample")
     args = parser.parse_args()
-    function_to_run = plot_normalized_k(args.num_interval,args.FQE_number_epoch,args.FQE_episode_step,args.initial_state,args.m,args.k,args.num_runs)
-    function_to_run()
+    plot_normalized_k(args.num_interval,args.FQE_number_epoch,args.FQE_episode_step,args.initial_state,args.m,args.k,args.num_runs)
 
 if __name__ == "__main__":
     main()

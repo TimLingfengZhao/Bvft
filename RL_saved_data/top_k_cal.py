@@ -530,7 +530,7 @@ def plot_multiple_graphs(data_groups, save_path, graph_names, y_axis_name, color
         means = np.mean(data, axis=0)
         std_errors = np.std(data, axis=0, ddof=1) / np.sqrt(len(data))
         conf_intervals = 2 * std_errors
-        x_values = list(range(1, len(means) + 1))
+        x_values = list(range(1, len([means.tolist()]) + 1))
 
         plt.errorbar(x_values, means, yerr=conf_intervals, label=name, color=color)
 

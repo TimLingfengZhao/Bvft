@@ -163,7 +163,7 @@ def calculate_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initia
     save_as_txt(k_reg_saving_path,[k_regret])
 
 def main():
-    parser = argparse.ArgumentParser(description="Run specific FQE function based on learning rate and combination.")
+    parser = argparse.ArgumentParser(description="Run specific Bvft based on learning rate and combination.")
     parser.add_argument("--num_interval", type=int, default=5, help="number of iteration to load as a valid q function")
     parser.add_argument("--FQE_number_epoch", type=int, default=45, help="Total number of epochfor FQE training")
     parser.add_argument("--FQE_episode_step", type=int, default=60000,
@@ -177,8 +177,10 @@ def main():
     parser.add_argument("--num_runs", type=int, default=200,
                         help="how many number of runs to sample")
     args = parser.parse_args()
-    function_to_run = calculate_normalized_k(args.num_interval,args.FQE_number_epoch,args.FQE_episode_step,args.initial_state,args.m,args.k,args.num_runs)
-    function_to_run()
+
+    calculate_normalized_k(num_interval=args.num_interval,
+                                             FQE_number_epoch=args.FQE_number_epoch,FQE_episode_step=args.FQE_episode_step,
+                                             initial_state=args.initial_state,m=args.m,k=args.k,num_runs=args.num_runs)
 #--num_interval 5 --FQE_number_epoch 45 --FQE_episode_step 20000 --initial_state 12345 --m 10 --k 1 --num_runs 4
 if __name__ == "__main__":
     main()
