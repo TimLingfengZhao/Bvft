@@ -543,21 +543,30 @@ def calculate_top_k_normalized_regret(ranking_list, policy_list,env,k=2):
 #     saving_path = os.path.join(save_path,saving_path)
 #     plt.savefig(saving_path)
 #     plt.close()
-
-def plot_subplots(data, save_path, y_axis_names, line_names, colors):
+def calculate_statistics(data_list):
+    mean = np.mean(data_list)
+    std_dev = np.std(data_list, ddof=1)
+    sem = std_dev / np.sqrt(len(data_list))
+    ci = 2 * sem
+    return ci
+def plot_subplots(data, save_path, y_axis_names, line_names, colors,ci):
     num_subplots = len(data)
     fig, axes = plt.subplots(num_subplots, figsize=(10, 5 * num_subplots), squeeze=False)
-
+    print(data)
+    print(ci)
     for i, subplot_data in enumerate(data):
-        for j, line_data in enumerate(subplot_data):
+        for j, line_data  in enumerate(subplot_data):
             x_values = list(range(1, len(line_data) + 1))
-            means = np.mean(line_data, axis=0)
-            sems = np.std(line_data, ddof=1) / np.sqrt(len(line_data))
-            cis = 2 * sems
 
+            top = []
+            bot = []
+
+            for z in range(len(line_data)):
+                top.append(line_data[z]+ci[i][j][z])
+                bot.append(line_data[z] - ci[i][j][z])
             axes[i, 0].plot(x_values, line_data, label=line_names[j], color=colors[j])
 
-            axes[i, 0].fill_between(x_values, line_data - cis, line_data + cis, color=colors[j], alpha=0.2)
+            axes[i, 0].fill_between(x_values, bot, top, color=colors[j], alpha=0.2)
 
         axes[i, 0].set_ylabel(y_axis_names[i])
         axes[i, 0].legend()

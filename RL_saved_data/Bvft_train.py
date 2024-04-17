@@ -148,6 +148,9 @@ def calculate_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initia
         k_regret_list.append(k_reg)
     k_precision = sum(k_precision_list)/len(k_precision_list)
     k_regret = sum(k_regret_list)/len(k_regret_list)
+    k_precision_ci = calculate_statistics(k_precision_list)
+    k_regret_ci = calculate_statistics(k_regret_list)
+
     Bvft_saving_place = 'Bvft_saving_place'
     Bvft_k = 'Bvft_k_results'
     Bvft_k_save_path = os.path.join(Bvft_saving_place,Bvft_k)
@@ -155,12 +158,22 @@ def calculate_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initia
         os.makedirs(Bvft_k_save_path )
     k_precision_name = str(k)+"_precision"
     k_regret_name = str(k)+"_regret"
+    k_precision_ci_name = str(k)+"_precision_ci"
+    k_regret_ci_name = str(k) + "_regret_ci"
     k_pre_saving_path = os.path.join(Bvft_k_save_path,k_precision_name)
     k_reg_saving_path = os.path.join(Bvft_k_save_path,k_regret_name)
+    k_pre_ci_saving_path = os.path.join(Bvft_k_save_path,k_precision_ci_name)
+    k_reg_ci_saving_path = os.path.join(Bvft_k_save_path,k_regret_ci_name)
+
     save_as_pkl(k_pre_saving_path, [k_precision])
     save_as_pkl(k_reg_saving_path,[k_regret])
+    save_as_pkl(k_pre_ci_saving_path, [k_precision_ci])
+    save_as_pkl(k_reg_ci_saving_path, [k_regret_ci])
+
     save_as_txt(k_pre_saving_path, [k_precision])
     save_as_txt(k_reg_saving_path,[k_regret])
+    save_as_txt(k_pre_ci_saving_path, [k_precision_ci])
+    save_as_txt(k_reg_ci_saving_path, [k_regret_ci])
 
 def main():
     parser = argparse.ArgumentParser(description="Run specific Bvft based on learning rate and combination.")

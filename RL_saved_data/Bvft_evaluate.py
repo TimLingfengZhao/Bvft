@@ -145,16 +145,29 @@ def plot_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initial_sta
         os.makedirs(Bvft_k_save_path)
     plot_precision_list = []
     plot_regret_list = []
+    ci_precision_list = []
+    ci_regret_list = []
     for k_i in range(k):
         k_precision = 0
         k_regret = 0
         k_precision_name = str((k_i+1))+"_precision"
         k_regret_name = str((k_i+1))+"_regret"
+        k_precision_ci_name = str(k_i+1) + "_precision_ci"
+        k_regret_ci_name = str(k_i+1) + "_regret_ci"
         precision_path = os.path.join(Bvft_k_save_path,k_precision_name)
         regret_path = os.path.join(Bvft_k_save_path,k_regret_name)
-        if(os.path.exists(regret_path+".pkl")):
+        precision_ci_path = os.path.join(Bvft_k_save_path, k_precision_ci_name)
+        regret_ci_path = os.path.join(Bvft_k_save_path, k_regret_ci_name)
+
+        if(os.path.exists(regret_ci_path+".pkl")):
             k_precision = load_from_pkl(precision_path)
             k_regret = load_from_pkl(regret_path)
+            k_precision_ci = load_from_pkl(precision_ci_path)
+            k_regret_ci = load_from_pkl(regret_ci_path)
+            ci_precision_list.append(k_precision_ci[0])
+            ci_regret_list.append(k_regret_ci[0])
+            plot_precision_list.append(k_precision[0])
+            plot_regret_list.append(k_regret[0])
         else:
             k_precision_list = []
             k_regret_list = []
@@ -165,32 +178,64 @@ def plot_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initial_sta
                 k_regret_list.append(k_reg)
             k_precision = sum(k_precision_list) / len(k_precision_list)
             k_regret = sum(k_regret_list) / len(k_regret_list)
+            k_precision_ci = calculate_statistics(k_precision_list)
+            k_regret_ci = calculate_statistics(k_regret_list)
+
 
             k_pre_saving_path = os.path.join(Bvft_k_save_path, k_precision_name)
             k_reg_saving_path = os.path.join(Bvft_k_save_path, k_regret_name)
+            k_pre_ci_saving_path = os.path.join(Bvft_k_save_path, k_precision_ci_name)
+            k_reg_ci_saving_path = os.path.join(Bvft_k_save_path, k_regret_ci_name)
+
             save_as_pkl(k_pre_saving_path, [k_precision])
             save_as_pkl(k_reg_saving_path, [k_regret])
+            save_as_pkl(k_pre_ci_saving_path, [k_precision_ci])
+            save_as_pkl(k_reg_ci_saving_path, [k_regret_ci])
+
             save_as_txt(k_pre_saving_path, [k_precision])
             save_as_txt(k_reg_saving_path, [k_regret])
-        plot_precision_list.append(k_precision[0])
-        plot_regret_list.append(k_regret[0])
+            save_as_txt(k_pre_ci_saving_path, [k_precision_ci])
+            save_as_txt(k_reg_ci_saving_path, [k_regret_ci])
+            ci_precision_list.append(k_precision_ci)
+            ci_regret_list.append(k_regret_ci)
+            plot_precision_list.append(k_precision)
+            plot_regret_list.append(k_regret)
     total_precision_name = "total_"+str(k)+"_precision"
     total_reg_name = "total"+str(k)+"_regret"
+    total_precision_ci = "total_"+str(k)+"_precision_ci"
+    total_reg_ci = "total"+str(k)+"_regret_ci"
     total_k_pre_saving_path = os.path.join(Bvft_k_save_path, total_precision_name)
     total_k_reg_saving_path = os.path.join(Bvft_k_save_path, total_reg_name)
+    total_k_pre_ci_saving_path = os.path.join(Bvft_k_save_path, total_precision_ci)
+    total_k_reg_ci_saving_path = os.path.join(Bvft_k_save_path, total_reg_ci)
+
     save_as_pkl(total_k_pre_saving_path, plot_precision_list)
     save_as_pkl(total_k_reg_saving_path, plot_regret_list)
+    save_as_pkl(total_k_pre_ci_saving_path, ci_precision_list)
+    save_as_pkl(total_k_reg_ci_saving_path, ci_regret_list)
+
     save_as_txt(total_k_pre_saving_path, plot_precision_list)
     save_as_txt(total_k_reg_saving_path, plot_regret_list)
+    save_as_txt(total_k_pre_ci_saving_path, ci_precision_list)
+    save_as_txt(total_k_reg_ci_saving_path, ci_regret_list)
 
     plot_list = []
+    ci_list = []
     precision_list = []
     precision_list.append(plot_precision_list)
     regre_list = []
     regre_list.append(plot_regret_list)
 
+    precision_ci_list = []
+    precision_ci_list.append(ci_precision_list)
+    regret_ci_list = []
+    regret_ci_list.append(ci_regret_list)
+
     plot_list.append(precision_list)
     plot_list.append(regre_list)
+
+    ci_list.append(precision_ci_list)
+    ci_list.append(regret_ci_list)
     Bvft_plot_folder = os.path.join(Bvft_saving_place,"Bvft_plot")
     if not os.path.exists(Bvft_plot_folder):
         os.makedirs(Bvft_plot_folder)
@@ -199,7 +244,7 @@ def plot_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initial_sta
     line_name = ["hopper-medium-expert-v0","hopper-medium-expert-v0"]
 
     plot_subplots(data=plot_list,save_path=Bvft_plot_folder,y_axis_names=y_axis_names,
-                  line_names=line_name,colors=colors)
+                  line_names=line_name,colors=colors,ci=ci_list)
 
 def main():
     parser = argparse.ArgumentParser(description="Run specific FQE function based on learning rate and combination.")
