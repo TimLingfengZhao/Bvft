@@ -152,7 +152,7 @@ def plot_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initial_sta
         k_regret_name = str((k_i+1))+"_regret"
         precision_path = os.path.join(Bvft_k_save_path,k_precision_name)
         regret_path = os.path.join(Bvft_k_save_path,k_regret_name)
-        if(os.path.exists(regret_path)):
+        if(os.path.exists(regret_path+".pkl")):
             k_precision = load_from_pkl(precision_path)
             k_regret = load_from_pkl(regret_path)
         else:
@@ -172,8 +172,8 @@ def plot_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initial_sta
             save_as_pkl(k_reg_saving_path, [k_regret])
             save_as_txt(k_pre_saving_path, [k_precision])
             save_as_txt(k_reg_saving_path, [k_regret])
-        plot_precision_list.append(k_precision)
-        plot_regret_list.append(k_regret)
+        plot_precision_list.append(k_precision[0])
+        plot_regret_list.append(k_regret[0])
     total_precision_name = "total_"+str(k)+"_precision"
     total_reg_name = "total"+str(k)+"_regret"
     total_k_pre_saving_path = os.path.join(Bvft_k_save_path, total_precision_name)
@@ -184,17 +184,22 @@ def plot_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initial_sta
     save_as_txt(total_k_reg_saving_path, plot_regret_list)
 
     plot_list = []
-    plot_list.append(plot_precision_list)
-    plot_list.append(plot_regret_list)
-    print("plot list : ",plot_list)
+    precision_list = []
+    precision_list.append(plot_precision_list)
+    regre_list = []
+    regre_list.append(plot_regret_list)
+
+    plot_list.append(precision_list)
+    plot_list.append(regre_list)
     Bvft_plot_folder = os.path.join(Bvft_saving_place,"Bvft_plot")
     if not os.path.exists(Bvft_plot_folder):
         os.makedirs(Bvft_plot_folder)
-    plot_names = ["k-precision-plot hopper-medium-expert-v0","k-regret hopper-medium-expert-v0"]
     y_axis_names = ["k precision","k regret"]
-    colors = ["blue", "yellow"]
-    plot_multiple_graphs(data_groups=plot_list,save_path=Bvft_plot_folder,graph_names=plot_names,
-                         y_axis_name=y_axis_names,colors = colors)
+    colors = generate_unique_colors(len(plot_list[0]))
+    line_name = ["hopper-medium-expert-v0","hopper-medium-expert-v0"]
+
+    plot_subplots(data=plot_list,save_path=Bvft_plot_folder,y_axis_names=y_axis_names,
+                  line_names=line_name,colors=colors)
 
 def main():
     parser = argparse.ArgumentParser(description="Run specific FQE function based on learning rate and combination.")
@@ -212,6 +217,6 @@ def main():
                         help="how many number of runs to sample")
     args = parser.parse_args()
     plot_normalized_k(args.num_interval,args.FQE_number_epoch,args.FQE_episode_step,args.initial_state,args.m,args.k,args.num_runs)
-
+#--num_interval 5 --FQE_number_epoch 45 --FQE_episode_step 20000 --initial_state 12345 --m 10 --k 2 --num_runs 4
 if __name__ == "__main__":
     main()

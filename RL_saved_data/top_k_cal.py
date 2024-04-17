@@ -519,36 +519,31 @@ def calculate_top_k_normalized_regret(ranking_list, policy_list,env,k=2):
             gap_list.append(norm)
     return min(gap_list)
 
-def plot_multiple_graphs(data_groups, save_path, graph_names, y_axis_name, colors):
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
 
-    # Number of subplots
-    n_subplots = len(data_groups)
 
-    # Create subplots in one row
-    fig, axes = plt.subplots(1, n_subplots, figsize=(15 * n_subplots, 5))  # Adjust figsize as needed
+def plot_subplots(data, save_path, y_axis_names, line_names, colors):
+    num_subplots = len(data)
+    fig, axes = plt.subplots(num_subplots, 1, figsize=(10, 5 * num_subplots))
 
-    # If there's only one subplot, wrap axes in a list for consistent indexing
-    if n_subplots == 1:
+    if num_subplots == 1:
         axes = [axes]
 
-    for i, (data, name, color) in enumerate(zip(data_groups, graph_names, colors)):
-        means = np.mean(data, axis=0)
-        std_errors = np.std(data, axis=0) / np.sqrt(len(data))
-        conf_intervals = 2 * std_errors
-        x_values = range(1, len([means]) + 1)
+    for i, subplot_data in enumerate(data):
+        for j, line_data in enumerate(subplot_data):
+                if len(data) == 1:
+                    axes[i].plot(line_data, label=line_names[j], color=colors[j])
+                else:
+                    axes[i].plot(line_data, label=line_names[j], color=colors[j])
 
-        axes[i].errorbar(x_values, means, yerr=conf_intervals, label=name, color=color)
-        axes[i].set_xlabel('k')
-        axes[i].set_ylabel(y_axis_name)
-        axes[i].set_title(f'{name}')
+        axes[i].set_ylabel(y_axis_names[i])
         axes[i].legend()
 
-    # Save the entire figure with all subplots
     plt.tight_layout()
-    plt.savefig(os.path.join(save_path, 'combined-regret-precision.png'))
-    plt.close(fig)
+    saving_path = "regret_precision.png"
+    saving_path = os.path.join(save_path,saving_path)
+    plt.savefig(saving_path)
+    plt.close()
+
 
 
 
