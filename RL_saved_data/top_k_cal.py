@@ -521,28 +521,59 @@ def calculate_top_k_normalized_regret(ranking_list, policy_list,env,k=2):
 
 
 
+# def plot_subplots(data, save_path, y_axis_names, line_names, colors):
+#     num_subplots = len(data)
+#     fig, axes = plt.subplots(num_subplots, 1, figsize=(10, 5 * num_subplots))
+#
+#     if num_subplots == 1:
+#         axes = [axes]
+#
+#     for i, subplot_data in enumerate(data):
+#         for j, line_data in enumerate(subplot_data):
+#                 if len(data) == 1:
+#                     axes[i].plot(line_data, label=line_names[j], color=colors[j])
+#                 else:
+#                     axes[i].plot(line_data, label=line_names[j], color=colors[j])
+#
+#         axes[i].set_ylabel(y_axis_names[i])
+#         axes[i].legend()
+#
+#     plt.tight_layout()
+#     saving_path = "regret_precision.png"
+#     saving_path = os.path.join(save_path,saving_path)
+#     plt.savefig(saving_path)
+#     plt.close()
+
 def plot_subplots(data, save_path, y_axis_names, line_names, colors):
     num_subplots = len(data)
-    fig, axes = plt.subplots(num_subplots, 1, figsize=(10, 5 * num_subplots))
-
-    if num_subplots == 1:
-        axes = [axes]
+    fig, axes = plt.subplots(num_subplots, figsize=(10, 5 * num_subplots), squeeze=False)
 
     for i, subplot_data in enumerate(data):
         for j, line_data in enumerate(subplot_data):
-                if len(data) == 1:
-                    axes[i].plot(line_data, label=line_names[j], color=colors[j])
-                else:
-                    axes[i].plot(line_data, label=line_names[j], color=colors[j])
+            x_values = list(range(1, len(line_data) + 1))
+            means = np.mean(line_data, axis=0)
+            sems = np.std(line_data, ddof=1) / np.sqrt(len(line_data))
+            cis = 2 * sems
 
-        axes[i].set_ylabel(y_axis_names[i])
-        axes[i].legend()
+            axes[i, 0].plot(x_values, line_data, label=line_names[j], color=colors[j])
+
+            axes[i, 0].fill_between(x_values, line_data - cis, line_data + cis, color=colors[j], alpha=0.2)
+
+        axes[i, 0].set_ylabel(y_axis_names[i])
+        axes[i, 0].legend()
 
     plt.tight_layout()
     saving_path = "regret_precision.png"
-    saving_path = os.path.join(save_path,saving_path)
+    saving_path = os.path.join(save_path, saving_path)
     plt.savefig(saving_path)
     plt.close()
+
+
+
+
+
+
+
 
 
 
