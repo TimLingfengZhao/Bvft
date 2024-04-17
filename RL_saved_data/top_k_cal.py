@@ -519,29 +519,38 @@ def calculate_top_k_normalized_regret(ranking_list, policy_list,env,k=2):
             gap_list.append(norm)
     return min(gap_list)
 
-
 def plot_multiple_graphs(data_groups, save_path, graph_names, y_axis_name, colors):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    plt.figure(figsize=(15, 5))  #
+    # Number of subplots
+    n_subplots = len(data_groups)
 
-    for data, name, color in zip(data_groups, graph_names, colors):
+    # Create subplots in one row
+    fig, axes = plt.subplots(1, n_subplots, figsize=(15 * n_subplots, 5))  # Adjust figsize as needed
+
+    # If there's only one subplot, wrap axes in a list for consistent indexing
+    if n_subplots == 1:
+        axes = [axes]
+
+    for i, (data, name, color) in enumerate(zip(data_groups, graph_names, colors)):
         means = np.mean(data, axis=0)
-        std_errors = np.std(data, axis=0, ddof=1) / np.sqrt(len(data))
+        std_errors = np.std(data, axis=0) / np.sqrt(len(data))
         conf_intervals = 2 * std_errors
-        x_values = list(range(1, len([means.tolist()]) + 1))
+        x_values = range(1, len([means]) + 1)
 
-        plt.errorbar(x_values, means, yerr=conf_intervals, label=name, color=color)
+        axes[i].errorbar(x_values, means, yerr=conf_intervals, label=name, color=color)
+        axes[i].set_xlabel('k')
+        axes[i].set_ylabel(y_axis_name)
+        axes[i].set_title(f'{name}')
+        axes[i].legend()
+
+    # Save the entire figure with all subplots
+    plt.tight_layout()
+    plt.savefig(os.path.join(save_path, 'combined-regret-precision.png'))
+    plt.close(fig)
 
 
-    plt.xlabel('k')
-    plt.ylabel(y_axis_name)
-    plt.title('K regret and K precision graph')
-    plt.legend()
-
-    plt.savefig(os.path.join(save_path, 'regret-precision.png'))
-    plt.close()
 
 
 
