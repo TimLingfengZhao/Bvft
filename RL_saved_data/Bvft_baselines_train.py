@@ -225,9 +225,9 @@ def run_baseline(FQE_episode_step, FQE_Pickup_number,FQE_total_step,m ,num_runs)
         policy_name_list, policy_list = pick_policy(m, device)
         Q_FQE = pick_FQE(policy_name_list, device, FQE_Pickup_number, FQE_total_step, FQE_episode_step, replay_buffer)
 
-        Bvft_ranking(policy_name_list, Q_FQE, test_data, gamma, rmax, rmin, record, batch_dim,num_runs)
-        random_ranking(policy_name_list,num_runs)
-        Initial_Q_ranking(policy_list, policy_name_list, env,num_runs)
+        Bvft_ranking(policy_name_list, Q_FQE, test_data, gamma, rmax, rmin, record, batch_dim,i)
+        random_ranking(policy_name_list,i)
+        Initial_Q_ranking(policy_list, policy_name_list, env,i)
     print("finished baseline")
 
 
@@ -279,7 +279,7 @@ def main():
                         help="Maximum step of FQE")
     parser.add_argument("--m", type=int, default=12345,
                         help="Number of policy")
-    parser.add_argument("--num_runs", type=int, default=12345,
+    parser.add_argument("--num_runs", type=int, default=5,
                         help="number of runs")
     args = parser.parse_args()
 
