@@ -545,7 +545,7 @@ def calculate_statistics(data_list):
     std_dev = np.std(data_list, ddof=1)
     sem = std_dev / np.sqrt(len(data_list))
     ci = 2 * sem
-    return ci
+    return mean,ci
 def plot_subplots(data, save_path, y_axis_names, line_names, colors,ci):
     num_subplots = len(data)
     fig, axes = plt.subplots(num_subplots, figsize=(10, 5 * num_subplots), squeeze=False)

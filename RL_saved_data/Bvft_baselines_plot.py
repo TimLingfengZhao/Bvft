@@ -170,62 +170,45 @@ def plot_normalized_k(num_interval, FQE_number_epoch, FQE_episode_step, initial_
     Bvft_k_save_path = os.path.join(Bvft_saving_place, Bvft_k)
     if not os.path.exists(Bvft_k_save_path):
         os.makedirs(Bvft_k_save_path)
-    plot_precision_list = []
-    plot_regret_list = []
+
+    k_precision = 0
+    k_regret = 0
+
+
+    k_precision_list = [Bvft_k_precision_result,InitialQ_k_precision_result,Random_k_precision_result]
+    k_regret_list = [Bvft_k_regret_result,InitialQ_k_regret_result,Random_k_regret_result]
+
+    precision_mean_list = []
+    regret_mean_list = []
     ci_precision_list = []
     ci_regret_list = []
-    for k_i in range(k):
-        k_precision = 0
-        k_regret = 0
-        k_precision_name = str((k_i + 1)) + "_precision"
-        k_regret_name = str((k_i + 1)) + "_regret"
-        k_precision_ci_name = str(k_i + 1) + "_precision_ci"
-        k_regret_ci_name = str(k_i + 1) + "_regret_ci"
-        precision_path = os.path.join(Bvft_k_save_path, k_precision_name)
-        regret_path = os.path.join(Bvft_k_save_path, k_regret_name)
-        precision_ci_path = os.path.join(Bvft_k_save_path, k_precision_ci_name)
-        regret_ci_path = os.path.join(Bvft_k_save_path, k_regret_ci_name)
 
-        if (os.path.exists(regret_ci_path + ".pkl")):
-            k_precision = load_from_pkl(precision_path)
-            k_regret = load_from_pkl(regret_path)
-            k_precision_ci = load_from_pkl(precision_ci_path)
-            k_regret_ci = load_from_pkl(regret_ci_path)
-            ci_precision_list.append(k_precision_ci[0])
-            ci_regret_list.append(k_regret_ci[0])
-            plot_precision_list.append(k_precision[0])
-            plot_regret_list.append(k_regret[0])
-        else:
-            k_precision_list = []
-            k_regret_list = []
-            for i in range(num_runs):
-                print("iteration : ", i)
-                k_pre, k_reg = run_bvft(num_interval, FQE_number_epoch, FQE_episode_step, initial_state, m, (k_i + 1))
-                k_precision_list.append(k_pre)
-                k_regret_list.append(k_reg)
-            k_precision = sum(k_precision_list) / len(k_precision_list)
-            k_regret = sum(k_regret_list) / len(k_regret_list)
-            k_precision_ci = calculate_statistics(k_precision_list)
-            k_regret_ci = calculate_statistics(k_regret_list)
+    for i in range(len(k_precision_list)):
+        current_precision_mean_list = []
+        current_regret_mean_list = []
+        for k in range(k):
 
-            k_pre_saving_path = os.path.join(Bvft_k_save_path, k_precision_name)
-            k_reg_saving_path = os.path.join(Bvft_k_save_path, k_regret_name)
-            k_pre_ci_saving_path = os.path.join(Bvft_k_save_path, k_precision_ci_name)
-            k_reg_ci_saving_path = os.path.join(Bvft_k_save_path, k_regret_ci_name)
 
-            save_as_pkl(k_pre_saving_path, [k_precision])
-            save_as_pkl(k_reg_saving_path, [k_regret])
-            save_as_pkl(k_pre_ci_saving_path, [k_precision_ci])
-            save_as_pkl(k_reg_ci_saving_path, [k_regret_ci])
+    k_pre_saving_path = os.path.join(Bvft_k_save_path, k_precision_name)
+    k_reg_saving_path = os.path.join(Bvft_k_save_path, k_regret_name)
+    k_pre_ci_saving_path = os.path.join(Bvft_k_save_path, k_precision_ci_name)
+    k_reg_ci_saving_path = os.path.join(Bvft_k_save_path, k_regret_ci_name)
 
-            save_as_txt(k_pre_saving_path, [k_precision])
-            save_as_txt(k_reg_saving_path, [k_regret])
-            save_as_txt(k_pre_ci_saving_path, [k_precision_ci])
-            save_as_txt(k_reg_ci_saving_path, [k_regret_ci])
-            ci_precision_list.append(k_precision_ci)
-            ci_regret_list.append(k_regret_ci)
-            plot_precision_list.append(k_precision)
-            plot_regret_list.append(k_regret)
+    save_as_pkl(k_pre_saving_path, [k_precision])
+    save_as_pkl(k_reg_saving_path, [k_regret])
+    save_as_pkl(k_pre_ci_saving_path, [k_precision_ci])
+    save_as_pkl(k_reg_ci_saving_path, [k_regret_ci])
+
+    save_as_txt(k_pre_saving_path, [k_precision])
+    save_as_txt(k_reg_saving_path, [k_regret])
+    save_as_txt(k_pre_ci_saving_path, [k_precision_ci])
+    save_as_txt(k_reg_ci_saving_path, [k_regret_ci])
+    ci_precision_list.append(k_precision_ci)
+    ci_regret_list.append(k_regret_ci)
+    plot_precision_list.append(k_precision)
+    plot_regret_list.append(k_regret)
+
+
     total_precision_name = "total_" + str(k) + "_precision"
     total_reg_name = "total" + str(k) + "_regret"
     total_precision_ci = "total_" + str(k) + "_precision_ci"
