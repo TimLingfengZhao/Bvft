@@ -134,10 +134,11 @@ def Bvft_ranking(policy_name_list,Q_FQE,test_data,gamma, rmax, rmin, policy_name
     Ranking_saving_path = os.path.join(Bvft_ranking_saving_path,ranking_name_folder)
     save_as_txt(Policy_name_saving_path,policy_name_list)
     save_as_pkl(Policy_name_saving_path,policy_name_list)
-save_as_txt(Ranking_saving_path,bvft_ranking)
+    save_as_txt(Ranking_saving_path,bvft_ranking)
     save_as_pkl(Ranking_saving_path,bvft_ranking)
     delete_files_in_folder(Bvft_folder)
-def Initial_Q_ranking(policy_list,policy_name_list):
+
+def Initial_Q_ranking(policy_list,policy_name_list,env):
     performance_folder = "policy_returned_result"
     total_name = "policy_returned_total.txt"
     performance_total_path = os.path.join(performance_folder,total_name)
@@ -152,18 +153,29 @@ def Initial_Q_ranking(policy_list,policy_name_list):
         if policy_name in performance_dict:
             performance_list.append(performance_dict[policy_name])
             included = True
-            break
-    if not included:
-        policy_path = os.path.join(policy_folder, policy_name)
-        policy = d3rlpy.load_learnable(policy_path, device=device)
-        performance_list.append(calculate_policy_value(env, policy, gamma=0.99,num_run=100))
+        if not included:
+            policy_path = os.path.join(policy_folder, policy_name)
+            policy = d3rlpy.load_learnable(policy_path, device=device)
+            performance_list.append(calculate_policy_value(env, policy, gamma=0.99,num_run=100))
 
+    Bvft_saving_folder = "Bvft_saving_place"
+    Initial_Q_saving_folder = "InitialQ_ranking"
+    Initial_Q_ranking_saving_path = os.path.join(Bvft_saving_folder,Initial_Q_saving_folder)
+    if not os.path.exists(Initial_Q_ranking_saving_path):
+        os.makedirs(Initial_Q_ranking_saving_path)
+    policy_name_folder = "policy_names"
+    Initial_Q_name_folder = "Initial_Q_rankings"
+    Policy_name_saving_path = os.path.join(Initial_Q_ranking_saving_path,policy_name_folder)
+    Ranking_saving_path = os.path.join(Initial_Q_ranking_saving_path,Initial_Q_name_folder)
+    save_as_txt(Policy_name_saving_path,policy_name_list)
+    save_as_pkl(Policy_name_saving_path,policy_name_list)
+    save_as_txt(Ranking_saving_path,random_ranking)
+    save_as_pkl(Ranking_saving_path,random_ranking)
 
 
 def random_ranking(policy_name_list):
     random_ranking = list(range(1,len(policy_name_list)+1))
     random.shuffle(random_ranking)
-    Bvft_folder = "Bvft_Records"
     Bvft_saving_folder = "Bvft_saving_place"
     random_ranking_saving_folder = "Random_ranking"
     Random_ranking_saving_path = os.path.join(Bvft_saving_folder,random_ranking_saving_folder)
