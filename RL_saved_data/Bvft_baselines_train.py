@@ -70,7 +70,7 @@ def pick_FQE(policy_name_list,device,number_FQE,FQE_total_step,FQE_episode_step,
     Q_FQE = []
     for policy_file_name in policy_name_list:
         policy_path = os.path.join(policy_folder, policy_file_name)
-        policy = d3rlpy.load_learnable(policy_path, device=device)
+        policy = d3rlpy.load_learnable(policy_path + ".d3", device=device)
         for FQE_learning_rate in FQE_lr_list:
             for FQE_hidden_layer in FQE_hl_list:
                 Q_list = []
@@ -78,11 +78,11 @@ def pick_FQE(policy_name_list,device,number_FQE,FQE_total_step,FQE_episode_step,
                 if not os.path.exists(FQE_directory):
                     os.makedirs(FQE_directory)
                 for i in range(number_FQE):
-                    FQE_step = FQE_total_step / number_FQE
+                    FQE_step = int(FQE_total_step / number_FQE)
                     FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_' + str(
                         FQE_step * (i + 1)) + "step" + "_"
                     FQE_model_name = FQE_model_pre + policy_file_name
-                    FQE_model_name = FQE_model_name[:-3] + ".pt"
+                    FQE_model_name = FQE_model_name+ ".pt"
                     FQE_file_path = os.path.join(FQE_directory, FQE_model_name)
                     fqeconfig = d3rlpy.ope.FQEConfig(
                         learning_rate=FQE_learning_rate,
@@ -92,9 +92,9 @@ def pick_FQE(policy_name_list,device,number_FQE,FQE_total_step,FQE_episode_step,
                     fqe.build_with_dataset(replay_buffer)
                     fqe.load_model(FQE_file_path)
                     Q_list.append(fqe)
-                Q_FQE.append(Q_list)
+        Q_FQE.append(Q_list)
     return Q_FQE
-def Bvft_ranking(policy_name_list,Q_FQE,test_data,gamma, rmax, rmin, record,batch_dim):
+def Bvft_ranking(policy_name_list,Q_FQE,test_data,gamma, rmax, rmin, record,batch_dim,num_runs):
     for i in range(len(Q_FQE)):
         q_functions = Q_FQE[i]
         bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i],record, "torch_actor_critic_cont", verbose=True,batch_dim=1000)
@@ -125,7 +125,11 @@ def Bvft_ranking(policy_name_list,Q_FQE,test_data,gamma, rmax, rmin, record,batc
     bvft_ranking = rank_elements(best_avg_q)
     Bvft_saving_folder = "Bvft_saving_place"
     Bvft_ranking_saving_folder = "Bvft_FQE_avgQ_ranking"
-    Bvft_ranking_saving_path = os.path.join(Bvft_saving_folder,Bvft_ranking_saving_folder)
+    Bvft_ranking_saving_path_before = os.path.join(Bvft_saving_folder,Bvft_ranking_saving_folder)
+    if not os.path.exists(Bvft_ranking_saving_path_before):
+        os.makedirs(Bvft_ranking_saving_path_before  )
+    runs_folder = str(num_runs)+"run"
+    Bvft_ranking_saving_path = os.path.join(Bvft_ranking_saving_path_before,runs_folder)
     if not os.path.exists(Bvft_ranking_saving_path):
         os.makedirs(Bvft_ranking_saving_path  )
     policy_name_folder = "policy_names"
@@ -138,7 +142,7 @@ def Bvft_ranking(policy_name_list,Q_FQE,test_data,gamma, rmax, rmin, record,batc
     save_as_pkl(Ranking_saving_path,bvft_ranking)
     delete_files_in_folder(Bvft_folder)
 
-def Initial_Q_ranking(policy_list,policy_name_list,env):
+def Initial_Q_ranking(policy_list,policy_name_list,env,num_runs):
     performance_folder = "policy_returned_result"
     total_name = "policy_returned_total.txt"
     performance_total_path = os.path.join(performance_folder,total_name)
@@ -155,43 +159,51 @@ def Initial_Q_ranking(policy_list,policy_name_list,env):
             included = True
         if not included:
             policy_path = os.path.join(policy_folder, policy_name)
-            policy = d3rlpy.load_learnable(policy_path, device=device)
+            policy = d3rlpy.load_learnable(policy_path+".d3", device=device)
             performance_list.append(calculate_policy_value(env, policy, gamma=0.99,num_run=100))
-
+    initialQ_rankings = rank_elements(performance_list)
     Bvft_saving_folder = "Bvft_saving_place"
     Initial_Q_saving_folder = "InitialQ_ranking"
-    Initial_Q_ranking_saving_path = os.path.join(Bvft_saving_folder,Initial_Q_saving_folder)
+    Initial_Q_ranking_saving_path_before = os.path.join(Bvft_saving_folder,Initial_Q_saving_folder)
+    if not os.path.exists(Initial_Q_ranking_saving_path_before):
+        os.makedirs(Initial_Q_ranking_saving_path_before  )
+    runs_folder = str(num_runs)+"run"
+    Initial_Q_ranking_saving_path = os.path.join(Initial_Q_ranking_saving_path_before,runs_folder)
     if not os.path.exists(Initial_Q_ranking_saving_path):
-        os.makedirs(Initial_Q_ranking_saving_path)
+        os.makedirs(Initial_Q_ranking_saving_path )
     policy_name_folder = "policy_names"
     Initial_Q_name_folder = "Initial_Q_rankings"
     Policy_name_saving_path = os.path.join(Initial_Q_ranking_saving_path,policy_name_folder)
     Ranking_saving_path = os.path.join(Initial_Q_ranking_saving_path,Initial_Q_name_folder)
     save_as_txt(Policy_name_saving_path,policy_name_list)
     save_as_pkl(Policy_name_saving_path,policy_name_list)
-    save_as_txt(Ranking_saving_path,random_ranking)
-    save_as_pkl(Ranking_saving_path,random_ranking)
+    save_as_txt(Ranking_saving_path,initialQ_rankings)
+    save_as_pkl(Ranking_saving_path,initialQ_rankings)
 
 
-def random_ranking(policy_name_list):
-    random_ranking = list(range(1,len(policy_name_list)+1))
-    random.shuffle(random_ranking)
+def random_ranking(policy_name_list,num_runs):
+    r_ranking = list(range(1,len(policy_name_list)+1))
+    random.shuffle(r_ranking)
     Bvft_saving_folder = "Bvft_saving_place"
     random_ranking_saving_folder = "Random_ranking"
-    Random_ranking_saving_path = os.path.join(Bvft_saving_folder,random_ranking_saving_folder)
+    Random_ranking_saving_path_before = os.path.join(Bvft_saving_folder,random_ranking_saving_folder)
+    if not os.path.exists(Random_ranking_saving_path_before):
+        os.makedirs(Random_ranking_saving_path_before  )
+    runs_folder = str(num_runs)+"run"
+    Random_ranking_saving_path = os.path.join(Random_ranking_saving_path_before,runs_folder)
     if not os.path.exists(Random_ranking_saving_path):
-        os.makedirs(Random_ranking_saving_path  )
+        os.makedirs(Random_ranking_saving_path )
     policy_name_folder = "policy_names"
     ranking_name_folder = "random_rankings"
     Policy_name_saving_path = os.path.join(Random_ranking_saving_path,policy_name_folder)
     Ranking_saving_path = os.path.join(Random_ranking_saving_path,ranking_name_folder)
     save_as_txt(Policy_name_saving_path,policy_name_list)
     save_as_pkl(Policy_name_saving_path,policy_name_list)
-    save_as_txt(Ranking_saving_path,random_ranking)
-    save_as_pkl(Ranking_saving_path,random_ranking)
+    save_as_txt(Ranking_saving_path,r_ranking)
+    save_as_pkl(Ranking_saving_path,r_ranking)
 
 
-def run_baseline(FQE_episode_step, FQE_Pickup_number,FQE_total_step,m ):
+def run_baseline(FQE_episode_step, FQE_Pickup_number,FQE_total_step,m ,num_runs):
     print("begin bvft")
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
@@ -209,13 +221,14 @@ def run_baseline(FQE_episode_step, FQE_Pickup_number,FQE_total_step,m ):
     batch_dim = 1000
     test_data = CustomDataLoader(replay_buffer_test,    batch_size=batch_dim)
 
-    policy_name_list, policy_list = pick_policy(m,device)
-    Q_FQE = pick_FQE(policy_name_list,device,FQE_Pickup_number,FQE_total_step,FQE_episode_step,replay_buffer)
+    for i in range(num_runs):
+        policy_name_list, policy_list = pick_policy(m, device)
+        Q_FQE = pick_FQE(policy_name_list, device, FQE_Pickup_number, FQE_total_step, FQE_episode_step, replay_buffer)
 
-    Bvft_ranking(policy_name_list,Q_FQE,test_data,gamma, rmax, rmin, record,batch_dim)
-    random_ranking(policy_name_list)
-    Initial_Q_ranking(policy_list,policy_name_list,env)
-
+        Bvft_ranking(policy_name_list, Q_FQE, test_data, gamma, rmax, rmin, record, batch_dim,num_runs)
+        random_ranking(policy_name_list,num_runs)
+        Initial_Q_ranking(policy_list, policy_name_list, env,num_runs)
+    print("finished baseline")
 
 
 
@@ -266,12 +279,14 @@ def main():
                         help="Maximum step of FQE")
     parser.add_argument("--m", type=int, default=12345,
                         help="Number of policy")
+    parser.add_argument("--num_runs", type=int, default=12345,
+                        help="number of runs")
     args = parser.parse_args()
 
     run_baseline(FQE_episode_step=args.FQE_episode_step, FQE_Pickup_number = args.FQE_Pickup_number,
                                              FQE_total_step=args.FQE_total_step,
-                                            m = args.m)
+                                            m = args.m,num_runs=args.num_runs)
 #--num_interval 5 --FQE_number_epoch 45 --FQE_episode_step 20000 --initial_state 12345 --m 10 --k 1 --num_runs 4
-#
+#--FQE_episode_step 100000 --FQE_Pickup_number 1 --FQE_total_step 900000 --m 2 --num_runs 10
 if __name__ == "__main__":
     main()

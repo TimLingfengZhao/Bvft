@@ -118,26 +118,6 @@ def rank_elements(lst):
     return ranks
 
 
-def rank_elements(lst):
-    enumerated_list = list(enumerate(lst))
-    sorted_enumerated_list = sorted(enumerated_list, key=lambda x: x[1])
-
-    rank_dict = {}
-    current_rank = 0
-
-    for i, (index, value) in enumerate(sorted_enumerated_list):
-        if i == 0 or value != sorted_enumerated_list[i - 1][1]:
-            rank_dict[value] = current_rank
-            current_rank += 1
-        else:
-            rank_dict[value] = current_rank - 1
-
-    rank_list = [0] * len(lst)
-    for index, value in enumerated_list:
-        rank_list[index] = rank_dict[value]
-
-    return rank_list
-
 
 def plot_histogram(policy_names, total_rewards,save_path, file_name="total_rewards_histogram.png"):
     os.makedirs(save_path, exist_ok=True)
