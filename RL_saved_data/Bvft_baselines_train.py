@@ -94,7 +94,7 @@ def pick_FQE(policy_name_list,device,number_FQE,FQE_total_step,FQE_episode_step,
                     Q_list.append(fqe)
                 Q_FQE.append(Q_list)
     return Q_FQE
-def Bvft_ranking(policy_name_list,Q_FQE,test_data,gamma, rmax, rmin, policy_name_list,record,batch_dim):
+def Bvft_ranking(policy_name_list,Q_FQE,test_data,gamma, rmax, rmin, record,batch_dim):
     for i in range(len(Q_FQE)):
         q_functions = Q_FQE[i]
         bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i],record, "torch_actor_critic_cont", verbose=True,batch_dim=1000)
@@ -212,50 +212,51 @@ def run_baseline(FQE_episode_step, FQE_Pickup_number,FQE_total_step,m ):
     policy_name_list, policy_list = pick_policy(m,device)
     Q_FQE = pick_FQE(policy_name_list,device,FQE_Pickup_number,FQE_total_step,FQE_episode_step,replay_buffer)
 
-    Bvft_ranking(policy_name_list, Q_FQE, test_data, gamma, rmax, rmin, policy_name_list, record, batch_dim)
+    Bvft_ranking(policy_name_list,Q_FQE,test_data,gamma, rmax, rmin, record,batch_dim)
     random_ranking(policy_name_list)
+    Initial_Q_ranking(policy_list,policy_name_list,env)
 
 
 
 
 
-def calculate_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initial_state,m,k,num_runs):
-
-    k_precision_list = []
-    k_regret_list = []
-    for i in range(num_runs):
-        print("iteration : ", i)
-        k_pre,k_reg = run_bvft(num_interval, FQE_number_epoch, FQE_episode_step, initial_state, m,k)
-        k_precision_list.append(k_pre)
-        k_regret_list.append(k_reg)
-    k_precision = sum(k_precision_list)/len(k_precision_list)
-    k_regret = sum(k_regret_list)/len(k_regret_list)
-    k_precision_ci = calculate_statistics(k_precision_list)
-    k_regret_ci = calculate_statistics(k_regret_list)
-
-    Bvft_saving_place = 'Bvft_saving_place'
-    Bvft_k = 'Bvft_k_results'
-    Bvft_k_save_path = os.path.join(Bvft_saving_place,Bvft_k)
-    if not os.path.exists(Bvft_k_save_path ):
-        os.makedirs(Bvft_k_save_path )
-    k_precision_name = str(k)+"_precision"
-    k_regret_name = str(k)+"_regret"
-    k_precision_ci_name = str(k)+"_precision_ci"
-    k_regret_ci_name = str(k) + "_regret_ci"
-    k_pre_saving_path = os.path.join(Bvft_k_save_path,k_precision_name)
-    k_reg_saving_path = os.path.join(Bvft_k_save_path,k_regret_name)
-    k_pre_ci_saving_path = os.path.join(Bvft_k_save_path,k_precision_ci_name)
-    k_reg_ci_saving_path = os.path.join(Bvft_k_save_path,k_regret_ci_name)
-
-    save_as_pkl(k_pre_saving_path, [k_precision])
-    save_as_pkl(k_reg_saving_path,[k_regret])
-    save_as_pkl(k_pre_ci_saving_path, [k_precision_ci])
-    save_as_pkl(k_reg_ci_saving_path, [k_regret_ci])
-
-    save_as_txt(k_pre_saving_path, [k_precision])
-    save_as_txt(k_reg_saving_path,[k_regret])
-    save_as_txt(k_pre_ci_saving_path, [k_precision_ci])
-    save_as_txt(k_reg_ci_saving_path, [k_regret_ci])
+# def calculate_normalized_k(num_interval,FQE_number_epoch,FQE_episode_step,initial_state,m,k,num_runs):
+#
+#     k_precision_list = []
+#     k_regret_list = []
+#     for i in range(num_runs):
+#         print("iteration : ", i)
+#         k_pre,k_reg = run_bvft(num_interval, FQE_number_epoch, FQE_episode_step, initial_state, m,k)
+#         k_precision_list.append(k_pre)
+#         k_regret_list.append(k_reg)
+#     k_precision = sum(k_precision_list)/len(k_precision_list)
+#     k_regret = sum(k_regret_list)/len(k_regret_list)
+#     k_precision_ci = calculate_statistics(k_precision_list)
+#     k_regret_ci = calculate_statistics(k_regret_list)
+#
+#     Bvft_saving_place = 'Bvft_saving_place'
+#     Bvft_k = 'Bvft_k_results'
+#     Bvft_k_save_path = os.path.join(Bvft_saving_place,Bvft_k)
+#     if not os.path.exists(Bvft_k_save_path ):
+#         os.makedirs(Bvft_k_save_path )
+#     k_precision_name = str(k)+"_precision"
+#     k_regret_name = str(k)+"_regret"
+#     k_precision_ci_name = str(k)+"_precision_ci"
+#     k_regret_ci_name = str(k) + "_regret_ci"
+#     k_pre_saving_path = os.path.join(Bvft_k_save_path,k_precision_name)
+#     k_reg_saving_path = os.path.join(Bvft_k_save_path,k_regret_name)
+#     k_pre_ci_saving_path = os.path.join(Bvft_k_save_path,k_precision_ci_name)
+#     k_reg_ci_saving_path = os.path.join(Bvft_k_save_path,k_regret_ci_name)
+#
+#     save_as_pkl(k_pre_saving_path, [k_precision])
+#     save_as_pkl(k_reg_saving_path,[k_regret])
+#     save_as_pkl(k_pre_ci_saving_path, [k_precision_ci])
+#     save_as_pkl(k_reg_ci_saving_path, [k_regret_ci])
+#
+#     save_as_txt(k_pre_saving_path, [k_precision])
+#     save_as_txt(k_reg_saving_path,[k_regret])
+#     save_as_txt(k_pre_ci_saving_path, [k_precision_ci])
+#     save_as_txt(k_reg_ci_saving_path, [k_regret_ci])
 
 def main():
     parser = argparse.ArgumentParser(description="Run specific Bvft based on learning rate and combination.")
@@ -271,5 +272,6 @@ def main():
                                              FQE_total_step=args.FQE_total_step,
                                             m = args.m)
 #--num_interval 5 --FQE_number_epoch 45 --FQE_episode_step 20000 --initial_state 12345 --m 10 --k 1 --num_runs 4
+#
 if __name__ == "__main__":
     main()
