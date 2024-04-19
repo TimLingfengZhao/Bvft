@@ -458,46 +458,63 @@ def generate_unique_colors(number_of_colors):
     else:
         colors = [cmap(i) for i in np.linspace(0, 1, number_of_colors)]
     return colors
-def calculate_top_k_precision(initial_state,env, policies,rank_list, k=2):
+def load_policy_performance(policy_name_list,env):
+    policy_folder = 'policy_trained'
+
+    performance_folder = "policy_returned_result"
+    total_name = "policy_returned_total.txt"
+    performance_total_path = os.path.join(performance_folder,total_name)
+    performance_dict = load_dict_from_txt(performance_total_path)
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+    performance_list = []
+    for policy_name in policy_name_list:
+        included =False
+        if policy_name in performance_dict:
+            performance_list.append(performance_dict[policy_name])
+            included = True
+        if not included:
+            policy_path = os.path.join(policy_folder, policy_name)
+            policy = d3rlpy.load_learnable(policy_path+".d3", device=device)
+            performance_list.append(calculate_policy_value(env, policy, gamma=0.99,num_run=100))
+    return performance_list
+def calculate_top_k_precision(initial_state,env, policy_name_list,rank_list, k=2):
     #ranking_list 给了前k个policy的坐标
-    num_trajectory = 5
-    trajectory_length = 1000
-    state_dim = 11
-    action_dim = 3
-    noise_std = 0.1
-    cur_policy = policies
 
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    proportion = 0
 
-    policy_performance = []
-    for i in range(len(policies)):
-        policy_performance.append(calculate_policy_value(env, policies[i], gamma=0.99, num_run=30))
-    policy_ranking_groundtruth = rank_elements(policy_performance)
-    for pos in rank_list :
-        if (rank_list[pos]<=k-1 and policy_ranking_groundtruth[pos] <= k-1):
-            proportion+=1
-    proportion = proportion/k
 
-    return proportion
-def calculate_top_k_normalized_regret(ranking_list, policy_list,env,k=2):
+    policy_performance_list = load_policy_performance(policy_name_list,env)
+    policy_ranking_groundtruth = rank_elements(policy_performance_list)
+
+    k_precision_list = []
+    for i in range(1,k+1):
+        proportion = 0
+        for pos in rank_list:
+            if (rank_list[pos] <= i - 1 and policy_ranking_groundtruth[pos] <= i - 1):
+                proportion += 1
+        proportion = proportion / i
+        k_precision_list.append(proportion)
+    return k_precision_list
+def calculate_top_k_normalized_regret(ranking_list, policy_name_list,env,k=2):
     print("calcualte top k normalized regret")
-    policy_performance = []
-    for i in range(len(policy_list)):
-        policy_performance.append(calculate_policy_value(env,policy_list[i],gamma=0.99,
-                                                         num_run=30))
-    ground_truth_value = max(policy_performance)
-    worth_value = min(policy_performance)
+    policy_performance_list = load_policy_performance(policy_name_list,env)
+
+    ground_truth_value = max(policy_performance_list)
+    worth_value = min(policy_performance_list)
     if((ground_truth_value - worth_value) == 0):
         print("the maximum is equal to worth value, error!!!!")
         return 99999
-    gap_list = []
-    for i in range(len(ranking_list)):
-        if(ranking_list[i]<=k-1):
-            value = policy_performance[i]
-            norm = (ground_truth_value - value) / (ground_truth_value - worth_value)
-            gap_list.append(norm)
-    return min(gap_list)
+    k_regret_list = []
+    for j in range(1,k+1):
+        gap_list = []
+        for i in range(len(ranking_list)):
+            if(ranking_list[i]<=j-1):
+                value = policy_performance_list[i]
+                norm = (ground_truth_value - value) / (ground_truth_value - worth_value)
+                gap_list.append(norm)
+        k_regret_list.append(min(gap_list))
+    return k_regret_list
 
 
 
