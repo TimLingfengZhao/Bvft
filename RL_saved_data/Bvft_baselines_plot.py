@@ -191,6 +191,7 @@ def calculate_k(num_runs, initial_state, env, k):
     Bvft_k_save_path = os.path.join(Bvft_saving_place, Bvft_k)
     if not os.path.exists(Bvft_k_save_path):
         os.makedirs(Bvft_k_save_path)
+    print("k : ",k)
     k_precision_name = str(k)+"_mean_precision_"+str(num_runs)
     k_regret_name = str(k)+"_mean_regret"+str(num_runs)
     precision_ci_name = str(k)+"_CI_precision"+str(num_runs)
@@ -243,6 +244,7 @@ def plot_normalized_k( initial_state ,k, num_runs):
     plot_name_saving_path = os.path.join(Bvft_k_save_path,plot_name)
     precision_path = os.path.join(Bvft_k_save_path,k_precision_name)
     if os.path.exists(precision_path):
+        print("load saved data")
         precision_mean_list = load_from_pkl(k_precision_mean_saving_path)
         regret_mean_list = load_from_pkl(k_regret_mean_saving_path)
         precision_ci_list = load_from_pkl(k_precision_ci_saving_path)
@@ -260,9 +262,11 @@ def plot_normalized_k( initial_state ,k, num_runs):
     y_axis_names = ["k precision", "k regret"]
     colors = generate_unique_colors(len(plot_mean_list[0]))
     line_name = ["hopper-medium-expert-v0", "hopper-medium-expert-v0"]
-
+    print("plot mean list : ",plot_mean_list)
+    print("ci lsit : ",plot_ci_list)
     plot_subplots(data=plot_mean_list, save_path=Bvft_plot_folder, y_axis_names=y_axis_names,
                   line_names=line_name_list, colors=colors, ci=plot_ci_list)
+    print("plot finished")
 def main():
     parser = argparse.ArgumentParser(description="Plot k precision and k regret plot for 3 different rankings")
     parser.add_argument("--initial_state", type=int, default=12345, help="Initial state in real environment")
