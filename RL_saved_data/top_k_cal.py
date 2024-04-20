@@ -466,14 +466,17 @@ def load_policy_performance(policy_name_list,env):
     performance_total_path = os.path.join(performance_folder,total_name)
     performance_dict = load_dict_from_txt(performance_total_path)
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
-
     performance_list = []
     for policy_name in policy_name_list:
         included =False
+        print("policy name : ",policy_name)
+        print("performance dict : " , performance_dict)
         if policy_name in performance_dict:
-            performance_list.append(performance_dict[policy_name])
+            performance_list.append(float(performance_dict[policy_name]))
+            print("included")
             included = True
         if not included:
+            print("not included")
             policy_path = os.path.join(policy_folder, policy_name)
             policy = d3rlpy.load_learnable(policy_path+".d3", device=device)
             performance_list.append(calculate_policy_value(env, policy, gamma=0.99,num_run=100))

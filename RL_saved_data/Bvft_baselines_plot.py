@@ -173,9 +173,9 @@ def calculate_k(num_runs, initial_state, env, k):
         current_regret_mean_list = []
         current_precision_ci_list = []
         current_regret_ci_list = []
-        for k in range(k):
-            current_precision_mean, current_precision_ci = calculate_statistics(k_precision_list[i][k])
-            current_regret_mean, current_regret_ci = calculate_statistics(k_regret_list[i][k])
+        for j in range(k):
+            current_precision_mean, current_precision_ci = calculate_statistics(k_precision_list[i][j])
+            current_regret_mean, current_regret_ci = calculate_statistics(k_regret_list[i][j])
             current_precision_mean_list.append(current_precision_mean)
             current_precision_ci_list.append(current_precision_ci)
             current_regret_mean_list.append(current_regret_mean)
@@ -225,6 +225,7 @@ def plot_normalized_k( initial_state ,k, num_runs):
     #1d: different baselines
     #2d: precision, regret
     #3d: points
+    print("start normalize plot k : ",k)
     whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
     Bvft_saving_place = 'Bvft_saving_place'
     Bvft_k = 'Bvft_k_results'
