@@ -63,18 +63,18 @@ def load_rankings(num_runs):
     Bvft_policy_name_list = []
     InitialQ_policy_name_list = []
     Random_policy_name_list = []
-    for run in num_runs:
-        run_folder = run + "run"
+    for run in range(num_runs):
+        run_folder = str(run) + "run"
         Bvft_ranking_run_folder = os.path.join(Bvft_ranking_path, run_folder)
         InitialQ_ranking_run_folder = os.path.join(InitialQ_ranking_path, run_folder)
         Random_ranking_run_folder = os.path.join(Random_ranking_path, run_folder)
 
-        Bvft_ranking_run_path = os.path.join(Bvft_ranking_run_folder, "rankings.pkl")
-        InitialQ_ranking_run_path = os.path.join(InitialQ_ranking_run_folder, "rankings.pkl")
-        Random_ranking_run_path = os.path.join(Random_ranking_run_folder, "rankings.pkl")
+        Bvft_ranking_run_path = os.path.join(Bvft_ranking_run_folder, "rankings")
+        InitialQ_ranking_run_path = os.path.join(InitialQ_ranking_run_folder, "rankings")
+        Random_ranking_run_path = os.path.join(Random_ranking_run_folder, "rankings")
 
-        Bvft_policy_name_path = os.path.join(Bvft_ranking_run_folder, "policy_names.pkl")
-        InitialQ_policy_name_path = os.path.join(InitialQ_ranking_run_folder, "policy_names.pkl")
+        Bvft_policy_name_path = os.path.join(Bvft_ranking_run_folder, "policy_names")
+        InitialQ_policy_name_path = os.path.join(InitialQ_ranking_run_folder, "policy_names")
         Random_policy_name_path = os.path.join(Random_ranking_run_folder, "policy_names")
 
         Bvft_ranking_run_list = load_from_pkl(Bvft_ranking_run_path)
@@ -93,7 +93,7 @@ def load_rankings(num_runs):
         InitialQ_policy_name_list.append(InitialQ_policy_name_run_list)
         Random_policy_name_list.append(Random_policy_name_run_list)
 
-        return Bvft_ranking_list, InitialQ_ranking_list, Random_ranking_list, Bvft_policy_name_list, InitialQ_policy_name_list, Random_policy_name_list
+    return Bvft_ranking_list, InitialQ_ranking_list, Random_ranking_list, Bvft_policy_name_list, InitialQ_policy_name_list, Random_policy_name_list
 
 
 def calculate_k(num_runs, initial_state, env, k):
@@ -106,6 +106,7 @@ def calculate_k(num_runs, initial_state, env, k):
     Bvft_k_regret_list = []
     InitialQ_k_regret_list = []
     Random_k_regret_list = []
+
     for i in range(num_runs):
         Bvft_k_precision_list.append(calculate_top_k_precision(initial_state, env,
                                                                Bvft_policy_name_list[i],
@@ -158,99 +159,120 @@ def calculate_k(num_runs, initial_state, env, k):
         Bvft_k_regret_result.append(Bvft_regret)
         InitialQ_k_regret_result.append(InitialQ_regret)
         Random_k_regret_result.append(Random_regret)
-    return Bvft_k_precision_result, InitialQ_k_precision_result, Random_k_precision_result, Bvft_k_regret_result, InitialQ_k_regret_result, Random_k_regret_result
 
+    k_precision_list = [Bvft_k_precision_result, InitialQ_k_precision_result, Random_k_precision_result]
+    k_regret_list = [Bvft_k_regret_result, InitialQ_k_regret_result, Random_k_regret_result]
 
-def plot_normalized_k(num_interval, FQE_number_epoch, FQE_episode_step, initial_state, m, k, num_runs, env):
-    Bvft_k_precision_result, InitialQ_k_precision_result, Random_k_precision_result, Bvft_k_regret_result, InitialQ_k_regret_result, Random_k_regret_result = calculate_k(
-        num_runs, initial_state, env, k)
+    precision_mean_list = []
+    regret_mean_list = []
+    precision_ci_list = []
+    regret_ci_list = []
+
+    for i in range(len(k_precision_list)):
+        current_precision_mean_list = []
+        current_regret_mean_list = []
+        current_precision_ci_list = []
+        current_regret_ci_list = []
+        for k in range(k):
+            current_precision_mean, current_precision_ci = calculate_statistics(k_precision_list[i][k])
+            current_regret_mean, current_regret_ci = calculate_statistics(k_regret_list[i][k])
+            current_precision_mean_list.append(current_precision_mean)
+            current_precision_ci_list.append(current_precision_ci)
+            current_regret_mean_list.append(current_regret_mean)
+            current_regret_ci_list.append(current_regret_ci)
+        precision_mean_list.append(current_precision_mean_list)
+        regret_mean_list.append(current_regret_mean_list)
+        precision_ci_list.append(current_precision_ci_list)
+        regret_ci_list.append(current_regret_ci_list)
+    plot_name_list = ["Bvft-multiFQE-avgQ", "InitialQ", "Random"]
 
     Bvft_saving_place = 'Bvft_saving_place'
     Bvft_k = 'Bvft_k_results'
     Bvft_k_save_path = os.path.join(Bvft_saving_place, Bvft_k)
     if not os.path.exists(Bvft_k_save_path):
         os.makedirs(Bvft_k_save_path)
+    k_precision_name = str(k)+"_mean_precision_"+str(num_runs)
+    k_regret_name = str(k)+"_mean_regret"+str(num_runs)
+    precision_ci_name = str(k)+"_CI_precision"+str(num_runs)
+    regret_ci_name = str(k)+"_CI_regret"+str(num_runs)
 
-    k_precision = 0
-    k_regret = 0
+    plot_name = "line_names"
 
+    k_precision_mean_saving_path = os.path.join(Bvft_k_save_path,k_precision_name)
+    k_regret_mean_saving_path = os.path.join(Bvft_k_save_path,k_regret_name)
+    k_precision_ci_saving_path = os.path.join(Bvft_k_save_path,precision_ci_name)
+    k_regret_ci_saving_path = os.path.join(Bvft_k_save_path,regret_ci_name)
+    plot_name_saving_path = os.path.join(Bvft_k_save_path,plot_name)
 
-    k_precision_list = [Bvft_k_precision_result,InitialQ_k_precision_result,Random_k_precision_result]
-    k_regret_list = [Bvft_k_regret_result,InitialQ_k_regret_result,Random_k_regret_result]
+    save_as_pkl(k_precision_mean_saving_path,precision_mean_list)
+    save_as_pkl(k_regret_mean_saving_path,regret_mean_list)
+    save_as_pkl(k_precision_ci_saving_path,precision_ci_list)
+    save_as_pkl(k_regret_ci_saving_path,regret_ci_list)
+    save_as_pkl(plot_name_saving_path,plot_name_list)
 
-    precision_mean_list = []
-    regret_mean_list = []
-    ci_precision_list = []
-    ci_regret_list = []
-
-    for i in range(len(k_precision_list)):
-        current_precision_mean_list = []
-        current_regret_mean_list = []
-        for k in range(k):
-
-
-    k_pre_saving_path = os.path.join(Bvft_k_save_path, k_precision_name)
-    k_reg_saving_path = os.path.join(Bvft_k_save_path, k_regret_name)
-    k_pre_ci_saving_path = os.path.join(Bvft_k_save_path, k_precision_ci_name)
-    k_reg_ci_saving_path = os.path.join(Bvft_k_save_path, k_regret_ci_name)
-
-    save_as_pkl(k_pre_saving_path, [k_precision])
-    save_as_pkl(k_reg_saving_path, [k_regret])
-    save_as_pkl(k_pre_ci_saving_path, [k_precision_ci])
-    save_as_pkl(k_reg_ci_saving_path, [k_regret_ci])
-
-    save_as_txt(k_pre_saving_path, [k_precision])
-    save_as_txt(k_reg_saving_path, [k_regret])
-    save_as_txt(k_pre_ci_saving_path, [k_precision_ci])
-    save_as_txt(k_reg_ci_saving_path, [k_regret_ci])
-    ci_precision_list.append(k_precision_ci)
-    ci_regret_list.append(k_regret_ci)
-    plot_precision_list.append(k_precision)
-    plot_regret_list.append(k_regret)
+    save_as_txt(k_precision_mean_saving_path,precision_mean_list)
+    save_as_txt(k_regret_mean_saving_path,regret_mean_list)
+    save_as_txt(k_precision_ci_saving_path,precision_ci_list)
+    save_as_txt(k_regret_ci_saving_path,regret_ci_list)
+    save_as_txt(plot_name_saving_path,plot_name_list)
 
 
-    total_precision_name = "total_" + str(k) + "_precision"
-    total_reg_name = "total" + str(k) + "_regret"
-    total_precision_ci = "total_" + str(k) + "_precision_ci"
-    total_reg_ci = "total" + str(k) + "_regret_ci"
-    total_k_pre_saving_path = os.path.join(Bvft_k_save_path, total_precision_name)
-    total_k_reg_saving_path = os.path.join(Bvft_k_save_path, total_reg_name)
-    total_k_pre_ci_saving_path = os.path.join(Bvft_k_save_path, total_precision_ci)
-    total_k_reg_ci_saving_path = os.path.join(Bvft_k_save_path, total_reg_ci)
+    return precision_mean_list,regret_mean_list,precision_ci_list,regret_ci_list,plot_name_list
 
-    save_as_pkl(total_k_pre_saving_path, plot_precision_list)
-    save_as_pkl(total_k_reg_saving_path, plot_regret_list)
-    save_as_pkl(total_k_pre_ci_saving_path, ci_precision_list)
-    save_as_pkl(total_k_reg_ci_saving_path, ci_regret_list)
 
-    save_as_txt(total_k_pre_saving_path, plot_precision_list)
-    save_as_txt(total_k_reg_saving_path, plot_regret_list)
-    save_as_txt(total_k_pre_ci_saving_path, ci_precision_list)
-    save_as_txt(total_k_reg_ci_saving_path, ci_regret_list)
+def plot_normalized_k( initial_state ,k, num_runs):
+    #1d: different baselines
+    #2d: precision, regret
+    #3d: points
+    whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
+    Bvft_saving_place = 'Bvft_saving_place'
+    Bvft_k = 'Bvft_k_results'
+    Bvft_k_save_path = os.path.join(Bvft_saving_place, Bvft_k)
+    if not os.path.exists(Bvft_k_save_path):
+        os.makedirs(Bvft_k_save_path)
+    k_precision_name = str(k)+"_mean_precision_"+str(num_runs)+".pkl"
+    k_regret_name = str(k)+"_mean_regret"+str(num_runs)+".pkl"
+    precision_ci_name = str(k)+"_CI_precision"+str(num_runs)+".pkl"
+    regret_ci_name = str(k)+"_CI_regret"+str(num_runs)+".pkl"
+    plot_name = "line_names"+".pkl"
 
-    plot_list = []
-    ci_list = []
-    precision_list = []
-    precision_list.append(plot_precision_list)
-    regre_list = []
-    regre_list.append(plot_regret_list)
+    k_precision_mean_saving_path = os.path.join(Bvft_k_save_path,k_precision_name)
+    k_regret_mean_saving_path = os.path.join(Bvft_k_save_path,k_regret_name)
+    k_precision_ci_saving_path = os.path.join(Bvft_k_save_path,precision_ci_name)
+    k_regret_ci_saving_path = os.path.join(Bvft_k_save_path,regret_ci_name)
+    plot_name_saving_path = os.path.join(Bvft_k_save_path,plot_name)
+    precision_path = os.path.join(Bvft_k_save_path,k_precision_name)
+    if os.path.exists(precision_path):
+        precision_mean_list = load_from_pkl(k_precision_mean_saving_path)
+        regret_mean_list = load_from_pkl(k_regret_mean_saving_path)
+        precision_ci_list = load_from_pkl(k_precision_ci_saving_path)
+        regret_ci_list = load_from_pkl(k_regret_ci_saving_path)
+        line_name_list = load_from_pkl(plot_name_saving_path)
+    else :
+        precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list=calculate_k(num_runs, initial_state, env, k)
 
-    precision_ci_list = []
-    precision_ci_list.append(ci_precision_list)
-    regret_ci_list = []
-    regret_ci_list.append(ci_regret_list)
+    plot_mean_list = [precision_mean_list,regret_mean_list]
+    plot_ci_list = [precision_ci_list,regret_ci_list]
 
-    plot_list.append(precision_list)
-    plot_list.append(regre_list)
-
-    ci_list.append(precision_ci_list)
-    ci_list.append(regret_ci_list)
     Bvft_plot_folder = os.path.join(Bvft_saving_place, "Bvft_plot")
     if not os.path.exists(Bvft_plot_folder):
         os.makedirs(Bvft_plot_folder)
     y_axis_names = ["k precision", "k regret"]
-    colors = generate_unique_colors(len(plot_list[0]))
+    colors = generate_unique_colors(len(plot_mean_list[0]))
     line_name = ["hopper-medium-expert-v0", "hopper-medium-expert-v0"]
 
-    plot_subplots(data=plot_list, save_path=Bvft_plot_folder, y_axis_names=y_axis_names,
-                  line_names=line_name, colors=colors, ci=ci_list)
+    plot_subplots(data=plot_mean_list, save_path=Bvft_plot_folder, y_axis_names=y_axis_names,
+                  line_names=line_name_list, colors=colors, ci=plot_ci_list)
+def main():
+    parser = argparse.ArgumentParser(description="Plot k precision and k regret plot for 3 different rankings")
+    parser.add_argument("--initial_state", type=int, default=12345, help="Initial state in real environment")
+    parser.add_argument("--k", type=int, default=2, help="number k")
+    parser.add_argument("--num_runs", type=int, default=5,
+                        help="Number of sample random policy in ranking")
+
+    args = parser.parse_args()
+
+    plot_normalized_k( args.initial_state ,args.k, args.num_runs)
+#--initial_state 12345 --k 2 --num_runs 5
+if __name__ == "__main__":
+    main()

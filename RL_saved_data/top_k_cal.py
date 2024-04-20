@@ -491,7 +491,7 @@ def calculate_top_k_precision(initial_state,env, policy_name_list,rank_list, k=2
     for i in range(1,k+1):
         proportion = 0
         for pos in rank_list:
-            if (rank_list[pos] <= i - 1 and policy_ranking_groundtruth[pos] <= i - 1):
+            if (rank_list[pos-1] <= i - 1 and policy_ranking_groundtruth[pos-1] <= i - 1):
                 proportion += 1
         proportion = proportion / i
         k_precision_list.append(proportion)
@@ -509,8 +509,16 @@ def calculate_top_k_normalized_regret(ranking_list, policy_name_list,env,k=2):
     for j in range(1,k+1):
         gap_list = []
         for i in range(len(ranking_list)):
-            if(ranking_list[i]<=j-1):
+            print("ranking list : ",ranking_list)
+            print("ranking list i : ",ranking_list[i])
+            print(j)
+            print(k)
+            if(ranking_list[i]<=j):
+                print("k :",j-1)
+                print("ranking : ",ranking_list[i])
+                print("performance list : ", policy_performance_list)
                 value = policy_performance_list[i]
+                print("if performance not empty : ",policy_performance_list[i])
                 norm = (ground_truth_value - value) / (ground_truth_value - worth_value)
                 gap_list.append(norm)
         k_regret_list.append(min(gap_list))
