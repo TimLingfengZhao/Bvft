@@ -205,7 +205,7 @@ def Draw_MSE_graph(FQE_saving_step_list):
                    labels=labels, folder_path=Figure_saving_path, filename="Figure6R NMSE graph")
         # time.sleep(60)
 def main():
-    tf.disable_v2_behavior()
+    # tf.disable_v2_behavior()
     parser = argparse.ArgumentParser(description="Plot specific FQE function prediction plot based on learning rate and combination.")
     parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[1000000], help="Number of steps in each episode of FQE")
     args = parser.parse_args()
