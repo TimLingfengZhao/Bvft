@@ -334,6 +334,7 @@ def load_from_pkl(file_path):
 
 
 def normalized_mean_square_error_with_error_bar(actual, predicted):
+    print("calculate nmse")
     if len(actual) != len(predicted):
         raise ValueError("The length of actual and predicted values must be the same.")
 
