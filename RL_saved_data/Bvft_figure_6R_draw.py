@@ -58,7 +58,16 @@ from d3rlpy.models.encoders import VectorEncoderFactory
 import torch
 # import tensorflow.compat.v1 as tf
 
-def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step_list):
+def get_Bvft_FQE_name(saved_name):
+    Bvft_saving_folder = "Bvft_saving_place"
+    Bvft_Q_saving_folder = "Bvft_Q_saving_place"
+    Bvft_Q_saving_path = os.path.join(Bvft_saving_folder,Bvft_Q_saving_folder)
+    if not os.path.exists(Bvft_Q_saving_path):
+        os.makedirs(Bvft_Q_saving_path)
+    Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, saved_name)
+    result = load_from_pkl(Bvft_Q_result_saving_path)
+    return result[0]
+def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step_list,Bvft=False):
     print(f"Plot FQE MSE with learning rate ={FQE_learning_rate}, hidden layer={FQE_hidden_layer}, on device={device}")
 
     whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
@@ -89,99 +98,57 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
 
     true_list = []
     prediction_list = []
+    Bvft
     for policy_key in policy_normal_dictionary:
         policy_file_name = policy_key
         for FQE_step in FQE_saving_step_list:
-            FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+str(FQE_step) + "step"+"_"
-            FQE_model_name = FQE_model_pre + policy_file_name
+            if not Bvft:
+                FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+str(FQE_step) + "step"+"_"
+                FQE_model_name = FQE_model_pre + policy_file_name
+            else:
+                FQE_model_name = get_Bvft(policy_file_name + "_" + str(FQE_step))
             true_list.append(policy_normal_dictionary[policy_file_name])
             prediction_list.append(FQE_normal_dictionary[FQE_model_name])
-    NMSE,standard_error = normalized_mean_suqare_error(true_list,prediction_list)
-
-    return NMSE, standard_error
-
-def get_Bvft_FQE_name(saved_name):
-    Bvft_saving_folder = "Bvft_saving_place"
-    Bvft_Q_saving_folder = "Bvft_Q_saving_place"
-    Bvft_Q_saving_path = os.path.join(Bvft_saving_folder,Bvft_Q_saving_folder)
-    if not os.path.exists(Bvft_Q_saving_path):
-        os.makedirs(Bvft_Q_saving_path)
-    Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, saved_name)
-    result = load_from_pkl(Bvft_Q_result_saving_path)
-    return result[0]
-
-
-def run_Bvft_evaluation(FQE_saving_step_list):
-    print("PlotBvft MSE")
-
-    whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
-    train_episodes = whole_dataset.episodes[0:2000]
-    test_episodes = whole_dataset.episodes[2000:2276]
-    buffer = FIFOBuffer(limit=500000)
-    replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
-
-    policy_returned_result_folder = "policy_returned_result"
-    if not os.path.exists(policy_returned_result_folder):
-        os.makedirs(policy_returned_result_folder)
-
-    FQE_returned_folder = "FQE_returned_result"
-    FQE_directory = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer)
-    FQE_folder = os.path.join(FQE_returned_folder,FQE_directory)
-    if not os.path.exists(FQE_folder):
-        os.makedirs(FQE_folder)
-
-    FQE_normal_result_folder = "FQE_returned_normal"
-    FQE_normal_path = os.path.join(FQE_folder, FQE_normal_result_folder)
-
-    FQE_normal_dictionary = load_from_pkl(FQE_normal_path)
-
-    policy_normal_model = 'policy_returned_normal'
-    policy_normal_path = os.path.join(policy_returned_result_folder,policy_normal_model)
-    policy_normal_dictionary = load_from_pkl(policy_normal_path)
-
-
-    true_list = []
-    prediction_list = []
-    for policy_key in policy_normal_dictionary:
-        policy_file_name = policy_key
-        for FQE_step in FQE_saving_step_list:
-            FQE_model_name = get_Bvft(policy_file_name+"_"+str(FQE_step))
-            true_list.append(policy_normal_dictionary[policy_file_name])
-            prediction_list.append(FQE_normal_dictionary[FQE_model_name])
-    NMSE,standard_error = normalized_mean_suqare_error(true_list,prediction_list)
+    NMSE,standard_error = normalized_mean_square_error_with_error_bar(true_list,prediction_list)
 
     return NMSE, standard_error
 
 
 
-def run_FQE_1(FQE_saving_step_list):
+def run_FQE_1(device,FQE_saving_step_list):
     FQE_learning_rate = 1e-4
     FQE_hidden_layer = [128, 256]
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list)
-def run_FQE_2(FQE_saving_step_list):
-    FQE_learning_rate = 1e-4
-    FQE_hidden_layer = [128, 1024]
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list)
-def run_FQE_3(FQE_saving_step_list):
-    FQE_learning_rate = 2e-5
-    FQE_hidden_layer = [128, 256]
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list)
-def run_FQE_4(FQE_saving_step_list):
-    FQE_learning_rate = 2e-5
-    FQE_hidden_layer = [128, 1024]
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list)
 
+    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,Bvft=False)
+def run_FQE_2(device,FQE_saving_step_list):
+    FQE_learning_rate = 1e-4
+    FQE_hidden_layer = [128, 1024]
+
+    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,Bvft=False)
+def run_FQE_3(device,FQE_saving_step_list):
+    FQE_learning_rate = 2e-5
+    FQE_hidden_layer = [128, 256]
+
+    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,Bvft=False)
+def run_FQE_4(device,FQE_saving_step_list):
+    FQE_learning_rate = 2e-5
+    FQE_hidden_layer = [128, 1024]
+
+    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,Bvft=False)
+
+def run_Bvft(device,FQE_saving_step_list):
+    FQE_learning_rate = 2e-5
+    FQE_hidden_layer = [128, 1024]
+
+    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,Bvft=True)
 def Draw_MSE_graph(FQE_saving_step_list):
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
     # while(True):
-    FQE_1_MSE,FQE_1_SE= run_FQE_1(FQE_saving_step_list)
-    FQE_2_MSE,FQE_2_SE = run_FQE_2(FQE_saving_step_list)
-    FQE_3_MSE,FQE_3_SE = run_FQE_3(FQE_saving_step_list)
-    FQE_4_MSE,FQE_4_SE = run_FQE_4(FQE_saving_step_list)
-    Bvft_MSE,Bvft_SE = run_Bvft_evaluation(FQE_saving_step_list)
+    FQE_1_MSE,FQE_1_SE= run_FQE_1(device,FQE_saving_step_list)
+    FQE_2_MSE,FQE_2_SE = run_FQE_2(device,FQE_saving_step_list)
+    FQE_3_MSE,FQE_3_SE = run_FQE_3(device,FQE_saving_step_list)
+    FQE_4_MSE,FQE_4_SE = run_FQE_4(device,FQE_saving_step_list)
+    Bvft_MSE,Bvft_SE = run_Bvft(device,FQE_saving_step_list)
     name_list = ["hopper-medium-expert-v0"]
     labels = ["FQE_1e-4_" + "[128,256]_" + str(FQE_total_step),
               "FQE_1e-4_" + "[128,1024]_" + str(FQE_total_step),
