@@ -122,8 +122,8 @@ def Calculate_best_Q(FQE_saving_step_list):
     batch_dim = 1000
     test_data = CustomDataLoader(replay_buffer_test, batch_size=batch_dim)
 
-    Bvft_saving_folder = "Bvft_saving_space"
-    Bvft_Q_saving_folder = "Bvft_Q_saving_space"
+    Bvft_saving_folder = "Bvft_saving_place"
+    Bvft_Q_saving_folder = "Bvft_Q_saving_place"
     Bvft_Q_saving_path = os.path.join(Bvft_saving_folder,Bvft_Q_saving_folder)
     if not os.path.exists(Bvft_Q_saving_path):
         os.makedirs(Bvft_Q_saving_path)
