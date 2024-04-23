@@ -132,8 +132,8 @@ def Calculate_best_Q(FQE_saving_step_list):
     FQE_lr_list = [1e-4,2e-5]
     FQE_hl_list = [[128,256],[128,1024]]
 
-    for i in len(Q_FQE):
-        for j in len(Q_FQE[0]):
+    for i in range(len(Q_FQE)):
+        for j in range(len(Q_FQE[0])):
             save_folder_name = Q_name_list[len(Q_FQE[0])*i+j]
             Bvft_Q_result_saving_folder = os.path.join(Bvft_Q_saving_path,save_folder_name)
             if not os.path.exists(Bvft_Q_result_saving_folder):
