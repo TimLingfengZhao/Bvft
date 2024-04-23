@@ -354,9 +354,9 @@ def normalized_mean_square_error_with_error_bar(actual, predicted):
     mean_squared_errors = mse
     variance_squared_errors = sum((se - mean_squared_errors) ** 2 for se in squared_errors) / (len(squared_errors) - 1)
 
-    sd_mse = variance_squared_errors ** 0.5
+    sd_mse = variance_squared_errors / len(squared_errors)
 
-    se_mse = sd_mse / (len(squared_errors) ** 0.5)
+    se_mse = sd_mse  ** 0.5
     se_mse = se_mse / range_squared
 
     return nmse, se_mse
