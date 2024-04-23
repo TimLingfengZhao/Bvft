@@ -149,10 +149,10 @@ def Draw_MSE_graph(FQE_saving_step_list):
     FQE_4_MSE,FQE_4_SE = run_FQE_4(device,FQE_saving_step_list)
     Bvft_MSE,Bvft_SE = run_Bvft(device,FQE_saving_step_list)
     name_list = ["hopper-medium-expert-v0"]
-    labels = ["FQE_1e-4_" + "[128,256]_" + str(FQE_total_step),
-              "FQE_1e-4_" + "[128,1024]_" + str(FQE_total_step),
-              "FQE_2e-5_" + "[128,256]_" + str(FQE_total_step),
-              "FQE_2e-5_" + "[128,1024]_" + str(FQE_total_step),
+    labels = ["FQE_1e-4_" + "[128,256]_" ,
+              "FQE_1e-4_" + "[128,1024]_" ,
+              "FQE_2e-5_" + "[128,256]_" ,
+              "FQE_2e-5_" + "[128,1024]_" ,
               "Bvft-PE-InitialQ"]
 
     means = [FQE_1_MSE, FQE_2_MSE, FQE_3_MSE, FQE_4_MSE,Bvft_MSE]
