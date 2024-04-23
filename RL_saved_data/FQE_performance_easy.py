@@ -56,7 +56,7 @@ from d3rlpy.models.q_functions import IQNQFunctionFactory
 from d3rlpy.ope import FQE, FQEConfig
 from d3rlpy.models.encoders import VectorEncoderFactory
 import torch
-import tensorflow.compat.v1 as tf
+# import tensorflow.compat.v1 as tf
 
 def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,FQE_episode_step):
     print(f"Running evaluation with learning rate={FQE_learning_rate}, hidden layer={FQE_hidden_layer}, on device={device}")
@@ -256,7 +256,7 @@ function_map = {
     "FQE_4": run_FQE_4,
 }
 def main():
-    tf.disable_v2_behavior()
+    # tf.disable_v2_behavior()
     parser = argparse.ArgumentParser(description="Plot specific FQE function prediction plot based on learning rate and combination.")
 #    parser.add_argument("FQE", choices=["FQE_1", "FQE_2", "FQE_3", "FQE_4"], help="Identifier of the function to run")
     parser.add_argument("--FQE_total_step", type=int, default=600000, help="Total number of steps for FQE training")
@@ -265,9 +265,9 @@ def main():
     # function_to_run = function_map[args.FQE]
     # function_to_run(args.FQE_total_step,args.FQE_episode_step)
     run_FQE_1(args.FQE_total_step,args.FQE_episode_step)
-    # run_FQE_2(args.FQE_total_step,args.FQE_episode_step)
-    # run_FQE_3(args.FQE_total_step,args.FQE_episode_step)
-    # run_FQE_4(args.FQE_total_step,args.FQE_episode_step)
+    run_FQE_2(args.FQE_total_step,args.FQE_episode_step)
+    run_FQE_3(args.FQE_total_step,args.FQE_episode_step)
+    run_FQE_4(args.FQE_total_step,args.FQE_episode_step)
 
 if __name__ == "__main__":
     main()
