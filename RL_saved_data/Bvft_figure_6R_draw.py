@@ -56,7 +56,7 @@ from d3rlpy.models.q_functions import IQNQFunctionFactory
 from d3rlpy.ope import FQE, FQEConfig
 from d3rlpy.models.encoders import VectorEncoderFactory
 import torch
-import tensorflow.compat.v1 as tf
+# import tensorflow.compat.v1 as tf
 
 def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step_list):
     print(f"Plot FQE MSE with learning rate ={FQE_learning_rate}, hidden layer={FQE_hidden_layer}, on device={device}")
@@ -194,7 +194,7 @@ def Draw_MSE_graph(FQE_saving_step_list):
 
     # means = [FQE_1_MSE]
     # SE= [FQE_1_SE]
-    # colors = ['blue']
+    # colors = ['blue']git p
     # print("means : ",means)
     FQE_returned_folder = "Bvft_saving_place"
     Bvft_plot = "Bvft_plot"
@@ -210,6 +210,6 @@ def main():
     parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[1000000], help="Number of steps in each episode of FQE")
     args = parser.parse_args()
     Draw_MSE_graph(args.FQE_saving_step_list)
-
+#python Bvft_figure_6R_draw.py --FQE_saving_step_list 900000
 if __name__ == "__main__":
     main()
