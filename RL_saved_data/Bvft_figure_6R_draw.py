@@ -168,7 +168,7 @@ def Draw_MSE_graph(FQE_saving_step_list):
     #
     colors = ['blue', 'orange', 'green', 'purple',"red"]
     draw_mse_graph(combinations=name_list, means=means,  colors=colors, standard_errors = SE,
-                   labels=labels, folder_path=Figure_saving_path, filename="Figure6R NMSE graph")
+                   labels=labels, folder_path=Figure_saving_path, filename="Figure6R_NMSE_graph")
         # time.sleep(60)
 def main():
     # tf.disable_v2_behavior()
