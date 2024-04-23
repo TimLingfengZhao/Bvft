@@ -98,7 +98,6 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
 
     true_list = []
     prediction_list = []
-    Bvft
     for policy_key in policy_normal_dictionary:
         policy_file_name = policy_key
         for FQE_step in FQE_saving_step_list:
@@ -106,7 +105,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
                 FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+str(FQE_step) + "step"+"_"
                 FQE_model_name = FQE_model_pre + policy_file_name
             else:
-                FQE_model_name = get_Bvft(policy_file_name + "_" + str(FQE_step))
+                FQE_model_name = get_Bvft_FQE_name(policy_file_name + "_" + str(FQE_step))
             true_list.append(policy_normal_dictionary[policy_file_name])
             prediction_list.append(FQE_normal_dictionary[FQE_model_name])
     NMSE,standard_error = normalized_mean_square_error_with_error_bar(true_list,prediction_list)
