@@ -135,9 +135,7 @@ def Calculate_best_Q(FQE_saving_step_list):
     for i in range(len(Q_FQE)):
         for j in range(len(Q_FQE[0])):
             save_folder_name = Q_name_list[len(Q_FQE[0])*i+j]
-            Bvft_Q_result_saving_folder = os.path.join(Bvft_Q_saving_path,save_folder_name)
-            if not os.path.exists(Bvft_Q_result_saving_folder):
-                os.makedirs(Bvft_Q_result_saving_folder)
+            Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path,save_folder_name)
             q_functions = Q_FQE[i][j]
             bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
                                  "torch_actor_critic_cont", verbose=True, batch_dim=1000)
@@ -153,8 +151,8 @@ def Calculate_best_Q(FQE_saving_step_list):
                 ranking_list = bvft_result.ranking.tolist()
                 best_ranking_index = np.argmin(ranking_list)
                 save_list.append(FQE_step_Q_list[len(Q_FQE[0])*i+j][best_ranking_index])
-            save_as_txt(Bvft_Q_result_saving_folder, save_list)
-            save_as_pkl(Bvft_Q_result_saving_folder, save_list)
+            save_as_txt(Bvft_Q_result_saving_path, save_list)
+            save_as_pkl(Bvft_Q_result_saving_path, save_list)
             delete_files_in_folder(Bvft_folder)
 
 
