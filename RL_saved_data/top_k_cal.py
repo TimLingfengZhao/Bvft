@@ -333,24 +333,29 @@ def load_from_pkl(file_path):
     return data
 
 
-def normalized_mean_suqare_error(actual, predicted):
+def normalized_mean_square_error_with_error_bar(actual, predicted):
     if len(actual) != len(predicted):
         raise ValueError("The length of actual and predicted values must be the same.")
-    print("actual value list : ",actual)
-    print("predicted value list : ",predicted)
-    mse = sum((a - p) ** 2 for a, p in zip(actual, predicted)) / len(actual)
-    print("MSE : ", mse)
+
+    squared_errors = [(a - p) ** 2 for a, p in zip(actual, predicted)]
+
+    mse = sum(squared_errors) / len(actual)
+
     range_squared = (max(actual) - min(actual)) ** 2
-    # denominator = range_squared / len(actual)
-    denominator = range_squared
-    if denominator == 0:
+    if range_squared == 0:
         raise ValueError("The range of actual values is zero. NMSE cannot be calculated.")
-    nmse = mse / denominator
 
-    mean_actual = sum(actual) / len(actual)
+    nmse = mse / range_squared
 
-    standard_error = ((sum((a - mean_actual) ** 2 for a in actual) / len(actual)-1) ** 0.5)/denominator
-    return nmse,standard_error
+    mean_squared_errors = mse
+    variance_squared_errors = sum((se - mean_squared_errors) ** 2 for se in squared_errors) / (len(squared_errors) - 1)
+
+    sd_mse = variance_squared_errors ** 0.5
+
+    se_mse = sd_mse / (len(squared_errors) ** 0.5)
+    se_mse = se_mse / range_squared
+
+    return nmse, se_mse
 
 
 def is_key_in_dict(key,dictionary):
