@@ -63,7 +63,7 @@ def load_policy(device):
         policy_name_list.append(policy_file_name[:-3])
         policy_list.append(policy)
     return policy_name_list, policy_list
-def load_FQE(policy_name_list,FQE_step_list,device):
+def load_FQE(policy_name_list,FQE_step_list,replay_buffer,device):
     policy_folder = 'policy_trained'
     FQE_lr_list = [1e-4,2e-5]
     FQE_hl_list = [[128,256],[128,1024]]
@@ -128,7 +128,7 @@ def Calculate_best_Q(FQE_saving_step_list):
     if not os.path.exists(Bvft_Q_saving_path):
         os.makedirs(Bvft_Q_saving_path)
     policy_name_list, policy_list = load_policy(device)
-    Q_FQE,Q_name_list,FQE_step_Q_list = load_FQE(policy_name_list,FQE_saving_step_list,device) #1d: how many policy #2d: how many step #3d: 4
+    Q_FQE,Q_name_list,FQE_step_Q_list = load_FQE(policy_name_list,FQE_saving_step_list,replay_buffer,device) #1d: how many policy #2d: how many step #3d: 4
     FQE_lr_list = [1e-4,2e-5]
     FQE_hl_list = [[128,256],[128,1024]]
 
@@ -170,6 +170,6 @@ def main():
     Calculate_best_Q(FQE_saving_step_list = args.FQE_saving_step_list)
 #--num_interval 5 --FQE_number_epoch 45 --FQE_episode_step 20000 --initial_state 12345 --m 10 --k 1 --num_runs 4
 #--FQE_episode_step 100000 --FQE_Pickup_number 1 --FQE_total_step 900000 --m 2 --num_runs 10
-#--FQE_saving_step_list [1000000]
+#--FQE_saving_step_list 1000000
 if __name__ == "__main__":
     main()
