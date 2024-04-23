@@ -77,7 +77,7 @@ def load_FQE(policy_name_list,FQE_step_list,replay_buffer,device):
         for FQE_step in FQE_step_list:
             step_list = []
             FQE_policy_name = []
-            Q_name_list.append(policy_file_name+str(FQE_step))
+            Q_name_list.append(policy_file_name+"_"+str(FQE_step))
             for FQE_learning_rate in FQE_lr_list:
                 for FQE_hidden_layer in FQE_hl_list:
 
