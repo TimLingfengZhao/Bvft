@@ -162,12 +162,12 @@ def Calculate_best_Q(FQE_saving_step_list):
 
 def main():
     parser = argparse.ArgumentParser(description="Run specific Bvft based on learning rate and combination.")
-    parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[1000000], help="Number of steps in each episode of FQE")
+    parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[1000000], help="FQE step to evaluate ")
     args = parser.parse_args()
 
     Calculate_best_Q(FQE_saving_step_list = args.FQE_saving_step_list)
 #--num_interval 5 --FQE_number_epoch 45 --FQE_episode_step 20000 --initial_state 12345 --m 10 --k 1 --num_runs 4
 #--FQE_episode_step 100000 --FQE_Pickup_number 1 --FQE_total_step 900000 --m 2 --num_runs 10
-#--FQE_saving_step_list 1000000
+#--FQE_saving_step_list 900000
 if __name__ == "__main__":
     main()

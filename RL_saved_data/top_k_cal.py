@@ -337,11 +337,15 @@ def normalized_mean_square_error_with_error_bar(actual, predicted):
     if len(actual) != len(predicted):
         raise ValueError("The length of actual and predicted values must be the same.")
 
+
     squared_errors = [(a - p) ** 2 for a, p in zip(actual, predicted)]
 
     mse = sum(squared_errors) / len(actual)
 
-    range_squared = (max(actual) - min(actual)) ** 2
+    mean_actual = sum(actual) / len(actual)
+    mean_predicted = sum(predicted) / len(predicted)
+    # range_squared = (max(actual) - min(actual)) ** 2
+    range_squared = mean_actual * mean_predicted
     if range_squared == 0:
         raise ValueError("The range of actual values is zero. NMSE cannot be calculated.")
 
