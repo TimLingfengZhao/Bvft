@@ -107,7 +107,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
         else:
             FQE_model_name = get_Bvft_FQE_name(policy_file_name + "_" + str(FQE_saving_step_list))
         true_list.append(policy_total_dictionary[policy_file_name])
-        print("FQE total dictionary : ",FQE_total_dictionary)
+        print("FQE total dictionary : ",FQE_total_dictionary.keys())
         prediction_list.append(FQE_total_dictionary[FQE_model_name])
     NMSE,standard_error = normalized_mean_square_error_with_error_bar(true_list,prediction_list)
 
