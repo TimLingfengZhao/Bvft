@@ -359,7 +359,6 @@ def normalized_mean_square_error_with_error_bar(actual, predicted):
 
     se_mse = sd_mse  ** 0.5
     se_mse = se_mse / range_squared
-
     return nmse, se_mse
 
 
