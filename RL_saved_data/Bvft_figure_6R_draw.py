@@ -98,10 +98,11 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
 
     true_list = []
     prediction_list = []
+    max_step = max(FQE_saving_step_list)
     for policy_key in policy_total_dictionary:
         policy_file_name = policy_key
         if not Bvft:
-            FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+str(max(FQE_saving_step_list)) + "step"+"_"
+            FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+str(max_step) + "step"+"_"
             FQE_model_name = FQE_model_pre + policy_file_name
         else:
             FQE_model_name = get_Bvft_FQE_name(policy_file_name + "_" + str(FQE_saving_step_list))
