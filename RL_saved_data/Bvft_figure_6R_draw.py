@@ -98,8 +98,8 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
     true_list = []
     prediction_list = []
     max_step = max(FQE_saving_step_list)
-    policy_folder = "policy_trained"
     for policy_file_name in os.listdir("policy_trained"):
+        policy_name = policy_file_name[:-3]
         if not Bvft:
             FQE_directory = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer)
             FQE_folder = os.path.join(FQE_returned_folder, FQE_directory)
@@ -114,13 +114,13 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
 
 
             FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+str(max_step) + "step"+"_"
-            FQE_model_name = FQE_model_pre + policy_file_name
-            true_list.append(policy_total_dictionary[policy_file_name])
+            FQE_model_name = FQE_model_pre + policy_name
+            true_list.append(policy_total_dictionary[policy_name])
             prediction_list.append(FQE_total_dictionary[FQE_model_name])
         else:
             print("Bvft ")
 
-            FQE_model_name = get_Bvft_FQE_name(policy_file_name + "_" + str(FQE_saving_step_list))
+            FQE_model_name = get_Bvft_FQE_name(policy_name + "_" + str(FQE_saving_step_list))
 
             Bvft_FQE_learning_rate, Bvft_FQE_hidden_layer = extract_substrings(FQE_model_name)
 
@@ -134,30 +134,8 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
 
             FQE_total_dictionary = load_from_pkl(FQE_total_path)
 
-            if policy_file_name in policy_total_dictionary:
-                true_list.append(policy_total_dictionary[policy_file_name])
-            else:
-                policy_path = os.path.join(policy_folder, policy_file_name)
-                policy = d3rlpy.load_learnable(policy_path, device=device)
-                true_list.append(calculate_policy_value(env,policy))
-            if FQE_model_name in FQE_total_dictionary:
-                prediction_list.append(FQE_total_dictionary[FQE_model_name])
-            else:
-                policy_path = os.path.join(policy_folder, policy_file_name)
-                policy = d3rlpy.load_learnable(policy_path, device=device)
-                fqeconfig = d3rlpy.ope.FQEConfig(
-                    learning_rate=FQE_learning_rate,
-                    encoder_factory=d3rlpy.models.VectorEncoderFactory(hidden_units=FQE_hidden_layer)
-                )
-                fqe = FQE(algo=policy, config=fqeconfig, device=device)
-                fqe.build_with_dataset(replay_buffer)
-                fqe.load_model(FQE_file_path)
-                observation, info = env.reset(seed=12345)
-                action = policy.predict(
-                    np.array([observation]))  # sample action for many times (stochastic)
-                total_reward = fqe.predict_value(np.array([observation]), action)[0]
-                prediction_list.append(total_reward)
-
+            true_list.append(policy_total_dictionary[policy_name])
+            prediction_list.append(FQE_total_dictionary[FQE_model_name])
     NMSE,standard_error = normalized_mean_square_error_with_error_bar(true_list,prediction_list)
 
     return NMSE, standard_error
@@ -223,7 +201,7 @@ def Draw_MSE_graph(FQE_saving_step_list):
 def main():
     # tf.disable_v2_behavior()
     parser = argparse.ArgumentParser(description="Plot specific FQE function prediction plot based on learning rate and combination.")
-    parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[1000000], help="Number of steps in each episode of FQE")
+    parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[500000, 1000000, 1500000, 2000000], help="Number of steps in each episode of FQE")
     args = parser.parse_args()
     Draw_MSE_graph(args.FQE_saving_step_list)
 #python Bvft_figure_6R_draw.py --FQE_saving_step_list 900000
