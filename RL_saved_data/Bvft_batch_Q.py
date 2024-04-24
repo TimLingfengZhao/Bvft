@@ -155,6 +155,7 @@ def Calculate_best_Q(FQE_saving_step_list):
             ranking_list = bvft_result.ranking.tolist()
             best_ranking_index = np.argmin(ranking_list)
             save_list.append(q_name_functions[best_ranking_index])
+        print("best Q result : ",save_list)
         save_as_txt(Bvft_Q_result_saving_path, save_list)
         save_as_pkl(Bvft_Q_result_saving_path, save_list)
         delete_files_in_folder(Bvft_folder)
