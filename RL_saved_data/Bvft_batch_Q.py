@@ -143,6 +143,7 @@ def Calculate_best_Q(FQE_saving_step_list):
         for j in range(len(Q_FQE[0])):
             for h in range(len(Q_FQE[0][0])):
                 q_functions.append(Q_FQE[i][j][h])
+                q_name_functions.append(FQE_step_Q_list[i][j][h])
 
         bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
                              "torch_actor_critic_cont", verbose=True, batch_dim=1000)
