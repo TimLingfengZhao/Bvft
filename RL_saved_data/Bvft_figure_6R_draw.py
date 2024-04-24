@@ -58,14 +58,15 @@ from d3rlpy.models.encoders import VectorEncoderFactory
 import torch
 # import tensorflow.compat.v1 as tf
 
-def get_Bvft_FQE_name(saved_name):
+def get_Bvft_FQE_name(FQE_saving_step_list):
     Bvft_saving_folder = "Bvft_saving_place"
     Bvft_Q_saving_folder = "Bvft_Q_saving_place"
     Bvft_Q_saving_path = os.path.join(Bvft_saving_folder,Bvft_Q_saving_folder)
     if not os.path.exists(Bvft_Q_saving_path):
         os.makedirs(Bvft_Q_saving_path)
-    Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, saved_name)
+    Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, str(FQE_saving_step_list))
     result = load_from_pkl(Bvft_Q_result_saving_path)
+    print("best FQE : ", result)
     return result[0]
 def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step_list,Bvft=False):
     print(f"Plot FQE MSE with learning rate ={FQE_learning_rate}, hidden layer={FQE_hidden_layer}, on device={device}")
@@ -100,14 +101,13 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
     prediction_list = []
     for policy_key in policy_normal_dictionary:
         policy_file_name = policy_key
-        for FQE_step in FQE_saving_step_list:
-            if not Bvft:
-                FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+str(FQE_step) + "step"+"_"
-                FQE_model_name = FQE_model_pre + policy_file_name
-            else:
-                FQE_model_name = get_Bvft_FQE_name(policy_file_name + "_" + str(FQE_step))
-            true_list.append(policy_normal_dictionary[policy_file_name])
-            prediction_list.append(FQE_normal_dictionary[FQE_model_name])
+        if not Bvft:
+            FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+str(max(FQE_saving_step_list)) + "step"+"_"
+            FQE_model_name = FQE_model_pre + policy_file_name
+        else:
+            FQE_model_name = get_Bvft_FQE_name(policy_file_name + "_" + str(FQE_saving_step_list))
+        true_list.append(policy_normal_dictionary[policy_file_name])
+        prediction_list.append(FQE_normal_dictionary[FQE_model_name])
     NMSE,standard_error = normalized_mean_square_error_with_error_bar(true_list,prediction_list)
 
     return NMSE, standard_error
