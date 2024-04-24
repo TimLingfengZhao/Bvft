@@ -153,12 +153,14 @@ def Calculate_best_Q(FQE_saving_step_list):
             os.makedirs(Bvft_folder)
 
         save_list = []
+        ranking_list = []
         for bvft_result in os.listdir(Bvft_folder):
             Bvft_path = os.path.join(Bvft_folder, bvft_result)
             bvft_result = BvftRecord.load(Bvft_path)
             ranking_list = bvft_result.ranking.tolist()
             best_ranking_index = np.argmin(ranking_list)
             save_list.append(q_name_functions[best_ranking_index])
+        print("original Q value : ",ranking_list)
         print("best Q result : ",save_list)
         save_as_txt(Bvft_Q_result_saving_path, save_list)
         save_as_pkl(Bvft_Q_result_saving_path, save_list)

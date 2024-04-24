@@ -66,7 +66,6 @@ def get_Bvft_FQE_name(FQE_saving_step_list):
         os.makedirs(Bvft_Q_saving_path)
     Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, str(FQE_saving_step_list))
     result = load_from_pkl(Bvft_Q_result_saving_path)
-    print("best FQE : ", result)
     return result[0]
 def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step_list,Bvft=False):
     print(f"Plot FQE MSE with learning rate ={FQE_learning_rate}, hidden layer={FQE_hidden_layer}, on device={device}")
@@ -87,30 +86,28 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
     if not os.path.exists(FQE_folder):
         os.makedirs(FQE_folder)
 
-    FQE_normal_result_folder = "FQE_returned_normal"
-    FQE_normal_path = os.path.join(FQE_folder, FQE_normal_result_folder)
+    FQE_total_result_folder = "FQE_returned_total"
+    FQE_total_path = os.path.join(FQE_folder, FQE_total_result_folder)
 
-    FQE_normal_dictionary = load_from_pkl(FQE_normal_path)
+    FQE_total_dictionary = load_from_pkl(FQE_total_path)
 
-    policy_normal_model = 'policy_returned_normal'
-    policy_normal_path = os.path.join(policy_returned_result_folder,policy_normal_model)
-    policy_normal_dictionary = load_from_pkl(policy_normal_path)
+    policy_total_model = 'policy_returned_total'
+    policy_total_path = os.path.join(policy_returned_result_folder,policy_total_model)
+    policy_total_dictionary = load_from_pkl(policy_total_path)
 
 
     true_list = []
     prediction_list = []
-    print("FQE saving step list : ", FQE_saving_step_list)
-    for policy_key in policy_normal_dictionary:
+    for policy_key in policy_total_dictionary:
         policy_file_name = policy_key
         if not Bvft:
             FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+str(max(FQE_saving_step_list)) + "step"+"_"
             FQE_model_name = FQE_model_pre + policy_file_name
-            print("FQE model name : ",FQE_model_name)
         else:
             FQE_model_name = get_Bvft_FQE_name(policy_file_name + "_" + str(FQE_saving_step_list))
-            print("Bvft FQE model name : ",FQE_model_name)
-        true_list.append(policy_normal_dictionary[policy_file_name])
-        prediction_list.append(FQE_normal_dictionary[FQE_model_name])
+        true_list.append(policy_total_dictionary[policy_file_name])
+        print("FQE total dictionary : ",FQE_total_dictionary)
+        prediction_list.append(FQE_total_dictionary[FQE_model_name])
     NMSE,standard_error = normalized_mean_square_error_with_error_bar(true_list,prediction_list)
 
     return NMSE, standard_error
