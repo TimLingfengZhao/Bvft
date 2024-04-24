@@ -74,6 +74,7 @@ def load_FQE(policy_name_list,FQE_step_list,replay_buffer,device):
         policy_path = os.path.join(policy_folder, policy_file_name)
         policy = d3rlpy.load_learnable(policy_path + ".d3", device=device)
         Q_list = []
+        inner_list = []
         Q_name_list.append(policy_file_name + "_" + str(FQE_step_list))
         for FQE_step in FQE_step_list:
             step_list = []
@@ -88,6 +89,7 @@ def load_FQE(policy_name_list,FQE_step_list,replay_buffer,device):
                         FQE_step ) + "step" + "_"
                     FQE_model_name = FQE_model_pre + policy_file_name
                     FQE_policy_name.append(FQE_model_name)
+
                     FQE_model_name = FQE_model_name+ ".pt"
                     FQE_file_path = os.path.join(FQE_directory, FQE_model_name)
                     fqeconfig = d3rlpy.ope.FQEConfig(
@@ -98,9 +100,10 @@ def load_FQE(policy_name_list,FQE_step_list,replay_buffer,device):
                     fqe.build_with_dataset(replay_buffer)
                     fqe.load_model(FQE_file_path)
                     step_list.append(fqe)
-            FQE_step_Q_list.append(FQE_policy_name)
+            inner_list.append(FQE_policy_name)
             Q_list.append(step_list)
         Q_FQE.append(Q_list)
+        FQE_step_Q_list.append(inner_list)
     return Q_FQE,Q_name_list,FQE_step_Q_list
 
 
@@ -137,11 +140,10 @@ def Calculate_best_Q(FQE_saving_step_list):
         Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
         q_functions = []
         q_name_functions = []
-        print("FQE step Q list : ",FQE_step_Q_list)
         for j in range(len(Q_FQE[0])):
             for h in range(len(Q_FQE[0][0])):
                 q_functions.append(Q_FQE[i][j][h])
-                q_name_functions.append(FQE_step_Q_list[i][j][h])
+
         bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
                              "torch_actor_critic_cont", verbose=True, batch_dim=1000)
         bvft_instance.run()
