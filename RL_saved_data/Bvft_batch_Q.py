@@ -74,10 +74,10 @@ def load_FQE(policy_name_list,FQE_step_list,replay_buffer,device):
         policy_path = os.path.join(policy_folder, policy_file_name)
         policy = d3rlpy.load_learnable(policy_path + ".d3", device=device)
         Q_list = []
+        Q_name_list.append(policy_file_name + "_" + str(FQE_step_list))
         for FQE_step in FQE_step_list:
             step_list = []
             FQE_policy_name = []
-            Q_name_list.append(policy_file_name+"_"+str(FQE_step))
             for FQE_learning_rate in FQE_lr_list:
                 for FQE_hidden_layer in FQE_hl_list:
 
@@ -133,27 +133,31 @@ def Calculate_best_Q(FQE_saving_step_list):
     FQE_hl_list = [[128,256],[128,1024]]
 
     for i in range(len(Q_FQE)):
+        save_folder_name = Q_name_list[i]
+        Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
+        q_functions = []
+        q_name_functions = []
         for j in range(len(Q_FQE[0])):
-            save_folder_name = Q_name_list[len(Q_FQE[0])*i+j]
-            Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path,save_folder_name)
-            q_functions = Q_FQE[i][j]
-            bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
-                                 "torch_actor_critic_cont", verbose=True, batch_dim=1000)
-            bvft_instance.run()
-            Bvft_folder = "Bvft_Records"
-            if not os.path.exists(Bvft_folder):
-                os.makedirs(Bvft_folder)
+            for h in range(len(Q_FQE[0][0])):
+                q_functions.append(Q_FQE[i][j][h])
+                q_name_functions.append(FQE_step_Q_list[i][j][h])
+        bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
+                             "torch_actor_critic_cont", verbose=True, batch_dim=1000)
+        bvft_instance.run()
+        Bvft_folder = "Bvft_Records"
+        if not os.path.exists(Bvft_folder):
+            os.makedirs(Bvft_folder)
 
-            save_list = []
-            for bvft_result in os.listdir(Bvft_folder):
-                Bvft_path = os.path.join(Bvft_folder, bvft_result)
-                bvft_result = BvftRecord.load(Bvft_path)
-                ranking_list = bvft_result.ranking.tolist()
-                best_ranking_index = np.argmin(ranking_list)
-                save_list.append(FQE_step_Q_list[len(Q_FQE[0])*i+j][best_ranking_index])
-            save_as_txt(Bvft_Q_result_saving_path, save_list)
-            save_as_pkl(Bvft_Q_result_saving_path, save_list)
-            delete_files_in_folder(Bvft_folder)
+        save_list = []
+        for bvft_result in os.listdir(Bvft_folder):
+            Bvft_path = os.path.join(Bvft_folder, bvft_result)
+            bvft_result = BvftRecord.load(Bvft_path)
+            ranking_list = bvft_result.ranking.tolist()
+            best_ranking_index = np.argmin(ranking_list)
+            save_list.append(q_name_functions[best_ranking_index])
+        save_as_txt(Bvft_Q_result_saving_path, save_list)
+        save_as_pkl(Bvft_Q_result_saving_path, save_list)
+        delete_files_in_folder(Bvft_folder)
 
 
 
