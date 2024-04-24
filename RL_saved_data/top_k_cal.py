@@ -380,8 +380,8 @@ def draw_mse_graph(combinations, means, colors,standard_errors, labels, folder_p
     for i in range(n_bars):
         bar_x_positions = indices - (group_width - bar_width) / 2 + i * bar_width
 
-        errors_below = 2 * standard_errors[i]
-        errors_above = 2 * standard_errors[i]
+        errors_below =  standard_errors[i]
+        errors_above =  standard_errors[i]
 
         ax.bar(bar_x_positions, means[i], yerr=[[errors_below], [errors_above]],
                capsize=5, alpha=0.7, color=colors[i], label=labels[i], width=bar_width)
