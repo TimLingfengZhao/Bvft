@@ -98,6 +98,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
     true_list = []
     prediction_list = []
     max_step = max(FQE_saving_step_list)
+    policy_folder = "policy_trained"
     for policy_file_name in os.listdir("policy_trained"):
         if not Bvft:
             FQE_directory = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer)
@@ -133,7 +134,12 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
 
             FQE_total_dictionary = load_from_pkl(FQE_total_path)
 
-            true_list.append(policy_total_dictionary[policy_file_name])
+            if policy_file_name in policy_total_dictionary:
+                true_list.append(policy_total_dictionary[policy_file_name])
+            else:
+                policy_path = os.path.join(policy_folder, policy_file_name)
+                d3rlpy.load_learnable(policy_path, device=device)
+                true_list.append(calculate_policy_value(env,policy))
             prediction_list.append(FQE_total_dictionary[FQE_model_name])
     NMSE,standard_error = normalized_mean_square_error_with_error_bar(true_list,prediction_list)
 
