@@ -138,9 +138,26 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
                 true_list.append(policy_total_dictionary[policy_file_name])
             else:
                 policy_path = os.path.join(policy_folder, policy_file_name)
-                d3rlpy.load_learnable(policy_path, device=device)
+                policy = d3rlpy.load_learnable(policy_path, device=device)
                 true_list.append(calculate_policy_value(env,policy))
-            prediction_list.append(FQE_total_dictionary[FQE_model_name])
+            if FQE_model_name in FQE_total_dictionary:
+                prediction_list.append(FQE_total_dictionary[FQE_model_name])
+            else:
+                policy_path = os.path.join(policy_folder, policy_file_name)
+                policy = d3rlpy.load_learnable(policy_path, device=device)
+                fqeconfig = d3rlpy.ope.FQEConfig(
+                    learning_rate=FQE_learning_rate,
+                    encoder_factory=d3rlpy.models.VectorEncoderFactory(hidden_units=FQE_hidden_layer)
+                )
+                fqe = FQE(algo=policy, config=fqeconfig, device=device)
+                fqe.build_with_dataset(replay_buffer)
+                fqe.load_model(FQE_file_path)
+                observation, info = env.reset(seed=12345)
+                action = policy.predict(
+                    np.array([observation]))  # sample action for many times (stochastic)
+                total_reward = fqe.predict_value(np.array([observation]), action)[0]
+                prediction_list.append(total_reward)
+
     NMSE,standard_error = normalized_mean_square_error_with_error_bar(true_list,prediction_list)
 
     return NMSE, standard_error
