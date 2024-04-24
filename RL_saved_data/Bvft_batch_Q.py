@@ -137,6 +137,7 @@ def Calculate_best_Q(FQE_saving_step_list):
         Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
         q_functions = []
         q_name_functions = []
+        print("FQE step Q list : ",FQE_step_Q_list)
         for j in range(len(Q_FQE[0])):
             for h in range(len(Q_FQE[0][0])):
                 q_functions.append(Q_FQE[i][j][h])
