@@ -122,7 +122,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
 
             FQE_model_name = get_Bvft_FQE_name(policy_file_name + "_" + str(FQE_saving_step_list))
 
-            Bvft_FQE_learning_rate, Bvft_FQE_hiden_layer = extract_substrings(FQE_model_name)
+            Bvft_FQE_learning_rate, Bvft_FQE_hidden_layer = extract_substrings(FQE_model_name)
 
             FQE_directory = 'FQE_' + str(Bvft_FQE_learning_rate) + '_' + str(Bvft_FQE_hidden_layer)
             FQE_folder = os.path.join(FQE_returned_folder, FQE_directory)
