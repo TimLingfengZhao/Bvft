@@ -333,7 +333,7 @@ def load_from_pkl(file_path):
     return data
 
 
-def normalized_mean_square_error_with_error_bar(actual, predicted):
+def normalized_mean_square_error_with_error_bar(actual, predicted,NMSE_normalization_factor):
 
     if len(actual) != len(predicted):
         raise ValueError("The length of actual and predicted values must be the same.")
@@ -346,6 +346,8 @@ def normalized_mean_square_error_with_error_bar(actual, predicted):
     mean_actual = sum(actual) / len(actual)
     mean_predicted = sum(predicted) / len(predicted)
     range_squared = (max(actual) - min(actual)) ** 2
+    if (NMSE_normalization_factor == 1):
+        range_squared =sum((x - mean) ** 2 for x in actual) / len(actual)
     # range_squared = mean_actual * mean_predicted
     if range_squared == 0:
         raise ValueError("The range of actual values is zero. NMSE cannot be calculated.")
@@ -365,7 +367,7 @@ def normalized_mean_square_error_with_error_bar(actual, predicted):
 def is_key_in_dict(key,dictionary):
     return key in dictionary
 
-def draw_mse_graph(combinations, means, colors,standard_errors, labels, folder_path, filename="FQE_MSES.png"):
+def draw_mse_graph(combinations, means, colors,standard_errors, labels, folder_path,FQE_step_list, filename="FQE_MSES.png",figure_name='Normalized MSE of FQE'):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
@@ -387,7 +389,7 @@ def draw_mse_graph(combinations, means, colors,standard_errors, labels, folder_p
                capsize=5, alpha=0.7, color=colors[i], label=labels[i], width=bar_width)
 
     ax.set_ylabel('Normalized MSE')
-    ax.set_title('Normalized MSE of FQE\'s J(π) estimations')
+    ax.set_title(figure_name+"_"+str(FQE_step_list)+"_steps")
 
     ax.set_xticks(indices)
     ax.set_xticklabels(combinations)

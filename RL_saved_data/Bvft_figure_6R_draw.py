@@ -76,7 +76,7 @@ def extract_substrings(s):
         return None, None
 
     return parts[1], parts[2]
-def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step_list,Bvft=False):
+def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step_list,NMSE_normalization_factor,Bvft=False):
     print(f"Plot FQE MSE with learning rate ={FQE_learning_rate}, hidden layer={FQE_hidden_layer}, on device={device}")
 
     whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
@@ -136,46 +136,46 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
 
             true_list.append(policy_total_dictionary[policy_name])
             prediction_list.append(FQE_total_dictionary[FQE_model_name])
-    NMSE,standard_error = normalized_mean_square_error_with_error_bar(true_list,prediction_list)
+    NMSE,standard_error = normalized_mean_square_error_with_error_bar(true_list,prediction_list,NMSE_normalization_factor)
 
     return NMSE, standard_error
 
 
 
-def run_FQE_1(device,FQE_saving_step_list):
+def run_FQE_1(device,FQE_saving_step_list,NMSE_normalization_factor):
     FQE_learning_rate = 1e-4
     FQE_hidden_layer = [128, 256]
 
-    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,Bvft=False)
-def run_FQE_2(device,FQE_saving_step_list):
+    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,NMSE_normalization_factor,Bvft=False)
+def run_FQE_2(device,FQE_saving_step_list,NMSE_normalization_factor):
     FQE_learning_rate = 1e-4
     FQE_hidden_layer = [128, 1024]
 
-    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,Bvft=False)
-def run_FQE_3(device,FQE_saving_step_list):
+    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,NMSE_normalization_factor,Bvft=False)
+def run_FQE_3(device,FQE_saving_step_list,NMSE_normalization_factor):
     FQE_learning_rate = 2e-5
     FQE_hidden_layer = [128, 256]
 
-    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,Bvft=False)
-def run_FQE_4(device,FQE_saving_step_list):
+    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,NMSE_normalization_factor,Bvft=False)
+def run_FQE_4(device,FQE_saving_step_list,NMSE_normalization_factor):
     FQE_learning_rate = 2e-5
     FQE_hidden_layer = [128, 1024]
 
-    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,Bvft=False)
+    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,NMSE_normalization_factor,Bvft=False)
 
-def run_Bvft(device,FQE_saving_step_list):
+def run_Bvft(device,FQE_saving_step_list,NMSE_normalization_factor):
     FQE_learning_rate = 2e-5
     FQE_hidden_layer = [128, 1024]
 
-    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,Bvft=True)
-def Draw_MSE_graph(FQE_saving_step_list):
+    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,NMSE_normalization_factor,Bvft=True)
+def Draw_MSE_graph(FQE_saving_step_list,NMSE_normalization_factor):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     # while(True):
-    FQE_1_MSE,FQE_1_SE= run_FQE_1(device,FQE_saving_step_list)
-    FQE_2_MSE,FQE_2_SE = run_FQE_2(device,FQE_saving_step_list)
-    FQE_3_MSE,FQE_3_SE = run_FQE_3(device,FQE_saving_step_list)
-    FQE_4_MSE,FQE_4_SE = run_FQE_4(device,FQE_saving_step_list)
-    Bvft_MSE,Bvft_SE = run_Bvft(device,FQE_saving_step_list)
+    FQE_1_MSE,FQE_1_SE= run_FQE_1(device,FQE_saving_step_list,NMSE_normalization_factor)
+    FQE_2_MSE,FQE_2_SE = run_FQE_2(device,FQE_saving_step_list,NMSE_normalization_factor)
+    FQE_3_MSE,FQE_3_SE = run_FQE_3(device,FQE_saving_step_list,NMSE_normalization_factor)
+    FQE_4_MSE,FQE_4_SE = run_FQE_4(device,FQE_saving_step_list,NMSE_normalization_factor)
+    Bvft_MSE,Bvft_SE = run_Bvft(device,FQE_saving_step_list,NMSE_normalization_factor)
     name_list = ["hopper-medium-expert-v0"]
     max_step = str(max(FQE_saving_step_list))
     labels = ["FQE_1e-4_" + "[128,256]_"+max_step ,
@@ -197,14 +197,15 @@ def Draw_MSE_graph(FQE_saving_step_list):
     #
     colors = ['blue', 'orange', 'green', 'purple',"red"]
     draw_mse_graph(combinations=name_list, means=means,  colors=colors, standard_errors = SE,
-                   labels=labels, folder_path=Figure_saving_path, filename="Figure6R_NMSE_graph")
+                   labels=labels, folder_path=Figure_saving_path, FQE_step_list = FQE_saving_step_list,filename="Figure6R_NMSE_graph"+"_"+str(FQE_saving_step_list),figure_name='Normalized MSE of FQE')
         # time.sleep(60)
 def main():
     # tf.disable_v2_behavior()
     parser = argparse.ArgumentParser(description="Plot specific FQE function prediction plot based on learning rate and combination.")
     parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[500000, 1000000, 1500000, 2000000], help="Number of steps in each episode of FQE")
+    parser.add_argument("--NMSE_normalization_factor",type=int,default=0,help="MSE's normalization factor is 0: (max - min ) ^2, 1: (variance of ground truth list)")
     args = parser.parse_args()
-    Draw_MSE_graph(args.FQE_saving_step_list)
+    Draw_MSE_graph(args.FQE_saving_step_list,args.NMSE_normalization_factor)
 #python Bvft_figure_6R_draw.py --FQE_saving_step_list 900000
 if __name__ == "__main__":
     main()
