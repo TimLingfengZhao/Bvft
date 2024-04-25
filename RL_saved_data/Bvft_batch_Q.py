@@ -196,7 +196,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         best_ranking_index = np.argmin(ranking_list)
         save_list = [q_name_functions[best_ranking_index]]
         save_as_pkl(Bvft_resolution_loss_policy_saving_path,Bvft_mean_loss)
-        save_as_txt(Bvft_resolution_losses_policy_saving_path,Bvft_mean_loss)
+        save_as_txt(Bvft_resolution_loss_policy_saving_path,Bvft_mean_loss)
         save_as_txt(Bvft_Q_result_saving_path, save_list)
         save_as_pkl(Bvft_Q_result_saving_path, save_list)
         delete_files_in_folder(Bvft_folder)
