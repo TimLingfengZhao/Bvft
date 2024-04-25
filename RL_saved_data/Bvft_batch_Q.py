@@ -106,6 +106,17 @@ def load_FQE(policy_name_list,FQE_step_list,replay_buffer,device):
         FQE_step_Q_list.append(inner_list)
     return Q_FQE,Q_name_list,FQE_step_Q_list
 
+def get_min_loss(loss_list): #input 2d list, return 1d list
+    if (len(loss_list)==1):
+        return loss_list[0]
+    min_loss = []
+    for i in range(len(loss_list)):
+        current_loss = []
+        for j in range(len(loss_list)[0]):
+            current_loss.append(loss_list[i][j])
+        min_loss.append(min(current_loss))
+    return min_loss
+
 
 def Calculate_best_Q(FQE_saving_step_list):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -135,7 +146,11 @@ def Calculate_best_Q(FQE_saving_step_list):
     Q_FQE,Q_name_list,FQE_step_Q_list = load_FQE(policy_name_list,FQE_saving_step_list,replay_buffer,device) #1d: how many policy #2d: how many step #3d: 4
     FQE_lr_list = [1e-4,2e-5]
     FQE_hl_list = [[128,256],[128,1024]]
-
+    resolution_list = np.array([0.1, 0.2, 0.5, 0.7, 1.0]) * 100
+    print("input resolution list for Bvft : ", resolution_list)
+    Bvft_folder = "Bvft_Records"
+    if not os.path.exists(Bvft_folder):
+        os.makedirs(Bvft_folder)
     for i in range(len(Q_FQE)):
         save_folder_name = Q_name_list[i]
         Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
@@ -145,30 +160,18 @@ def Calculate_best_Q(FQE_saving_step_list):
             for h in range(len(Q_FQE[0][0])):
                 q_functions.append(Q_FQE[i][j][h])
                 q_name_functions.append(FQE_step_Q_list[i][j][h])
+        Bvft_losses = []
+        for resolution in resolution_list:
+            bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
+                                 "torch_actor_critic_cont", verbose=True, batch_dim=1000)
+            bvft_instance.run(resolution=resolution)
+            Bvft_loss.append(record.losses).tolist()
+        min_loss_list = get_min_loss(Bvft_losses)
+        ranking_list = rank_elements(min_loss_list)
+        best_ranking_index = np.argmin(ranking_list)
+        save_list = [q_name_functions[best_ranking_index]]
 
-        bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
-                             "torch_actor_critic_cont", verbose=True, batch_dim=1000)
-        bvft_instance.run()
-        print("bvft_instance resolution : ",record.resolutions)
-        print("bvft losses : ",record.losses)
-        print("bvft loss matrix : ",record.loss_matrices)
 
-        Bvft_folder = "Bvft_Records"
-        delete_files_in_folder(Bvft_folder)
-        sys.exit()
-        if not os.path.exists(Bvft_folder):
-            os.makedirs(Bvft_folder)
-
-        save_list = []
-        ranking_list = []
-        for bvft_result in os.listdir(Bvft_folder):
-            Bvft_path = os.path.join(Bvft_folder, bvft_result)
-            bvft_result = BvftRecord.load(Bvft_path)
-            ranking_list = bvft_result.ranking.tolist()
-            best_ranking_index = np.argmin(ranking_list)
-            save_list.append(q_name_functions[best_ranking_index])
-        print("original Q value : ",ranking_list)
-        print("best Q result : ",save_list)
         save_as_txt(Bvft_Q_result_saving_path, save_list)
         save_as_pkl(Bvft_Q_result_saving_path, save_list)
         delete_files_in_folder(Bvft_folder)
@@ -182,6 +185,7 @@ def Calculate_best_Q(FQE_saving_step_list):
 def main():
     parser = argparse.ArgumentParser(description="Run specific Bvft based on learning rate and combination.")
     parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[500000, 1000000, 1500000, 2000000], help="Number of steps in each episode of FQE")
+    parser.add_argument("--", type=int, nargs='+', default=[500000, 1000000, 1500000, 2000000], help="Number of steps in each episode of FQE")
     args = parser.parse_args()
 
     Calculate_best_Q(FQE_saving_step_list = args.FQE_saving_step_list)
