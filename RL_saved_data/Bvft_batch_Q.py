@@ -115,6 +115,7 @@ def get_min_loss(loss_list): #input 2d list, return 1d list
         current_loss = []
         for j in range(len(loss_list[0])):
             current_loss.append(loss_list[i][j])
+        print("current loss : ",current_loss)
         min_loss.append(min(current_loss))
     return min_loss
 
