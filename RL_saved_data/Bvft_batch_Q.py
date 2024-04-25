@@ -165,7 +165,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
             bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
                                  "torch_actor_critic_cont", verbose=True, batch_dim=1000)
             bvft_instance.run(resolution=resolution)
-            Bvft_loss.append(record.losses).tolist()
+            Bvft_losses.append(record.losses).tolist()
         min_loss_list = get_min_loss(Bvft_losses)
         ranking_list = rank_elements(min_loss_list)
         best_ranking_index = np.argmin(ranking_list)
