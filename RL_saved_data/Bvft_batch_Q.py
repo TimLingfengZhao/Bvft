@@ -107,7 +107,7 @@ def load_FQE(policy_name_list,FQE_step_list,replay_buffer,device):
     return Q_FQE,Q_name_list,FQE_step_Q_list
 
 def get_min_loss(loss_list): #input 2d list, return 1d list
-    print("loss list : ",loss_list)
+    # print("loss list : ",loss_list)
     if (len(loss_list)==1):
         return loss_list[0]
     min_loss = []
@@ -115,10 +115,10 @@ def get_min_loss(loss_list): #input 2d list, return 1d list
         current_loss = []
         for j in range(len(loss_list[0])):
             current_loss.append(loss_list[i][j])
-        print("current loss : ",current_loss)
-        print(len(loss_list))
-        print(len(loss_list[0]))
-        print(len(loss_list[0][0]))
+        # print("current loss : ",current_loss)
+        # print(len(loss_list))
+        # print(len(loss_list[0]))
+        # print(len(loss_list[0][0]))
         min_loss.append(min(current_loss))
     return min_loss
 
@@ -182,15 +182,15 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
             record = BvftRecord()
             bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
                                  "torch_actor_critic_cont", verbose=True, batch_dim=1000)
-            print("resolution : ",resolution)
+            # print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
-            print("losses : ",record.losses)
+            # print("losses : ",record.losses)
             Bvft_losses.append(record.losses[0])
             Bvft_mean_loss.append(record.losses[0])
         Bvft_final_resolution_loss.append(Bvft_mean_loss)
-        print('Bvft losses : ',Bvft_losses)
+        # print('Bvft losses : ',Bvft_losses)
         min_loss_list = get_min_loss(Bvft_losses)
-        print("min loss list : ",min_loss_list)
+        # print("min loss list : ",min_loss_list)
         ranking_list = rank_elements(min_loss_list)
 
         best_ranking_index = np.argmin(ranking_list)
