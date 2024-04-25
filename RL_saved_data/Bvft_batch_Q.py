@@ -153,8 +153,10 @@ def Calculate_best_Q(FQE_saving_step_list):
         print("bvft_instance resolution : ",record.resolutions)
         print("bvft losses : ",record.losses)
         print("bvft loss matrix : ",record.loss_matrices)
-        sys.exit()
+
         Bvft_folder = "Bvft_Records"
+        delete_files_in_folder(Bvft_folder)
+        sys.exit()
         if not os.path.exists(Bvft_folder):
             os.makedirs(Bvft_folder)
 
@@ -171,6 +173,7 @@ def Calculate_best_Q(FQE_saving_step_list):
         save_as_txt(Bvft_Q_result_saving_path, save_list)
         save_as_pkl(Bvft_Q_result_saving_path, save_list)
         delete_files_in_folder(Bvft_folder)
+
 
 
 
