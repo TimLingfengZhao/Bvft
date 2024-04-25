@@ -138,7 +138,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
 
     gamma = 0.99
     rmax, rmin = env.reward_range[0], env.reward_range[1]
-    record = BvftRecord()
+
     batch_dim = 1000
     test_data = CustomDataLoader(replay_buffer_test, batch_size=batch_dim)
 
@@ -179,12 +179,12 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
                 q_name_functions.append(FQE_step_Q_list[i][j][h])
         Bvft_losses = []
         for resolution in resolution_list:
+            record = BvftRecord()
             bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
                                  "torch_actor_critic_cont", verbose=True, batch_dim=1000)
             print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
             print("losses : ",record.losses)
-            sys.exit()
             Bvft_losses.append(record.losses)
             Bvft_mean_loss.append(record.losses)
         Bvft_final_resolution_loss.append(Bvft_mean_loss)
