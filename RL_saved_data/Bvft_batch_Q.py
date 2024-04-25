@@ -118,7 +118,7 @@ def get_min_loss(loss_list): #input 2d list, return 1d list
     return min_loss
 
 
-def Calculate_best_Q(FQE_saving_step_list):
+def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     print("begin save best Q, current device : ",device)
     whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
@@ -146,7 +146,7 @@ def Calculate_best_Q(FQE_saving_step_list):
     Q_FQE,Q_name_list,FQE_step_Q_list = load_FQE(policy_name_list,FQE_saving_step_list,replay_buffer,device) #1d: how many policy #2d: how many step #3d: 4
     FQE_lr_list = [1e-4,2e-5]
     FQE_hl_list = [[128,256],[128,1024]]
-    resolution_list = np.array([0.1, 0.2, 0.5, 0.7, 1.0]) * 100
+    # resolution_list = np.array([0.1, 0.2, 0.5, 0.7, 1.0]) * 100
     print("input resolution list for Bvft : ", resolution_list)
     Bvft_folder = "Bvft_Records"
     if not os.path.exists(Bvft_folder):
@@ -185,10 +185,10 @@ def Calculate_best_Q(FQE_saving_step_list):
 def main():
     parser = argparse.ArgumentParser(description="Run specific Bvft based on learning rate and combination.")
     parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[500000, 1000000, 1500000, 2000000], help="Number of steps in each episode of FQE")
-    parser.add_argument("--", type=int, nargs='+', default=[500000, 1000000, 1500000, 2000000], help="Number of steps in each episode of FQE")
+    parser.add_argument("--resolution_list", type=float, nargs='+', default=[10., 20., 50., 70., 100.], help="Resolution list parameter for Bvft")
     args = parser.parse_args()
 
-    Calculate_best_Q(FQE_saving_step_list = args.FQE_saving_step_list)
+    Calculate_best_Q(FQE_saving_step_list = args.FQE_saving_step_list,resolution_list = args.resolution_list)
 #--num_interval 5 --FQE_number_epoch 45 --FQE_episode_step 20000 --initial_state 12345 --m 10 --k 1 --num_runs 4
 #--FQE_episode_step 100000 --FQE_Pickup_number 1 --FQE_total_step 900000 --m 2 --num_runs 10
 #--FQE_saving_step_list 900000
