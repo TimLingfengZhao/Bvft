@@ -113,6 +113,8 @@ def Calculate_best_Q(FQE_saving_step_list):
     whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
     train_episodes = whole_dataset.episodes[0:2000]
     test_episodes = whole_dataset.episodes[2000:2276]
+    print("environment reward range : ",env.reward_range)
+    print("rewards : ",test_episodes["rewards"])
 
     buffer = FIFOBuffer(limit=50000)
     replay_buffer_test = ReplayBuffer(buffer=buffer, episodes=test_episodes)
@@ -148,6 +150,10 @@ def Calculate_best_Q(FQE_saving_step_list):
         bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
                              "torch_actor_critic_cont", verbose=True, batch_dim=1000)
         bvft_instance.run()
+        print("bvft_instance resolution : ",record.resolutions)
+        print("bvft losses : ",record.losses)
+        print("bvft loss matrix : ",record.loss_matrices)
+        sys.exit()
         Bvft_folder = "Bvft_Records"
         if not os.path.exists(Bvft_folder):
             os.makedirs(Bvft_folder)
