@@ -121,7 +121,7 @@ def Calculate_best_Q(FQE_saving_step_list):
     replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 
     gamma = 0.99
-    rmax, rmin = 1.0, 0.0
+    rmax, rmin = env.reward_range[0], env.reward_range[1]
     record = BvftRecord()
     batch_dim = 1000
     test_data = CustomDataLoader(replay_buffer_test, batch_size=batch_dim)
