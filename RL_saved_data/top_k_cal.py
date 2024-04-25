@@ -585,7 +585,7 @@ def calculate_statistics(data_list):
     return mean,ci
 def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,resolution_list):
     fig,ax = plt.subplots()
-    for index,y_valeus in enumerate(Bvft_final_resolution_loss):
+    for index,y_values in enumerate(Bvft_final_resolution_loss):
         ax.plot(resolution_list, y_values,label=f'Line {index+1}')
     ax.legend()
     ax.set_title("mean loss with different policy")
