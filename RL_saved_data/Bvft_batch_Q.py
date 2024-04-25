@@ -107,6 +107,7 @@ def load_FQE(policy_name_list,FQE_step_list,replay_buffer,device):
     return Q_FQE,Q_name_list,FQE_step_Q_list
 
 def get_min_loss(loss_list): #input 2d list, return 1d list
+    print("loss list : ",loss_list)
     if (len(loss_list)==1):
         return loss_list[0]
     min_loss = []
