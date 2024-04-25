@@ -165,9 +165,9 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     Bvft_final_resolution_loss = []
     for i in range(len(Q_FQE)):
         save_folder_name = Q_name_list[i]
-        Bvft_resolution_loss_policy_saving_folder = os.path.join(Bvft_resolution_losses_saving_path, save_folder_name)
-        Bvft_resolution_loss_saving_name = "Bvft_mean_loss_"+str(resolution_list)
-        Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_loss_policy_saving_folder,Bvft_resolution_loss_saving_name)
+        Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_losses_saving_path, save_folder_name)
+        # Bvft_resolution_loss_saving_name = "Bvft_mean_loss_"+str(resolution_list)
+        # Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_loss_policy_saving_folder,Bvft_resolution_loss_saving_name)
         Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
 
         Bvft_mean_loss = []
