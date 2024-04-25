@@ -140,9 +140,15 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     Bvft_saving_folder = "Bvft_saving_place"
     Bvft_Q_saving_folder = "Bvft_Q_saving_place"
     Bvft_Q_saving_path = os.path.join(Bvft_saving_folder,Bvft_Q_saving_folder)
+
+    Bvft_resolution_losses_saving_folder = "Bvft_resolution_loss_saving_place"
+    Bvft_resolution_losses_saving_path = os.path.join(Bvft_saving_folder,Bvft_resolution_losses_saving_folder)
+    if not os.path.exists(Bvft_resolution_losses_saving_path):
+        os.makedirs(Bvft_resolution_losses_saving_path)
     if not os.path.exists(Bvft_Q_saving_path):
         os.makedirs(Bvft_Q_saving_path)
     policy_name_list, policy_list = load_policy(device)
+
     Q_FQE,Q_name_list,FQE_step_Q_list = load_FQE(policy_name_list,FQE_saving_step_list,replay_buffer,device) #1d: how many policy #2d: how many step #3d: 4
     FQE_lr_list = [1e-4,2e-5]
     FQE_hl_list = [[128,256],[128,1024]]
@@ -151,9 +157,15 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     Bvft_folder = "Bvft_Records"
     if not os.path.exists(Bvft_folder):
         os.makedirs(Bvft_folder)
+    Bvft_final_resolution_loss = []
     for i in range(len(Q_FQE)):
         save_folder_name = Q_name_list[i]
+        Bvft_resolution_loss_policy_saving_folder = os.path.join(Bvft_resolution_losses_saving_path, save_folder_name)
+        Bvft_resolution_loss_saving_name = "Bvft_mean_loss_"+str(resolution_list)
+        Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_loss_policy_saving_folder,Bvft_resolution_loss_saving_name)
         Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
+
+        Bvft_mean_loss = []
         q_functions = []
         q_name_functions = []
         for j in range(len(Q_FQE[0])):
@@ -165,16 +177,19 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
             bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
                                  "torch_actor_critic_cont", verbose=True, batch_dim=1000)
             bvft_instance.run(resolution=resolution)
-            Bvft_losses.append(record.losses.tolist())
+            Bvft_losses.append(record.losses)
+            Bvft_mean_loss.append(record.losses)
+        Bvft_final_resolution_loss.append(Bvft_mean_loss)
         min_loss_list = get_min_loss(Bvft_losses)
         ranking_list = rank_elements(min_loss_list)
         best_ranking_index = np.argmin(ranking_list)
         save_list = [q_name_functions[best_ranking_index]]
-
-
+        save_as_pkl(Bvft_resolution_loss_policy_saving_path,Bvft_mean_loss)
+        save_as_txt(Bvft_resolution_losses_policy_saving_path,Bvft_mean_loss)
         save_as_txt(Bvft_Q_result_saving_path, save_list)
         save_as_pkl(Bvft_Q_result_saving_path, save_list)
         delete_files_in_folder(Bvft_folder)
+    draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,resolution_list)
 
 
 
