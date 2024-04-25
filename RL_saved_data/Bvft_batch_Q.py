@@ -200,7 +200,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         save_as_txt(Bvft_Q_result_saving_path, save_list)
         save_as_pkl(Bvft_Q_result_saving_path, save_list)
         delete_files_in_folder(Bvft_folder)
-    draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,resolution_list)
+    draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_saving_step_list,resolution_list)
 
 
 
