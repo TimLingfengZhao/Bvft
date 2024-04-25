@@ -114,7 +114,7 @@ def Calculate_best_Q(FQE_saving_step_list):
     train_episodes = whole_dataset.episodes[0:2000]
     test_episodes = whole_dataset.episodes[2000:2276]
     print("environment reward range : ",env.reward_range)
-    print("rewards : ",test_episodes["rewards"])
+    print("rewards : ",test_episodes)
 
     buffer = FIFOBuffer(limit=50000)
     replay_buffer_test = ReplayBuffer(buffer=buffer, episodes=test_episodes)
