@@ -288,7 +288,6 @@ class CustomDataLoader:
         padded_next_states = sampled_traj.observations[1:length]
         rewards = sampled_traj.rewards[0:(length-1)]
         done = sampled_traj.terminals[0:(length-1)]
-        print("sampled_traj : ",sampled_traj)
 
         return states, actions, padded_next_states, rewards, done
 

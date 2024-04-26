@@ -201,13 +201,11 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
                                  "torch_actor_critic_cont", verbose=True, data_size=Bvft_batch_dim)
             # print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
-            print("losses : ",record.losses)
             group_list.append(record.group_counts[0])
             for i in range(len(record.losses[0])):
                 Bvft_final_resolution_loss[i].append(record.losses[0][i])
 
             Bvft_losses.append(record.losses[0])
-            sys.exit()
         # print('Bvft losses : ',Bvft_losses)
         min_loss_list = get_min_loss(Bvft_losses)
         # print("min loss list : ",min_loss_list)
