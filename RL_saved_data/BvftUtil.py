@@ -69,7 +69,7 @@ class BvftRecord:
 import numpy as np
 class BVFT(object):
     def __init__(self, q_functions, data, gamma, rmax, rmin,file_name_pre, record: BvftRecord = BvftRecord(), q_type='torch_actor_critic_cont',
-                 verbose=False, bins=None, data_size=5000,batch_dim = 1000):
+                 verbose=False, bins=None, data_size=500):
         self.data = data                                                        #Data D
         self.gamma = gamma                                                      #gamma
         self.res = 0                                                            #\epsilon k (discretization parameter set)
@@ -289,6 +289,7 @@ class CustomDataLoader:
         rewards = sampled_traj.rewards[0:(length-1)]
         done = sampled_traj.terminals[0:(length-1)]
         print("sampled_traj : ",sampled_traj)
+
         return states, actions, padded_next_states, rewards, done
 
 
