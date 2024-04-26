@@ -596,6 +596,8 @@ def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,r
     Bvft_save_folder = "Bvft_saving_place"
     Bvft_plot_folder = os.path.join(Bvft_save_folder,"Bvft_plot")
     Bvft_saving_folder = os.path.join(Bvft_plot_folder,"Res_plots")
+    if not os.path.exists(Bvft_saving_folder):
+        os.makedirs(Bvft_saving_folder)
     plot_name = "Figure_1R_"+save_folder_name+"_"+str(resolution_list)+".png"
     save_path = os.path.join(Bvft_saving_folder,plot_name)
     plt.savefig(save_path)
