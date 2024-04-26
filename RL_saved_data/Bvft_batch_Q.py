@@ -126,7 +126,7 @@ def get_min_loss(loss_list): #input 2d list, return 1d list
 def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     print("begin save best Q, current device : ",device)
-    whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
+    whole_dataset, env = get_d4rl('hopper-medium-expert-v2')
     train_episodes = whole_dataset.episodes[0:2000]
     test_episodes = whole_dataset.episodes[2000:2276]
 
