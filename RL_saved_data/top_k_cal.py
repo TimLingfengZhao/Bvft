@@ -653,8 +653,8 @@ def find_min_length(episodes):
     for ele in episodes:
         print("type episode : ",type(ele))
         print("ele : ",ele)
-        print("type obser : ",type(ele["observations"]))
-        cur_len = len(ele["observations"])
+        print("type obser : ",type(ele.observations))
+        cur_len = len(ele.observations)
         if (cur_len < min):
             min = cur_len
     return min
