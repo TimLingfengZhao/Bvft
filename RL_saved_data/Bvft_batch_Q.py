@@ -126,13 +126,13 @@ def get_min_loss(loss_list): #input 2d list, return 1d list
 def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     print("begin save best Q, current device : ",device)
-    whole_dataset, env = get_d4rl('hopper-medium-expert-v2')
+    whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
     train_episodes = whole_dataset.episodes[0:2000]
     test_episodes = whole_dataset.episodes[2000:2276]
 
     print("min length test epsodes : ",find_min_length(test_episodes))
     print("min length train episodes : ",find_min_length(train_episodes))
-    sys.exit()
+    Bvft_batch_dim = find_min_length(test_episodes)
     print("first train episodes : ",train_episodes[0])
     print("one test episodes : ",test_episodes[0])
     # print("environment reward range : ",env.reward_range)    # print("environment reward range : ",env.reward_range)
@@ -146,7 +146,6 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     gamma = 0.99
     rmax, rmin = env.reward_range[0], env.reward_range[1]
 
-    batch_dim = 1000
     test_data = CustomDataLoader(replay_buffer_test, batch_size=batch_dim)
 
     Bvft_saving_folder = "Bvft_saving_place"
@@ -199,7 +198,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         for resolution in resolution_list:
             record = BvftRecord()
             bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
-                                 "torch_actor_critic_cont", verbose=True, batch_dim=1000)
+                                 "torch_actor_critic_cont", verbose=True, batch_dim=Bvft_batch_dim)
             # print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
             print("losses : ",record.losses)
