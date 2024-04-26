@@ -586,14 +586,14 @@ def calculate_statistics(data_list):
 def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,resolution_list,save_folder_name,line_name_list,group_list):
     print("number of lines : ",Bvft_final_resolution_loss)
     print("line names : ", line_name_list)
-    fig,ax = plt.subplots()
+    fig,ax = plt.subplots(figsize=(10, 6))
 
     x_list = []
     for i in range(len(resolution_list)):
         x_list.append(str(resolution_list[i])+"res"+"_"+str(group_list[i])+"groups")
     for index,y_values in enumerate(Bvft_final_resolution_loss):
         ax.plot(resolution_list, y_values,label=line_name_list[index])
-    ax.legend(loc='upper right')
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.5), ncol=3)
     ax.set_xticks(resolution_list)  # Set the x positions
     ax.set_xticklabels(x_list, rotation=45, ha="right")
     ax.set_title("mean loss with different policy")
@@ -607,7 +607,7 @@ def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,r
         os.makedirs(Bvft_saving_folder)
     plot_name = "Figure_1R_"+save_folder_name+"_"+str(resolution_list)+".png"
     save_path = os.path.join(Bvft_saving_folder,plot_name)
-    plt.savefig(save_path)
+    plt.savefig(save_path, bbox_inches='tight')
     plt.close()
 
 
