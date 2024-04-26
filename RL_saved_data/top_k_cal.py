@@ -662,6 +662,7 @@ def find_min_length(episodes):
 def get_data_size(episodes):
     size = 0
     for ele in episodes:
+        print(ele)
         size+= ele.lengths
     return size
 
