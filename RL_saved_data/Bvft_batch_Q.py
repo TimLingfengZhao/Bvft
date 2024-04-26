@@ -171,7 +171,6 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         # Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_loss_policy_saving_folder,Bvft_resolution_loss_saving_name)
         Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
 
-        Bvft_mean_loss = []
         q_functions = []
         q_name_functions = []
         for j in range(len(Q_FQE[0])):
@@ -187,15 +186,22 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
             # print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
             # print("losses : ",record.losses)
+            for i in range(len(FQE_saving_step_list)*4):
+                current_list = []
+                current_list.append(record[0][i])
+                Bvft_final_resolution_loss.append(current_list)
             Bvft_losses.append(record.losses[0])
-            Bvft_mean_loss.append(record.losses[0])
-            print("added loss : ",Bvft_mean_loss)
-        Bvft_final_resolution_loss.append(Bvft_mean_loss)
         # print('Bvft losses : ',Bvft_losses)
         min_loss_list = get_min_loss(Bvft_losses)
         # print("min loss list : ",min_loss_list)
         ranking_list = rank_elements(min_loss_list)
 
+        line_name_list = []
+        for i in range(len(FQE_saving_step_list)):
+            for j in range(len(FQE_lr_list)):
+                for k in range(len(FQE_hl_list)):
+                    line_name_list.append('FQE_' + str(FQE_lr_list[j]) + '_' + str(FQE_hl_list[k]) + '_' + str(
+                        FQE_saving_step_list[i] ) + "step" )
 
         best_ranking_index = np.argmin(ranking_list)
         save_list = [q_name_functions[best_ranking_index]]
@@ -204,7 +210,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         save_as_txt(Bvft_Q_result_saving_path, save_list)
         save_as_pkl(Bvft_Q_result_saving_path, save_list)
         delete_files_in_folder(Bvft_folder)
-        draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_saving_step_list,resolution_list,save_folder_name)
+        draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_saving_step_list,resolution_list,save_folder_name,line_name_list)
 
 
 
