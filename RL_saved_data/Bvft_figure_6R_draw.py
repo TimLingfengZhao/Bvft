@@ -116,6 +116,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
             FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+str(max_step) + "step"+"_"
             FQE_model_name = FQE_model_pre + policy_name
             true_list.append(policy_total_dictionary[policy_name])
+            print('dictionary fqe total : ',FQE_total_dictionary.keys())
             prediction_list.append(FQE_total_dictionary[FQE_model_name])
         else:
             print("Bvft ")
