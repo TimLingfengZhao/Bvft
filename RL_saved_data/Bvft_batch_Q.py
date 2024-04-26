@@ -187,6 +187,8 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
             # print("losses : ",record.losses)
             Bvft_losses.append(record.losses[0])
             Bvft_mean_loss.append(record.losses[0])
+            print("added loss : ",record.losses[0])
+            sys.exit()
         Bvft_final_resolution_loss.append(Bvft_mean_loss)
         # print('Bvft losses : ',Bvft_losses)
         min_loss_list = get_min_loss(Bvft_losses)
