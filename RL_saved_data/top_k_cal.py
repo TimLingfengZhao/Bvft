@@ -590,7 +590,7 @@ def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,r
 
     for index,y_values in enumerate(Bvft_final_resolution_loss):
         ax.plot(resolution_list, y_values,label=line_name_list[index])
-    ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.3))
+    ax.legend(loc='lower center', bbox_to_anchor=(0.5, -1),ncol=3)
     ax.set_title("mean loss with different policy")
     ax.set_ylabel('Bvft_loss')
     ax.set_xlabel('resolutions')
