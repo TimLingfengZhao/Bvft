@@ -133,7 +133,7 @@ def run_policy_evaluation(input_gamma, num_runs, device):
         time.sleep(600)
 
 if __name__ == "__main__":
-    tf.disable_v2_behavior()
+    # tf.disable_v2_behavior()
     parser = argparse.ArgumentParser(description="Run policy evaluation and processing.")
     parser.add_argument("--input_gamma", type=float, default=0.99, help="Gamma value for evaluation.")
     parser.add_argument("--num_runs", type=int, default=1, help="Number of runs for evaluation.")
