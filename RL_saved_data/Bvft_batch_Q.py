@@ -164,6 +164,12 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     if not os.path.exists(Bvft_folder):
         os.makedirs(Bvft_folder)
 
+    line_name_list = []
+    for i in range(len(FQE_saving_step_list)):
+        for j in range(len(FQE_lr_list)):
+            for k in range(len(FQE_hl_list)):
+                line_name_list.append('FQE_' + str(FQE_lr_list[j]) + '_' + str(FQE_hl_list[k]) + '_' + str(
+                    FQE_saving_step_list[i]) + "step")
     for i in range(len(Q_FQE)):
         save_folder_name = Q_name_list[i]
         Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_losses_saving_path, save_folder_name)
@@ -198,13 +204,6 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         min_loss_list = get_min_loss(Bvft_losses)
         # print("min loss list : ",min_loss_list)
         ranking_list = rank_elements(min_loss_list)
-
-        line_name_list = []
-        for i in range(len(FQE_saving_step_list)):
-            for j in range(len(FQE_lr_list)):
-                for k in range(len(FQE_hl_list)):
-                    line_name_list.append('FQE_' + str(FQE_lr_list[j]) + '_' + str(FQE_hl_list[k]) + '_' + str(
-                        FQE_saving_step_list[i] ) + "step" )
 
         best_ranking_index = np.argmin(ranking_list)
         save_list = [q_name_functions[best_ranking_index]]
