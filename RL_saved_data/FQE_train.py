@@ -183,6 +183,7 @@ def run_FQE(FQE_learning_rate,FQE_hidden_layer,FQE_total_step, FQE_episode_step,
         # FQE_plot_folder = "plot_" + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer)
         # FQE_plot_path = os.path.join(FQE_plot_fold,FQE_plot_folder)
         # plot_and_save_bar_graph_with_labels(FQE_reward_list, FQE_name_list, FQE_plot_path)
+        print("sleep now")
         time.sleep(600)
 def run_FQE_1(FQE_total_step, FQE_episode_step,num_interval):
     FQE_learning_rate = 1e-4
