@@ -655,6 +655,8 @@ def find_min_length(episodes):
         # print("ele : ",ele)
         # print("type obser : ",type(ele.observations))
         cur_len = len(ele.observations)
+        if cur_len == 8 :
+            print("min observations : ",ele.observations)
         if (cur_len < min):
             min = cur_len
     return min
