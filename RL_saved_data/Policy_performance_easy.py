@@ -56,7 +56,7 @@ from d3rlpy.models.q_functions import IQNQFunctionFactory
 from d3rlpy.ope import FQE, FQEConfig
 from d3rlpy.models.encoders import VectorEncoderFactory
 import torch
-import tensorflow.compat.v1 as tf
+
 
 
 def run_policy_evaluation(input_gamma, num_runs, device):
