@@ -133,8 +133,8 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     print("min length test epsodes : ",find_min_length(test_episodes))
     print("min length train episodes : ",find_min_length(train_episodes))
     Bvft_batch_dim = find_min_length(test_episodes)
-    print("first train episodes : ",train_episodes[0])
-    print("one test episodes : ",test_episodes[0])
+    # print("first train episodes : ",train_episodes[0])
+    # print("one test episodes : ",test_episodes[0])
     # print("environment reward range : ",env.reward_range)    # print("environment reward range : ",env.reward_range)
 
     # print("test episodes : ",test_episodes)
