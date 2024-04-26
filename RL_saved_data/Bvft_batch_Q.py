@@ -188,7 +188,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
             # print("losses : ",record.losses)
             for i in range(len(FQE_saving_step_list)*4):
                 current_list = []
-                current_list.append(record[0][i])
+                current_list.append(record.lossed[0][i])
                 Bvft_final_resolution_loss.append(current_list)
             Bvft_losses.append(record.losses[0])
         # print('Bvft losses : ',Bvft_losses)
