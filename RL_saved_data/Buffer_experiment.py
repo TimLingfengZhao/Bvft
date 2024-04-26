@@ -113,4 +113,4 @@ buffer = FIFOBuffer(limit=500)
 dataset = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 
 sampled_traj = dataset.sample_trajectory(1)
-print("sampled traj : ",sample_traj)
+print("sampled traj : ",sampled_traj)
