@@ -129,6 +129,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
     train_episodes = whole_dataset.episodes[0:2000]
     test_episodes = whole_dataset.episodes[2000:2276]
+
     print("first train episodes : ",train_episodes[0])
     print("one test episodes : ",test_episodes[0])
     # print("environment reward range : ",env.reward_range)    # print("environment reward range : ",env.reward_range)
