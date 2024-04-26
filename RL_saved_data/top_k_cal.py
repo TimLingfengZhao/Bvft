@@ -589,10 +589,13 @@ def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,r
     fig,ax = plt.subplots(figsize=(10, 6))
 
     x_list = []
+
     for i in range(len(resolution_list)):
         x_list.append(str(resolution_list[i])+"res"+"_"+str(group_list[i])+"groups")
+    x_positions = list(range(len(x_list)))
     for index,y_values in enumerate(Bvft_final_resolution_loss):
-        ax.plot(resolution_list, y_values,label=line_name_list[index])
+        ax.plot(x_positions, y_values,label=line_name_list[index])
+    ax.set_xticks(x_positions)
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.5), ncol=3)
     ax.set_xticks(resolution_list)  # Set the x positions
     ax.set_xticklabels(x_list, rotation=45, ha="right")
