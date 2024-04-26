@@ -584,8 +584,6 @@ def calculate_statistics(data_list):
     ci = 2 * sem
     return mean,ci
 def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,resolution_list,save_folder_name,line_name_list,group_list):
-    print("number of lines : ",Bvft_final_resolution_loss)
-    print("line names : ", line_name_list)
     fig,ax = plt.subplots(figsize=(10, 6))
 
     x_list = []
@@ -595,9 +593,9 @@ def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,r
     x_positions = list(range(len(x_list)))
     for index,y_values in enumerate(Bvft_final_resolution_loss):
         ax.plot(x_positions, y_values,label=line_name_list[index])
-    ax.set_xticks(x_positions)
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.5), ncol=3)
-    ax.set_xticks(resolution_list)  # Set the x positions
+
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.3), ncol=3)
+    ax.set_xticks(x_positions)  # Set the x positions
     ax.set_xticklabels(x_list, rotation=45, ha="right")
     ax.set_title("mean loss with different policy")
     ax.set_ylabel('Bvft_loss')
