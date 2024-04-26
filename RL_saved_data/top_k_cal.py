@@ -659,7 +659,11 @@ def find_min_length(episodes):
             min = cur_len
     return min
 
-
+def get_data_size(episodes):
+    size = 0
+    for ele in episodes:
+        size+= ele.lengths
+    return size
 
 
 

@@ -69,7 +69,7 @@ class BvftRecord:
 import numpy as np
 class BVFT(object):
     def __init__(self, q_functions, data, gamma, rmax, rmin,file_name_pre, record: BvftRecord = BvftRecord(), q_type='torch_actor_critic_cont',
-                 verbose=False, bins=None, data_size=500):
+                 verbose=False, bins=None, data_size=5000,batch_dim = 200):
         self.data = data                                                        #Data D
         self.gamma = gamma                                                      #gamma
         self.res = 0                                                            #\epsilon k (discretization parameter set)
@@ -109,9 +109,9 @@ class BVFT(object):
                 self.r_plus_vfsp.append(rewards + self.gamma * vfsp)
 
         elif q_type == 'torch_actor_critic_cont':
-            batch_size = min(1024,  data_size)                  #minimum batch size
+            batch_size = min(1024,  data_size,batch_dim)                  #minimum batch size
             # batch_size = 1000
-            self.data.batch_size = batch_size                                  #batch size
+            self.data.batch_size = batch_dim                                #batch size
             self.q_sa = [np.zeros(data_size) for _ in q_functions]             #q_functions corresponding 0
             self.r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]      #initialization 0
             ptr = 0
