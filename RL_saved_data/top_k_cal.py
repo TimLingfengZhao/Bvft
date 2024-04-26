@@ -651,6 +651,8 @@ def plot_subplots(data, save_path, y_axis_names, line_names, colors,ci):
 def find_min_length(episodes):
     min = 2000
     for ele in episodes:
+        print("type episode : ",type(ele))
+        print("ele : ",ele)
         cur_len = len(ele["observations"])
         if (cur_len < min):
             min = cur_len
