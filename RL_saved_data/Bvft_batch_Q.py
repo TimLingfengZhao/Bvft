@@ -146,7 +146,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     gamma = 0.99
     rmax, rmin = env.reward_range[0], env.reward_range[1]
 
-    test_data = CustomDataLoader(replay_buffer_test, batch_size=batch_dim)
+    test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
 
     Bvft_saving_folder = "Bvft_saving_place"
     Bvft_Q_saving_folder = "Bvft_Q_saving_place"
