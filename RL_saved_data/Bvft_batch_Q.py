@@ -179,17 +179,20 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
                 q_name_functions.append(FQE_step_Q_list[i][j][h])
         Bvft_losses = []
         Bvft_final_resolution_loss = []
+        for i in range(len(FQE_saving_step_list) * 4):
+            current_list = []
+            Bvft_final_resolution_loss.append(current_list)
         for resolution in resolution_list:
             record = BvftRecord()
             bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
                                  "torch_actor_critic_cont", verbose=True, batch_dim=1000)
             # print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
-            # print("losses : ",record.losses)
-            for i in range(len(FQE_saving_step_list)*4):
-                current_list = []
-                current_list.append(record.losses[0][i])
-                Bvft_final_resolution_loss.append(current_list)
+            print("losses : ",record.losses)
+
+            for i in range(len(record.losses[0])):
+                Bvft_final_resolution_loss.append(record.losses[0][i])
+
             Bvft_losses.append(record.losses[0])
         # print('Bvft losses : ',Bvft_losses)
         min_loss_list = get_min_loss(Bvft_losses)
