@@ -583,7 +583,7 @@ def calculate_statistics(data_list):
     sem = std_dev / np.sqrt(len(data_list))
     ci = 2 * sem
     return mean,ci
-def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,resolution_list):
+def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,resolution_list,save_folder_name):
     print("number of lines : ",len(Bvft_final_resolution_loss))
     fig,ax = plt.subplots()
     for index,y_values in enumerate(Bvft_final_resolution_loss):
@@ -595,8 +595,9 @@ def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,r
 
     Bvft_save_folder = "Bvft_saving_place"
     Bvft_plot_folder = os.path.join(Bvft_save_folder,"Bvft_plot")
-    plot_name = "Figure_1R_"+str(FQE_step_Q_list)+"_"+str(resolution_list)+".png"
-    save_path = os.path.join(Bvft_plot_folder,plot_name)
+    Bvft_saving_folder = os.path.join(Bvft_plot_folder,"Res_plots")
+    plot_name = "Figure_1R_"+save_folder_name+"_"+str(resolution_list)+".png"
+    save_path = os.path.join(Bvft_saving_folder,plot_name)
     plt.savefig(save_path)
     plt.close()
 

@@ -144,6 +144,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
 
     Bvft_saving_folder = "Bvft_saving_place"
     Bvft_Q_saving_folder = "Bvft_Q_saving_place"
+
     Bvft_Q_saving_path = os.path.join(Bvft_saving_folder,Bvft_Q_saving_folder)
 
     Bvft_resolution_losses_saving_folder = "Bvft_resolution_loss_saving_place"
@@ -162,7 +163,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     Bvft_folder = "Bvft_Records"
     if not os.path.exists(Bvft_folder):
         os.makedirs(Bvft_folder)
-    Bvft_final_resolution_loss = []
+
     for i in range(len(Q_FQE)):
         save_folder_name = Q_name_list[i]
         Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_losses_saving_path, save_folder_name)
@@ -178,6 +179,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
                 q_functions.append(Q_FQE[i][j][h])
                 q_name_functions.append(FQE_step_Q_list[i][j][h])
         Bvft_losses = []
+        Bvft_final_resolution_loss = []
         for resolution in resolution_list:
             record = BvftRecord()
             bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
@@ -186,13 +188,14 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
             bvft_instance.run(resolution=resolution)
             # print("losses : ",record.losses)
             Bvft_losses.append(record.losses[0])
-            Bvft_mean_loss.append(sum(record.losses[0])/len(record.losses[0]))
+            Bvft_mean_loss.append(record.losses[0])
             print("added loss : ",Bvft_mean_loss)
         Bvft_final_resolution_loss.append(Bvft_mean_loss)
         # print('Bvft losses : ',Bvft_losses)
         min_loss_list = get_min_loss(Bvft_losses)
         # print("min loss list : ",min_loss_list)
         ranking_list = rank_elements(min_loss_list)
+
 
         best_ranking_index = np.argmin(ranking_list)
         save_list = [q_name_functions[best_ranking_index]]
@@ -201,7 +204,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         save_as_txt(Bvft_Q_result_saving_path, save_list)
         save_as_pkl(Bvft_Q_result_saving_path, save_list)
         delete_files_in_folder(Bvft_folder)
-    draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_saving_step_list,resolution_list)
+        draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_saving_step_list,resolution_list,save_folder_name)
 
 
 
