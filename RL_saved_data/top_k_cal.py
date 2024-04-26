@@ -583,17 +583,20 @@ def calculate_statistics(data_list):
     sem = std_dev / np.sqrt(len(data_list))
     ci = 2 * sem
     return mean,ci
-def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,resolution_list,save_folder_name,line_name_list):
+def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,resolution_list,save_folder_name,line_name_list,group_list):
     print("number of lines : ",Bvft_final_resolution_loss)
     print("line names : ", line_name_list)
     fig,ax = plt.subplots()
 
+    x_list = []
+    for i in range(len(resolution_list)):
+        x_list.append(resolution_list[i]+"res"+"_"+str(group_list[i])+"groups")
     for index,y_values in enumerate(Bvft_final_resolution_loss):
-        ax.plot(resolution_list, y_values,label=line_name_list[index])
+        ax.plot(x_list, y_values,label=line_name_list[index])
     ax.legend(loc='lower center', bbox_to_anchor=(0.5, -1),ncol=3)
     ax.set_title("mean loss with different policy")
     ax.set_ylabel('Bvft_loss')
-    ax.set_xlabel('resolutions')
+    ax.set_xlabel('resolutions_groups')
 
     Bvft_save_folder = "Bvft_saving_place"
     Bvft_plot_folder = os.path.join(Bvft_save_folder,"Bvft_plot")

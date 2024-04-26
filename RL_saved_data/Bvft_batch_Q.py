@@ -188,6 +188,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         for i in range(len(FQE_saving_step_list) * 4):
             current_list = []
             Bvft_final_resolution_loss.append(current_list)
+        group_list = []
         for resolution in resolution_list:
             record = BvftRecord()
             bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
@@ -195,7 +196,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
             # print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
             print("losses : ",record.losses)
-
+            group_list.append(record.group_counts[0])
             for i in range(len(record.losses[0])):
                 Bvft_final_resolution_loss[i].append(record.losses[0][i])
 
@@ -212,7 +213,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         save_as_txt(Bvft_Q_result_saving_path, save_list)
         save_as_pkl(Bvft_Q_result_saving_path, save_list)
         delete_files_in_folder(Bvft_folder)
-        draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_saving_step_list,resolution_list,save_folder_name,line_name_list)
+        draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_saving_step_list,resolution_list,save_folder_name,line_name_list,group_list)
 
 
 
