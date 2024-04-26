@@ -130,6 +130,9 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     train_episodes = whole_dataset.episodes[0:2000]
     test_episodes = whole_dataset.episodes[2000:2276]
 
+    print("min length test epsodes : ",find_min_length(test_episodes))
+    print("min length train episodes : ",find_min_length(train_episodes))
+
     print("first train episodes : ",train_episodes[0])
     print("one test episodes : ",test_episodes[0])
     # print("environment reward range : ",env.reward_range)    # print("environment reward range : ",env.reward_range)
