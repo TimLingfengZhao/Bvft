@@ -132,6 +132,7 @@ class BVFT(object):
                     self.q_sa[i][ptr:ptr + length] = critic.predict_value(state, action).flatten()[
                                                      :length]
                     print("self qa : ",self.q_sa[i][ptr:ptr + 20])
+                    print("done : ",done)
                     print("reward : ",reward)
                     print("action : ",actor.predict(next_state))
                     print("predicted qa value : ",critic.predict_value(next_state, actor.predict(next_state)))
