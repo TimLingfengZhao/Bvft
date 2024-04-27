@@ -129,6 +129,9 @@ class BVFT(object):
                     self.q_sa[i][ptr:ptr + length] = critic.predict_value(state, action).flatten()[
                                                      :length]
                     print("self qa : ",self.q_sa[i][ptr:ptr + 20])
+                    print("reward : ",reward)
+                    print("action : ",actor.predict(next_state))
+                    print("predicted qa value : ",critic.predict_value(next_state, actor.predict(next_state)))
                     vfsp = (reward + critic.predict_value(next_state, actor.predict(next_state)) * done * self.gamma)
 
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
