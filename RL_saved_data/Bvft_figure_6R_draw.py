@@ -198,8 +198,11 @@ def Draw_MSE_graph(FQE_saving_step_list,NMSE_normalization_factor):
     Figure_saving_path = os.path.join(FQE_returned_folder,Bvft_plot)
     #
     colors = ['blue', 'orange', 'green', 'purple',"red"]
+    figure_name = 'Normalized MSE of FQE min max'
+    if NMSE_normalization_factor == 1 :
+        figure_name = 'Normalized MSE of FQE groundtruth variance'
     draw_mse_graph(combinations=name_list, means=means,  colors=colors, standard_errors = SE,
-                   labels=labels, folder_path=Figure_saving_path, FQE_step_list = FQE_saving_step_list,filename="Figure6R_NMSE_graph"+"_"+str(FQE_saving_step_list),figure_name='Normalized MSE of FQE')
+                   labels=labels, folder_path=Figure_saving_path, FQE_step_list = FQE_saving_step_list,filename="Figure6R_NMSE_graph"+"_"+str(FQE_saving_step_list),figure_name=figure_name)
         # time.sleep(60)
 def main():
     # tf.disable_v2_behavior()
