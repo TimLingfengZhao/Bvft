@@ -142,9 +142,9 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     # print("test episodes : ",test_episodes)
     buffer_one = FIFOBuffer(limit=500000)
     replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
-    print(len(test_episodes))
-    print(len(replay_buffer_test.episodes))
-    sys.exit()
+    # print(len(test_episodes))
+    # print(len(replay_buffer_test.episodes))
+    # sys.exit()
     buffer = FIFOBuffer(limit=500000)
     replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 
