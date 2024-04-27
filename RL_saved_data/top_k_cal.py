@@ -655,10 +655,9 @@ def find_min_length(episodes):
         # print("ele : ",ele)
         # print("type obser : ",type(ele.observations))
         cur_len = len(ele.observations)
-        print("current length : ",cur_len)
+        # print("current length : ",cur_len)
         if (cur_len < min):
             min = cur_len
-    sys.exit()
     return min
 
 def get_data_size(episodes):
