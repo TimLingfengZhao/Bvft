@@ -117,6 +117,9 @@ class BVFT(object):
             ptr = 0
             while ptr < data_size:                                             #for everything in data size
                 length = min(batch_size, data_size - ptr)
+                print("batch size : ",batch_size)
+                print("data size : ",data_size)
+                print("length : ",length)
                 state, action, next_state, reward, done = self.data.sample(length)
                 print("state : ",state)
                 print("reward : ", reward)
