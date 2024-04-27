@@ -118,8 +118,8 @@ class BVFT(object):
             while ptr < data_size:                                             #for everything in data size
                 length = min(batch_size, data_size - ptr)
                 state, action, next_state, reward, done = self.data.sample(length)
-                print("state : ",state)
-                print("reward : ", reward)
+                # print("state : ",state)
+                # print("reward : ", reward)
                 for i in range(len(q_functions)):
                     actor= q_functions[i]
                     critic= q_functions[i]
