@@ -118,8 +118,9 @@ class BVFT(object):
             while ptr < data_size:                                             #for everything in data size
                 length = min(batch_size, data_size - ptr)
                 state, action, next_state, reward, done = self.data.sample(length)
-                # print("state : ",state)
-                # print("reward : ", reward)
+                print("state : ",state)
+                print("reward : ", reward)
+                print("next state : ",next_state)
                 for i in range(len(q_functions)):
                     actor= q_functions[i]
                     critic= q_functions[i]
@@ -133,6 +134,7 @@ class BVFT(object):
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
                     self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
                     print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
+                    sys.exit()
                 ptr += batch_size
             self.n = data_size  #total number of data points
 
