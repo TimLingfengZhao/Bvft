@@ -199,8 +199,10 @@ def Draw_MSE_graph(FQE_saving_step_list,NMSE_normalization_factor):
     #
     colors = ['blue', 'orange', 'green', 'purple',"red"]
     figure_name = 'Normalized MSE of FQE min max'
+    filename = "Figure6R_max_min_NMSE_graph"+"_"+str(FQE_saving_step_list)
     if NMSE_normalization_factor == 1 :
         figure_name = 'Normalized MSE of FQE groundtruth variance'
+        filename = "Figure6R_groundtruth_variance_NMSE_graph"+"_"+str(FQE_saving_step_list)
     draw_mse_graph(combinations=name_list, means=means,  colors=colors, standard_errors = SE,
                    labels=labels, folder_path=Figure_saving_path, FQE_step_list = FQE_saving_step_list,filename="Figure6R_NMSE_graph"+"_"+str(FQE_saving_step_list),figure_name=figure_name)
         # time.sleep(60)
