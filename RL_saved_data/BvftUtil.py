@@ -69,7 +69,7 @@ class BvftRecord:
 import numpy as np
 class BVFT(object):
     def __init__(self, q_functions, data, gamma, rmax, rmin,file_name_pre, record: BvftRecord = BvftRecord(), q_type='torch_actor_critic_cont',
-                 verbose=False, bins=None, data_size=5000,batch_dim = 200):
+                 verbose=False, bins=None, data_size=5000,trajectory_num=200):
         self.data = data                                                        #Data D
         self.gamma = gamma                                                      #gamma
         self.res = 0                                                            #\epsilon k (discretization parameter set)
@@ -108,22 +108,18 @@ class BVFT(object):
                 vfsp = np.max(Q.predict(next_states), axis=1)
                 self.r_plus_vfsp.append(rewards + self.gamma * vfsp)
 
-        elif q_type == 'torch_actor_critic_cont':
-            batch_size = min(1024,  data_size,batch_dim)                  #minimum batch size
+        elif q_type == 'torch_actor_critic_cont':              #minimum batch size
             # batch_size = 1000
-            self.data.batch_size = batch_dim                                #batch size
+            # self.data.batch_size = batch_dim                                #batch size
             self.q_sa = [np.zeros(data_size) for _ in q_functions]             #q_functions corresponding 0
             self.r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]      #initialization 0
             ptr = 0
-            while ptr < data_size:                                             #for everything in data size
-                length = min(batch_size, data_size - ptr)
-                print("batch size : ",batch_size)
-                print("data size : ",data_size)
-                print("length : ",length)
-                state, action, next_state, reward, done = self.data.sample(length)
-                print("state : ",state)
-                print("reward : ", reward)
-                print("next state : ",next_state)
+            while ptr < trajectory_num:                                             #for everything in data size
+                length = len(self.data.get_state_shape(ptr))
+                state, action, next_state, reward, done = self.data.sample(ptr)
+                # print("state : ",state)
+                # print("reward : ", reward)
+                # print("next state : ",next_state)
                 for i in range(len(q_functions)):
                     actor= q_functions[i]
                     critic= q_functions[i]
@@ -141,8 +137,7 @@ class BVFT(object):
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
                     self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
                     print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
-                    sys.exit()
-                ptr += batch_size
+                ptr += 1
             self.n = data_size  #total number of data points
 
         if self.verbose:
@@ -285,18 +280,18 @@ class CustomDataLoader:
     def __len__(self):
         return len(self.dataset)
 
-
+    def get_iter_length(selfself,iteration_number):
+        return len(self.dataset.observations[iteration_number])
     def get_state_shape(self):
         first_state = self.dataset.observations[0]
         return np.array(first_state).shape
-    def sample(self, length):
-        length += 1
-        sampled_traj = self.dataset.sample_trajectory(length)
-        states = sampled_traj.observations[0:(length-1)]
-        actions = sampled_traj.actions[0:(length-1)]
-        padded_next_states = sampled_traj.observations[1:length]
-        rewards = sampled_traj.rewards[0:(length-1)]
-        done = sampled_traj.terminals[0:(length-1)]
+    def sample(self, iteration_number):
+        states = self.dataset.observations[iteration_number]
+        actions =  self.dataset.actions[iteration_number]
+        padded_next_states =  self.dataset.observations[iteration_number][1:len(self.dataset.observations[iteration_number])]
+        padded_next_states.append(self.dataset.observations[iteration_number][-1])
+        rewards = self.dataset.rewards[iteration_number]
+        done = self.dataset.terminals[iteration_number]
 
         return states, actions, padded_next_states, rewards, done
 

@@ -135,6 +135,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     # print("min length test epsodes : ",find_min_length(test_episodes))
     # print("min length train episodes : ",find_min_length(train_episodes))
     Bvft_batch_dim = get_mean_length(test_episodes)
+    trajectory_num = len(test_episodes)
     print("mean length : ",Bvft_batch_dim)
     # print("first train episodes : ",train_episodes[0])
     # print("one test episodes : ",test_episodes[0])
@@ -151,7 +152,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
 
     gamma = 0.99
     rmax, rmin = env.reward_range[0], env.reward_range[1]
-    # data_size = get_data_size(test_episodes)
+    data_size = get_data_size(test_episodes)
     print("data size : ",get_data_size(whole_dataset.episodes))
     test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
 
@@ -205,7 +206,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         for resolution in resolution_list:
             record = BvftRecord()
             bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
-                                 "torch_actor_critic_cont", verbose=True, data_size=5000,batch_dim=Bvft_batch_dim)
+                                 "torch_actor_critic_cont", verbose=True, data_size=data_size,trajectory_num=trajectory_num)
             # print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
 
