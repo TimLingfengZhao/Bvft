@@ -127,12 +127,12 @@ class BVFT(object):
                     #                                  :length]
                     self.q_sa[i][ptr:ptr + length] = critic.predict_value(state, action).flatten()[
                                                      :length]
-                    # print("self qa : ",self.q_sa[i][ptr:ptr + 20])
+                    print("self qa : ",self.q_sa[i][ptr:ptr + 20])
                     vfsp = (reward + critic.predict_value(next_state, actor.predict(next_state)) * done * self.gamma)
 
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
                     self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
-                    # print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
+                    print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
                 ptr += batch_size
             self.n = data_size  #total number of data points
 
