@@ -115,7 +115,7 @@ class BVFT(object):
             self.r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]      #initialization 0
             ptr = 0
             while ptr < trajectory_num:                                             #for everything in data size
-                length = len(self.data.get_iter_length(ptr))
+                length = self.data.get_iter_length(ptr)
                 state, action, next_state, reward, done = self.data.sample(ptr)
                 # print("state : ",state)
                 # print("reward : ", reward)
@@ -286,12 +286,12 @@ class CustomDataLoader:
         first_state = self.dataset.observations[0]
         return np.array(first_state).shape
     def sample(self, iteration_number):
-        states = self.dataset.observations[iteration_number]
-        actions =  self.dataset.actions[iteration_number]
-        padded_next_states =  self.dataset.observations[iteration_number][1:len(self.dataset.observations[iteration_number])]
-        padded_next_states.append(self.dataset.observations[iteration_number][-1])
-        rewards = self.dataset.rewards[iteration_number]
-        done = self.dataset.terminals[iteration_number]
+        states = self.dataset.episodes[iteration_number].observations
+        actions =  self.dataset.episodes[iteration_number].actions
+        padded_next_states =  self.dataset.episodes[iteration_number].observations[1:len(self.dataset.episodes[iteration_number].observations)]
+        padded_next_states.append(self.dataset.episodes[iteration_number].observations[-1])
+        rewards = self.dataset.episodes[iteration_number].rewards
+        done = self.dataset.episodes[iteration_number].terminals
 
         return states, actions, padded_next_states, rewards, done
 
