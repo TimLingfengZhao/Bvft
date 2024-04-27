@@ -204,7 +204,7 @@ def Draw_MSE_graph(FQE_saving_step_list,NMSE_normalization_factor):
         figure_name = 'Normalized MSE of FQE groundtruth variance'
         filename = "Figure6R_groundtruth_variance_NMSE_graph"+"_"+str(FQE_saving_step_list)
     draw_mse_graph(combinations=name_list, means=means,  colors=colors, standard_errors = SE,
-                   labels=labels, folder_path=Figure_saving_path, FQE_step_list = FQE_saving_step_list,filename="Figure6R_NMSE_graph"+"_"+str(FQE_saving_step_list),figure_name=figure_name)
+                   labels=labels, folder_path=Figure_saving_path, FQE_step_list = FQE_saving_step_list,filename=filename,figure_name=figure_name)
         # time.sleep(60)
 def main():
     # tf.disable_v2_behavior()
