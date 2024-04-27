@@ -111,6 +111,7 @@ def get_min_loss(loss_list): #input 2d list, return 1d list
     if (len(loss_list)==1):
         return loss_list[0]
     min_loss = []
+    print("loss list : ",loss_list)
     for i in range(len(loss_list[0])):
         current_loss = []
         for j in range(len(loss_list)):
@@ -120,6 +121,7 @@ def get_min_loss(loss_list): #input 2d list, return 1d list
         # print(len(loss_list[0]))
         # print(len(loss_list[0][0]))
         min_loss.append(min(current_loss))
+    print("min loss list : ",min_loss)
     return min_loss
 
 
@@ -219,8 +221,11 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         min_loss_list = get_min_loss(Bvft_losses)
         # print("min loss list : ",min_loss_list)
         ranking_list = rank_elements_lower_higher(min_loss_list)
+        print(" ranking list : ",ranking_list)
 
         best_ranking_index = np.argmin(ranking_list)
+        print("best ranking index: ",best_ranking_index)
+        sys.exit()
         save_list = [q_name_functions[best_ranking_index]]
         save_as_pkl(Bvft_resolution_loss_policy_saving_path,Bvft_final_resolution_loss)
         save_as_txt(Bvft_resolution_loss_policy_saving_path,Bvft_final_resolution_loss)
