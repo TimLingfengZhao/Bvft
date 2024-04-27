@@ -666,7 +666,7 @@ def get_data_size(episodes):
         size+= len(ele.observations)
     return size
 def get_mean_length(episodes):
-    return get_data_size(episodes)/len(episodes)
+    return int(get_data_size(episodes)/len(episodes))
 
 
 
