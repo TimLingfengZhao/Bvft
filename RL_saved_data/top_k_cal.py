@@ -354,7 +354,7 @@ def normalized_mean_square_error_with_error_bar(actual, predicted,NMSE_normaliza
     mean_predicted = sum(predicted) / len(predicted)
     range_squared = (max(actual) - min(actual)) ** 2
     if (NMSE_normalization_factor == 1):
-        range_squared =sum((x - mean) ** 2 for x in actual) / len(actual)
+        range_squared =sum((x - mean_actual) ** 2 for x in actual) / len(actual)
     # range_squared = mean_actual * mean_predicted
     if range_squared == 0:
         raise ValueError("The range of actual values is zero. NMSE cannot be calculated.")
