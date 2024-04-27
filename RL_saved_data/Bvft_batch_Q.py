@@ -140,17 +140,17 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
     # print("environment reward range : ",env.reward_range)    # print("environment reward range : ",env.reward_range)
 
     # print("test episodes : ",test_episodes)
-    buffer_one = FIFOBuffer(limit=50000)
+    buffer_one = FIFOBuffer(limit=500000)
     replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
     print(len(test_episodes))
     print(len(replay_buffer_test.episodes))
     sys.exit()
-    buffer = FIFOBuffer(limit=50000)
+    buffer = FIFOBuffer(limit=500000)
     replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 
     gamma = 0.99
     rmax, rmin = env.reward_range[0], env.reward_range[1]
-    data_size = get_data_size(test_episodes)
+    # data_size = get_data_size(test_episodes)
     print("data size : ",data_size)
     test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
 
@@ -204,7 +204,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         for resolution in resolution_list:
             record = BvftRecord()
             bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
-                                 "torch_actor_critic_cont", verbose=True, data_size=data_size,batch_dim=Bvft_batch_dim)
+                                 "torch_actor_critic_cont", verbose=True, data_size=5000,batch_dim=Bvft_batch_dim)
             # print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
 
