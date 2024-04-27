@@ -218,7 +218,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
         # print('Bvft losses : ',Bvft_losses)
         min_loss_list = get_min_loss(Bvft_losses)
         # print("min loss list : ",min_loss_list)
-        ranking_list = rank_elements(min_loss_list)
+        ranking_list = rank_elements_lower_higher(min_loss_list)
 
         best_ranking_index = np.argmin(ranking_list)
         save_list = [q_name_functions[best_ranking_index]]

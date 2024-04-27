@@ -110,8 +110,15 @@ def plot_value_precision(k_list):
     plt.savefig(file_path)
     plt.show()
 
-def rank_elements(lst):
+def rank_elements_larger_higher(lst):
     sorted_pairs = sorted(enumerate(lst), key=lambda x: x[1], reverse=True)
+    ranks = [0] * len(lst)
+    for rank, (original_index, _) in enumerate(sorted_pairs, start=1):
+        ranks[original_index] = rank
+    return ranks
+
+def rank_elements_lower_higher(lst):
+    sorted_pairs = sorted(enumerate(lst), key=lambda x: x[1], reverse=False)
     ranks = [0] * len(lst)
     for rank, (original_index, _) in enumerate(sorted_pairs, start=1):
         ranks[original_index] = rank

@@ -83,6 +83,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
     train_episodes = whole_dataset.episodes[0:2000]
     test_episodes = whole_dataset.episodes[2000:2276]
     buffer = FIFOBuffer(limit=500000)
+    buffer = FIFOBuffer(limit=500000)
     replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 
     policy_returned_result_folder = "policy_returned_result"
