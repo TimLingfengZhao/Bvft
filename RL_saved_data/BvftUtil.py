@@ -280,7 +280,7 @@ class CustomDataLoader:
     def __len__(self):
         return len(self.dataset)
 
-    def get_iter_length(selfself,iteration_number):
+    def get_iter_length(self,iteration_number):
         return len(self.dataset.observations[iteration_number])
     def get_state_shape(self):
         first_state = self.dataset.observations[0]
