@@ -127,16 +127,16 @@ class BVFT(object):
                     #                                  :length]
                     self.q_sa[i][ptr:ptr + length] = critic.predict_value(state, action).flatten()[
                                                      :length]
-                    print("self qa : ",self.q_sa[i][ptr:ptr + 20])
-                    print("done : ",done)
-                    print("reward : ",reward)
-                    print("type state : ",type(state))
-                    print("type next state : ",type(next_state))
-                    print("action : ",actor.predict(next_state))
-                    print("predicted qa value : ",critic.predict_value(next_state, actor.predict(next_state)))
+                    # print("self qa : ",self.q_sa[i][ptr:ptr + 20])
+                    # print("done : ",done)
+                    # print("reward : ",reward)
+                    # print("type state : ",type(state))
+                    # print("type next state : ",type(next_state))
+                    # print("action : ",actor.predict(next_state))
+                    # print("predicted qa value : ",critic.predict_value(next_state, actor.predict(next_state)))
                     vfsp = (reward + critic.predict_value(next_state, actor.predict(next_state)) * done * self.gamma)
 
-                    # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
+                    self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
                     self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
                     print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
                 ptr += 1
