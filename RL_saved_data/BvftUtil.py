@@ -138,7 +138,7 @@ class BVFT(object):
 
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
                     self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
-                    print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
+                    # print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
                 ptr += 1
             self.n = data_size  #total number of data points
 
