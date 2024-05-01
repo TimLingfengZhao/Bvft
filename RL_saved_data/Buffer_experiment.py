@@ -263,11 +263,11 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
         # Initial_Q_ranking_list.append(Initial_Q_rank)
         Random_ranking_list.append(random_rank)
         Policy_name_list.append(policy_name_list)
-    print(FQE_ranking_list)
-    print(len(FQE_ranking_list))
-    print(len(FQE_ranking_list[0]))
-    print(len(FQE_ranking_list[0][0]))
-    sys.exit()
+    # print(FQE_ranking_list)
+    # print(len(FQE_ranking_list))
+    # print(len(FQE_ranking_list[0]))
+    # print(len(FQE_ranking_list[0][0]))
+    # sys.exit()
     Bvft_k_precision_list = []
     # InitialQ_k_precision_list = []
     Random_k_precision_list = []
@@ -319,21 +319,24 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     # InitialQ_k_regret_result = []
     Random_k_regret_result = []
     FQE_k_regret_result = []
-    for i in range(len(FQE_name_list)):
+    for i in range(len(FQE_ranking_list)):
         FQE_k_regret_result.append([])
         FQE_k_precision_result.append([])
+
     for i in range(k):
         Bvft_precision = []
         # InitialQ_precision = []
         Random_precision = []
-        FQE_precision = []
+
         Bvft_regret = []
         # InitialQ_regret = []
         Random_regret = []
-        FQE_regret = []
-        for num in range(len(FQE_ranking_list)):
-            FQE_regret.append([])
-            FQE_precision.append([])
+
+        # FQE_precision = []
+        # FQE_regret = []
+        # for num in range(len(FQE_ranking_list)):
+        #     FQE_regret.append([])
+        #     FQE_precision.append([])
         for j in range(num_runs):
             Bvft_precision.append(Bvft_k_precision_list[j][i])
             # InitialQ_precision.append(InitialQ_k_precision_list[j][i])
@@ -341,18 +344,21 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
             Bvft_regret.append(Bvft_k_regret_list[j][i])
             # InitialQ_regret.append(Bvft_k_regret_list[j][i])
             Random_regret.append(Random_k_regret_list[j][i])
-            for k in range(len(FQE_name_list)):
-                FQE_precision[k].append(FQE_k_precision_list[k][j][i])
-                FQE_regret[k].append(FQE_k_regret_list[k][j][i])
+        for k in range(len(FQE_ranking_list)):
+            FQE_precision = []
+            FQE_regret = []
+            for j in range(num_runs):
+                FQE_precision.append(FQE_k_precision_list[k][j][i])
+                FQE_regret.append(FQE_k_regret_list[k][j][i])
+            FQE_k_precision_result[k].append(FQE_precision)
+            FQE_k_regret_result[k].append(FQE_regret)
+
         Bvft_k_precision_result.append(Bvft_precision)
         # InitialQ_k_precision_result.append(InitialQ_precision)
         Random_k_precision_result.append(Random_precision)
         Bvft_k_regret_result.append(Bvft_regret)
         # InitialQ_k_regret_result.append(InitialQ_regret)
         Random_k_regret_result.append(Random_regret)
-        for ki in range(len(FQE_name_list)):
-            FQE_k_regret_result[k].append(FQE_regret[ki])
-            FQE_k_precision_result.append(FQE_precision[ki])
 
     k_precision_list = [Bvft_k_precision_result,  Random_k_precision_result]
     k_regret_list = [Bvft_k_regret_result,  Random_k_regret_result]
