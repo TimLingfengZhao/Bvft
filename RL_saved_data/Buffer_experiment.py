@@ -229,7 +229,7 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     Bvft_ranking_list = []
     Initial_Q_ranking_list = []
     Random_ranking_list = []
-    for runs in num_runs:
+    for runs in range(num_runs):
         policy_name_list, policy_list = pick_policy(15,device)
         random_rank = random_ranking(policy_name_list,num_runs)
         Bvft_rank = Bvft_ranking(policy_name_list,FQE_saving_step_list,env)
