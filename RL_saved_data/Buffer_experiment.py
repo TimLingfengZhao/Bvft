@@ -352,9 +352,9 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
 
     k_precision_list = [Bvft_k_precision_result,  Random_k_precision_result]
     k_regret_list = [Bvft_k_regret_result,  Random_k_regret_result]
-    for k in range(len(FQE_ranking_list)):
-        k_precision_list.append(FQE_k_precision_result[k])
-        k_regret_list.append(FQE_k_regret_result[k])
+    for dudu in range(len(FQE_ranking_list)):
+        k_precision_list.append(FQE_k_precision_result[dudu])
+        k_regret_list.append(FQE_k_regret_result[dudu])
 
     precision_mean_list = []
     regret_mean_list = []
