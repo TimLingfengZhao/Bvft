@@ -354,7 +354,7 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     save_as_txt(k_regret_ci_saving_path,regret_ci_list)
     save_as_txt(plot_name_saving_path,plot_name_list)
 
-
+    plot_normalized_k(FQE_saving_step_list, initial_state ,k, num_runs)
     return precision_mean_list,regret_mean_list,precision_ci_list,regret_ci_list,plot_name_list
 
 
