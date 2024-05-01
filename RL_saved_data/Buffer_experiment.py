@@ -355,7 +355,8 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     for dudu in range(len(FQE_ranking_list)):
         k_precision_list.append(FQE_k_precision_result[dudu])
         k_regret_list.append(FQE_k_regret_result[dudu])
-
+    print("k precision list : ",k_precision_list)
+    print("k re gret list : ",k_regret_list)
     precision_mean_list = []
     regret_mean_list = []
     precision_ci_list = []
@@ -471,10 +472,10 @@ def plot_normalized_k(FQE_saving_step_list, initial_state ,k, num_runs):
     print("plot finished")
 def main():
     parser = argparse.ArgumentParser(description="Plot k precision and k regret plot for 3 different rankings")
-    parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[500000, 1000000, 1500000, 2000000], help="Number of steps in each episode of FQE")
+    parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[2000000], help="Number of steps in each episode of FQE")
     parser.add_argument("--initial_state", type=int, default=12345, help="Initial state in real environment")
     parser.add_argument("--k", type=int, default=5, help="number k")
-    parser.add_argument("--num_runs", type=int, default=300,
+    parser.add_argument("--num_runs", type=int, default=5,
                         help="Number of sample random policy in ranking")
 
     args = parser.parse_args()
