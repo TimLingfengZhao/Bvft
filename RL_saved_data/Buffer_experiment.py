@@ -142,7 +142,6 @@ def pick_policy(m,device):
 #     return Q_FQE
 
 def FQE_ranking(policy_name_list,FQE_saving_step_list,env):
-    load_FQE_performance_specific(FQE_learning_rate, FQE_hidden_layer, FQE_step, policy_name)
 
     FQE_learning_rate_list = [0.0001,2e-5]
     FQE_hidden_layer_list = [[128, 256],[128, 1024]]
