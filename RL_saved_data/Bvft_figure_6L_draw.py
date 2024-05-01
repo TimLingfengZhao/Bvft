@@ -367,8 +367,11 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     for dudu in range(len(FQE_ranking_list)):
         k_precision_list.append(FQE_k_precision_result[dudu])
         k_regret_list.append(FQE_k_regret_result[dudu])
-    print("len k precision list :",k_precision_list)
-    print("len k regret list : ",k_regret_list)
+
+
+
+
+
 
     precision_mean_list = []
     regret_mean_list = []
@@ -399,7 +402,7 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
         precision_ci_list.append(current_precision_ci_list)
         regret_ci_list.append(current_regret_ci_list)
     plot_name_list = ["Bvft-multiFQE-avgQ", "Random"]
-    print("fqe name list new : ",FQE_name_list_new)
+    # print("fqe name list new : ",FQE_name_list_new)
     for ele in FQE_name_list_new:
         plot_name_list.append(ele)
 
@@ -408,7 +411,7 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     Bvft_k_save_path = os.path.join(Bvft_saving_place, Bvft_k)
     if not os.path.exists(Bvft_k_save_path):
         os.makedirs(Bvft_k_save_path)
-    print("k : ",k)
+    # print("k : ",k)
     k_precision_name = str(k)+"_mean_precision_"+str(num_runs)
     k_regret_name = str(k)+"_mean_regret"+str(num_runs)
     precision_ci_name = str(k)+"_CI_precision"+str(num_runs)
@@ -491,7 +494,7 @@ def main():
     parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[2000000], help="Number of steps in each episode of FQE")
     parser.add_argument("--initial_state", type=int, default=12345, help="Initial state in real environment")
     parser.add_argument("--k", type=int, default=5, help="number k")
-    parser.add_argument("--num_runs", type=int, default=3,
+    parser.add_argument("--num_runs", type=int, default=300,
                         help="Number of sample random policy in ranking")
 
     args = parser.parse_args()
