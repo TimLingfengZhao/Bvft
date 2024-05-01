@@ -368,6 +368,7 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
         current_regret_ci_list = []
         for j in range(k):
             print("i : ",i)
+            print("j : ", j )
             print("k : ",k)
             print("len : ",len(k_precision_list))
             print("len 0 : ",len(k_precision_list[0]))
