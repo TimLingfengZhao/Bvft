@@ -659,7 +659,7 @@ def plot_subplots(data, save_path, y_axis_names, line_names, colors,ci):
     for i, subplot_data in enumerate(data):
 
         for j, line_data  in enumerate(subplot_data):
-            # print("len line data : ", len(line_data))
+            print("len line data : ", len(line_data))
             x_values = list(range(1, len(line_data) + 1))
 
             top = []

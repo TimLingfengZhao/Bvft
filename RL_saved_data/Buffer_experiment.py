@@ -374,8 +374,8 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     regret_mean_list = []
     precision_ci_list = []
     regret_ci_list = []
-    print("k : ", k)
-    sys.exit()
+    # print("k : ", k)
+    # sys.exit()
     for i in range(len(k_precision_list)):
         current_precision_mean_list = []
         current_regret_mean_list = []
