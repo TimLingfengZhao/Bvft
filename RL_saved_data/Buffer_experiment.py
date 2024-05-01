@@ -241,6 +241,7 @@ def random_ranking(policy_name_list,num_runs):
     # save_as_txt(Ranking_saving_path,r_ranking)
     # save_as_pkl(Ranking_saving_path,r_ranking)
 def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
+    FQE_name_list_new = []
     whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     FQE_ranking_list = [] #1d: 多少个FQE #2d num_runs
@@ -256,6 +257,7 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
         random_rank = random_ranking(policy_name_list,num_runs)
         Bvft_rank = Bvft_ranking(policy_name_list,FQE_saving_step_list,env)
         performance_list,FQE_name_list = FQE_ranking(policy_name_list, FQE_saving_step_list, env)
+        FQE_name_list_new = FQE_name_list
         for i in range(len(FQE_name_list)):
             FQE_ranking_list[i].append(performance_list[i])
         # Initial_Q_rank = Initial_Q_ranking(policy_list,policy_name_list,env)
@@ -392,8 +394,8 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
         regret_mean_list.append(current_regret_mean_list)
         precision_ci_list.append(current_precision_ci_list)
         regret_ci_list.append(current_regret_ci_list)
-    plot_name_list = ["Bvft-multiFQE-avgQ", "InitialQ", "Random"]
-    for ele in FQE_name_list:
+    plot_name_list = ["Bvft-multiFQE-avgQ", "Random"]
+    for ele in FQE_name_list_new:
         plot_name_list.append(ele)
 
     Bvft_saving_place = 'Bvft_saving_place'
@@ -479,7 +481,7 @@ def plot_normalized_k(FQE_saving_step_list, initial_state ,k, num_runs):
                   line_names=line_name_list, colors=colors, ci=plot_ci_list)
     print("plot finished")
 def main():
-    parser = argparse.ArgumentParser(description="Plot k precision and k regret plot for 3 different rankings")
+    parser = argparse.ArgumentParser(description="Plot k precision and k regret plot for 5 different rankings")
     parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[2000000], help="Number of steps in each episode of FQE")
     parser.add_argument("--initial_state", type=int, default=12345, help="Initial state in real environment")
     parser.add_argument("--k", type=int, default=5, help="number k")
