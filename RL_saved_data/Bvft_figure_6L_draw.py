@@ -479,8 +479,8 @@ def plot_normalized_k(FQE_saving_step_list, initial_state ,k, num_runs):
     y_axis_names = ["k precision", "k regret"]
     colors = generate_unique_colors(len(plot_mean_list[0]))
     line_name = ["hopper-medium-expert-v0", "hopper-medium-expert-v0"]
-    print("plot mean list : ",plot_mean_list)
-    print("ci lsit : ",plot_ci_list)
+    # print("plot mean list : ",plot_mean_list)
+    # print("ci lsit : ",plot_ci_list)
     plot_subplots(data=plot_mean_list, save_path=Bvft_plot_folder, y_axis_names=y_axis_names,
                   line_names=line_name_list, colors=colors, ci=plot_ci_list)
     print("plot finished")
