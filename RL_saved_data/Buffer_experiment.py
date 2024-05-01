@@ -255,9 +255,9 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
                                                                     k))
         InitialQ_k_precision_list.append(calculate_top_k_precision(initial_state, env,
                                                                    Policy_name_list[i],
-                                                                   InitialQ_ranking_list[i],
+                                                                   Initial_Q_ranking_list[i],
                                                                    k))
-        InitialQ_k_regret_list.append(calculate_top_k_normalized_regret(InitialQ_ranking_list[i],
+        InitialQ_k_regret_list.append(calculate_top_k_normalized_regret(Initial_Q_ranking_list[i],
                                                                         Policy_name_list[i],
                                                                         env,
                                                                         k))
