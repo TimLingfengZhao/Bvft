@@ -491,6 +491,18 @@ def generate_unique_colors(number_of_colors):
     else:
         colors = [cmap(i) for i in np.linspace(0, 1, number_of_colors)]
     return colors
+def load_FQE_performance_specific(FQE_learning_rate,FQE_hidden_layer,FQE_step,policy_name):
+    FQE_returned_result = "FQE_returned_result"
+    FQE_folder = "FQE_"+str(FQE_learning_rate)+"_"+str(FQE_hidden_layer)
+    FQE_name = FQE_folder+"_"+str(FQE_step)+"step"+"_"+policy_name
+    FQE_folder_path = os.path.join(FQE_returned_result,FQE_folder)
+    if not os.path.exists(FQE_folder_path):
+        os.makedirs(FQE_folder_path )
+    FQE_total = "FQE_returned_total"
+    FQE_path = os.path.join(FQE_folder_path,FQE_total)
+    FQE_dictionary = load_from_pkl(FQE_path)
+    FQE_result = FQE_dictionary[FQE_name]
+    return FQE_result
 def load_FQE_performance(FQE_name):
     FQE_returned_result = "FQE_returned_result"
     FQE_folder = "FQE_0.0001_[128, 1024]"

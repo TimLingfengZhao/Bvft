@@ -140,8 +140,29 @@ def pick_policy(m,device):
 #                     Q_list.append(fqe)
 #         Q_FQE.append(Q_list)
 #     return Q_FQE
+
+def FQE_ranking(policy_name_list,FQE_saving_step_list,env):
+    load_FQE_performance_specific(FQE_learning_rate, FQE_hidden_layer, FQE_step, policy_name)
+
+    FQE_learning_rate_list = [0.0001,2e-5]
+    FQE_hidden_layer_list = [[128, 256],[128, 1024]]
+    performance_list = []
+    FQE_name_list = []
+    for steps in FQE_saving_step_list:
+        for FQE_learning_rate in FQE_learning_rate_list:
+            for FQE_hidden_layer in FQE_hidden_layer_list:
+                FQE_name = "FQE_"+str(FQE_learning_rate)+"_"+str(FQE_hidden_layer)+"_"+str(FQE_step)+"step"
+                FQE_name_list.append(FQE_name)
+                current_performance_list = []
+                for i in range(len(policy_name_list)):
+                    policy_name = policy_name_list[i]
+                    current_performance_list.append(load_FQE_performance_specific(FQE_learning_rate,FQE_hidden_layer,steps,policy_name))
+                performance_list.append(rank_elements_larger_higher(current_performance_list))
+    return performance_list,FQE_name_list
+
+
+
 def Bvft_ranking(policy_name_list,FQE_saving_step_list,env):
-    print("FQE_Saving step lsit : ",FQE_saving_step_list)
     Bvft_saving_place = "Bvft_saving_place"
     Bvft_Q_saving_place = "Bvft_Q_saving_place"
     Bvft_Q_saving_path = os.path.join(Bvft_saving_place,Bvft_Q_saving_place)
@@ -223,15 +244,22 @@ def random_ranking(policy_name_list,num_runs):
 def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    FQE_ranking_list = [] #1d: 多少个FQE #2d num_runs
+    for i in range(len(FQE_saving_step_list)):
+        for j in range(4):
+            FQE_ranking_list.append([])
     Policy_name_list = []
     Bvft_ranking_list = []
-    Initial_Q_ranking_list = []
+    # Initial_Q_ranking_list = []
     Random_ranking_list = []
     for runs in range(num_runs):
         policy_name_list, policy_list = pick_policy(15,device)
         random_rank = random_ranking(policy_name_list,num_runs)
         Bvft_rank = Bvft_ranking(policy_name_list,FQE_saving_step_list,env)
-        Initial_Q_rank = Initial_Q_ranking(policy_list,policy_name_list,env)
+        performance_list,FQE_name_list = FQE_ranking(policy_name_list, FQE_saving_step_list, env)
+        for i in range(len(FQE_name_list)):
+            FQE_ranking_list[i].append(performance_list[i])
+        # Initial_Q_rank = Initial_Q_ranking(policy_list,policy_name_list,env)
         Bvft_ranking_list.append(Bvft_rank)
         Initial_Q_ranking_list.append(Initial_Q_rank)
         Random_ranking_list.append(random_rank)
@@ -240,11 +268,15 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     Bvft_k_precision_list = []
     InitialQ_k_precision_list = []
     Random_k_precision_list = []
+    FQE_k_precision_list = []
 
+    FQE_k_regret_list = []
     Bvft_k_regret_list = []
     InitialQ_k_regret_list = []
     Random_k_regret_list = []
-
+    for j in range(len(FQE_ranking_list)):
+        FQE_k_regret_list.append([])
+        FQE_k_precision_list.append([])
     for i in range(num_runs):
         Bvft_k_precision_list.append(calculate_top_k_precision(initial_state, env,
                                                                Policy_name_list[i],
@@ -254,14 +286,18 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
                                                                     Policy_name_list[i],
                                                                     env,
                                                                     k))
-        InitialQ_k_precision_list.append(calculate_top_k_precision(initial_state, env,
-                                                                   Policy_name_list[i],
-                                                                   Initial_Q_ranking_list[i],
-                                                                   k))
-        InitialQ_k_regret_list.append(calculate_top_k_normalized_regret(Initial_Q_ranking_list[i],
-                                                                        Policy_name_list[i],
-                                                                        env,
-                                                                        k))
+        for j in range(len(FQE_ranking_list)):
+            FQE_k_regret_list[j].append(calculate_top_k_normalized_regret(initial_state,env,Policy_name_list[i],FQE_ranking_list[j][i],k))
+            FQE_k_precision_list[j].append(calculate_top_k_precision(FQE_ranking_list[j][i],Policy_name_list[i],env,k))
+
+        # InitialQ_k_precision_list.append(calculate_top_k_precision(initial_state, env,
+        #                                                            Policy_name_list[i],
+        #                                                            Initial_Q_ranking_list[i],
+        #                                                            k))
+        # InitialQ_k_regret_list.append(calculate_top_k_normalized_regret(Initial_Q_ranking_list[i],
+        #                                                                 Policy_name_list[i],
+        #                                                                 env,
+        #                                                                 k))
         Random_k_precision_list.append(calculate_top_k_precision(initial_state, env,
                                                                  Policy_name_list[i],
                                                                  Random_ranking_list[i],
@@ -271,35 +307,54 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
                                                                       env,
                                                                       k))
     Bvft_k_precision_result = []
-    InitialQ_k_precision_result = []
+    # InitialQ_k_precision_result = []
     Random_k_precision_result = []
+    FQE_k_precision_result = []
 
     Bvft_k_regret_result = []
-    InitialQ_k_regret_result = []
+    # InitialQ_k_regret_result = []
     Random_k_regret_result = []
+    FQE_k_regret_result = []
+    for i in range(len(FQE_ranking_list)):
+        FQE_k_regret_result.append([])
+        FQE_k_precision_result.append([])
     for i in range(k):
         Bvft_precision = []
-        InitialQ_precision = []
+        # InitialQ_precision = []
         Random_precision = []
+        FQE_precision = []
         Bvft_regret = []
-        InitialQ_regret = []
+        # InitialQ_regret = []
         Random_regret = []
+        FQE_regret = []
+        for num in range(len(FQE_ranking_list)):
+            FQE_regret.append([])
+            FQE_precision.append([])
         for j in range(num_runs):
             Bvft_precision.append(Bvft_k_precision_list[j][i])
-            InitialQ_precision.append(InitialQ_k_precision_list[j][i])
+            # InitialQ_precision.append(InitialQ_k_precision_list[j][i])
             Random_precision.append(Random_k_precision_list[j][i])
             Bvft_regret.append(Bvft_k_regret_list[j][i])
-            InitialQ_regret.append(Bvft_k_regret_list[j][i])
+            # InitialQ_regret.append(Bvft_k_regret_list[j][i])
             Random_regret.append(Random_k_regret_list[j][i])
+            for k in range(len(FQE_ranking_list)):
+                FQE_precision[k].append(FQE_k_precision_list[k][j][i])
+                FQE_regret[k].append(FQE_k_regret_list[k][j][i])
         Bvft_k_precision_result.append(Bvft_precision)
-        InitialQ_k_precision_result.append(InitialQ_precision)
+        # InitialQ_k_precision_result.append(InitialQ_precision)
         Random_k_precision_result.append(Random_precision)
         Bvft_k_regret_result.append(Bvft_regret)
-        InitialQ_k_regret_result.append(InitialQ_regret)
+        # InitialQ_k_regret_result.append(InitialQ_regret)
         Random_k_regret_result.append(Random_regret)
+        for k in range(len(FQE_ranking_list)):
+            FQE_k_regret_result[k].append(FQE_regret[k])
+            FQE_k_precision_result.append(FQE_precision[k])
 
-    k_precision_list = [Bvft_k_precision_result, InitialQ_k_precision_result, Random_k_precision_result]
-    k_regret_list = [Bvft_k_regret_result, InitialQ_k_regret_result, Random_k_regret_result]
+    k_precision_list = [Bvft_k_precision_result,  Random_k_precision_result]
+    k_regret_list = [Bvft_k_regret_result,  Random_k_regret_result]
+    for k in range(len(FQE_ranking_list)):
+        k_precision_list.append(FQE_k_precision_result[k])
+        k_regret_list.append(FQE_k_regret_result[k])
 
     precision_mean_list = []
     regret_mean_list = []
@@ -323,6 +378,8 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
         precision_ci_list.append(current_precision_ci_list)
         regret_ci_list.append(current_regret_ci_list)
     plot_name_list = ["Bvft-multiFQE-avgQ", "InitialQ", "Random"]
+    for ele in FQE_name_list:
+        plot_name_list.append(ele)
 
     Bvft_saving_place = 'Bvft_saving_place'
     Bvft_k = 'Bvft_k_results'
