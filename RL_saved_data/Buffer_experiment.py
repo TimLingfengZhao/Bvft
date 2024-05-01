@@ -257,7 +257,7 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
         Bvft_rank = Bvft_ranking(policy_name_list,FQE_saving_step_list,env)
         performance_list,FQE_name_list = FQE_ranking(policy_name_list, FQE_saving_step_list, env)
         for i in range(len(FQE_name_list)):
-            FQE_ranking_list[i].append(performance_list[i])
+            FQE_ranking_list.append(performance_list[i])
         # Initial_Q_rank = Initial_Q_ranking(policy_list,policy_name_list,env)
         Bvft_ranking_list.append(Bvft_rank)
         # Initial_Q_ranking_list.append(Initial_Q_rank)
