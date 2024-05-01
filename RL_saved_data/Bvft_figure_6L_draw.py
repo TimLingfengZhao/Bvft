@@ -399,6 +399,7 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
         precision_ci_list.append(current_precision_ci_list)
         regret_ci_list.append(current_regret_ci_list)
     plot_name_list = ["Bvft-multiFQE-avgQ", "Random"]
+    print("fqe name list new : ",FQE_name_list_new)
     for ele in FQE_name_list_new:
         plot_name_list.append(ele)
 
@@ -479,6 +480,7 @@ def plot_normalized_k(FQE_saving_step_list, initial_state ,k, num_runs):
     y_axis_names = ["k precision", "k regret"]
     colors = generate_unique_colors(len(plot_mean_list[0]))
     line_name = ["hopper-medium-expert-v0", "hopper-medium-expert-v0"]
+    print("line name list : ",line_name_list)
     # print("plot mean list : ",plot_mean_list)
     # print("ci lsit : ",plot_ci_list)
     plot_subplots(data=plot_mean_list, save_path=Bvft_plot_folder, y_axis_names=y_axis_names,
@@ -489,7 +491,7 @@ def main():
     parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[2000000], help="Number of steps in each episode of FQE")
     parser.add_argument("--initial_state", type=int, default=12345, help="Initial state in real environment")
     parser.add_argument("--k", type=int, default=5, help="number k")
-    parser.add_argument("--num_runs", type=int, default=300,
+    parser.add_argument("--num_runs", type=int, default=3,
                         help="Number of sample random policy in ranking")
 
     args = parser.parse_args()
