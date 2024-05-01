@@ -148,6 +148,7 @@ def Bvft_ranking(policy_name_list,FQE_saving_step_list,env):
         os.makedirs(Bvft_Q_saving_path)
     FQE_performance_list = []
     for i in range(len(policy_name_list)):
+        policy_file_name = policy_name_list[i]
         folder_name = policy_file_name + "_" + str(FQE_saving_step_list)
         FQE_name = ""
         if os.path.exists(folder_name+".pkl"):
