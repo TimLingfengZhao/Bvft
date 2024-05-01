@@ -369,11 +369,11 @@ def plot_normalized_k(FQE_saving_step_list, initial_state ,k, num_runs):
     Bvft_k_save_path = os.path.join(Bvft_saving_place, Bvft_k)
     if not os.path.exists(Bvft_k_save_path):
         os.makedirs(Bvft_k_save_path)
-    k_precision_name = str(k)+"_mean_precision_"+str(num_runs)+".pkl"
-    k_regret_name = str(k)+"_mean_regret"+str(num_runs)+".pkl"
-    precision_ci_name = str(k)+"_CI_precision"+str(num_runs)+".pkl"
-    regret_ci_name = str(k)+"_CI_regret"+str(num_runs)+".pkl"
-    plot_name = "line_names"+".pkl"
+    k_precision_name = str(k)+"_mean_precision_"+str(num_runs)
+    k_regret_name = str(k)+"_mean_regret"+str(num_runs)
+    precision_ci_name = str(k)+"_CI_precision"+str(num_runs)
+    regret_ci_name = str(k)+"_CI_regret"+str(num_runs)
+    plot_name = "line_names"
 
     k_precision_mean_saving_path = os.path.join(Bvft_k_save_path,k_precision_name)
     k_regret_mean_saving_path = os.path.join(Bvft_k_save_path,k_regret_name)
