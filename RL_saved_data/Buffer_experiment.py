@@ -489,7 +489,7 @@ def main():
     parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[2000000], help="Number of steps in each episode of FQE")
     parser.add_argument("--initial_state", type=int, default=12345, help="Initial state in real environment")
     parser.add_argument("--k", type=int, default=5, help="number k")
-    parser.add_argument("--num_runs", type=int, default=300,
+    parser.add_argument("--num_runs", type=int, default=3,
                         help="Number of sample random policy in ranking")
 
     args = parser.parse_args()
