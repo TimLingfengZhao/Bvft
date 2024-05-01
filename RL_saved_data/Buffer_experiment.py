@@ -355,7 +355,7 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     save_as_txt(k_regret_ci_saving_path,regret_ci_list)
     save_as_txt(plot_name_saving_path,plot_name_list)
 
-    plot_normalized_k(FQE_saving_step_list, initial_state ,k, num_runs)
+
     return precision_mean_list,regret_mean_list,precision_ci_list,regret_ci_list,plot_name_list
 
 
@@ -390,7 +390,7 @@ def plot_normalized_k(FQE_saving_step_list, initial_state ,k, num_runs):
         regret_ci_list = load_from_pkl(k_regret_ci_saving_path)
         line_name_list = load_from_pkl(plot_name_saving_path)
     else :
-        precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list=calculate_k(num_runs, initial_state, env, k)
+        precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list=calculate_k(FQE_saving_step_list, initial_state, k, num_runs)
 
     plot_mean_list = [precision_mean_list,regret_mean_list]
     plot_ci_list = [precision_ci_list,regret_ci_list]
@@ -415,8 +415,7 @@ def main():
                         help="Number of sample random policy in ranking")
 
     args = parser.parse_args()
-
-    calculate_k(args.FQE_saving_step_list, args.initial_state ,args.k, args.num_runs)
+    plot_normalized_k(args.FQE_saving_step_list, args.initial_state, args.k, args.num_runs)
 #--initial_state 12345 --k 2 --num_runs 5
 if __name__ == "__main__":
     main()
