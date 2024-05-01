@@ -258,6 +258,8 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
         performance_list,FQE_name_list = FQE_ranking(policy_name_list, FQE_saving_step_list, env)
         for i in range(len(FQE_name_list)):
             FQE_ranking_list[i].append(performance_list[i])
+        print(FQE_ranking_list)
+        sys.exit()
         # Initial_Q_rank = Initial_Q_ranking(policy_list,policy_name_list,env)
         Bvft_ranking_list.append(Bvft_rank)
         # Initial_Q_ranking_list.append(Initial_Q_rank)
@@ -355,8 +357,6 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     for dudu in range(len(FQE_ranking_list)):
         k_precision_list.append(FQE_k_precision_result[dudu])
         k_regret_list.append(FQE_k_regret_result[dudu])
-    print("k precision list : ",k_precision_list)
-    print("k re gret list : ",k_regret_list)
     precision_mean_list = []
     regret_mean_list = []
     precision_ci_list = []
