@@ -150,12 +150,8 @@ def Bvft_ranking(policy_name_list,FQE_saving_step_list,env):
     for i in range(len(policy_name_list)):
         policy_file_name = policy_name_list[i]
         folder_name = policy_file_name + "_" + str(FQE_saving_step_list)
-        FQE_name = ""
-        if os.path.exists(folder_name+".pkl"):
-            FQE_name_path = os.path.join(Bvft_Q_saving_path,folder_name)
-            FQE_name = load_from_pkl(FQE_name_path)[0]
-        else:
-            print("policy FQE folder name not exist")
+        FQE_name_path = os.path.join(Bvft_Q_saving_path,folder_name)
+        FQE_name = load_from_pkl(FQE_name_path)[0]
         FQE_performance = load_FQE_performance(FQE_name)
         FQE_performance_list.append(FQE_performance)
     FQE_rank_list = rank_elements_larger_higher(FQE_performance_list)
