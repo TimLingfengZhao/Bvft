@@ -141,6 +141,7 @@ def pick_policy(m,device):
 #         Q_FQE.append(Q_list)
 #     return Q_FQE
 def Bvft_ranking(policy_name_list,FQE_saving_step_list,env):
+    print("FQE_Saving step lsit : ",FQE_saving_step_list)
     Bvft_saving_place = "Bvft_saving_place"
     Bvft_Q_saving_place = "Bvft_Q_saving_place"
     Bvft_Q_saving_path = os.path.join(Bvft_saving_place,Bvft_Q_saving_place)
