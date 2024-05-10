@@ -654,7 +654,7 @@ def sort_lists_by_first_dec(list_to_sort, names_list):
     return list(sorted_list_to_sort), list(sorted_names_list)
 
 def draw_debug_graph(y_value_list, name_list, line_name_list):
-    wide = int(len(name_list)) - 1
+    wide = int(len(name_list))
     high = (int(wide / 2)) + 1
     plt.figure(figsize=(wide, high))
 
@@ -669,7 +669,7 @@ def draw_debug_graph(y_value_list, name_list, line_name_list):
 
     plt.title("Bvft performance Debug graph")
 
-    plt.xticks(rotation=45)
+    plt.xticks(rotation=90)
     plt.tight_layout()
     Bvft_saving_place = "Bvft_saving_place"
     Bvft_plot = "Bvft_plot"
