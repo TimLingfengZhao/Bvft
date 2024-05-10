@@ -128,7 +128,6 @@ def run_Debug_graph(device,FQE_saving_step_list):
                     Performance_list.append(FQE_total_dictionary[FQE_model_name_bvft])
 
         performance_list.append(Performance_list)
-        name_list.append(Name_list)
     plot_performance_list, plot_name_list = sort_lists_by_first_dec(performance_list, name_list)
 
 
