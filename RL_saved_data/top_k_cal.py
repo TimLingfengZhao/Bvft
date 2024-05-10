@@ -648,9 +648,36 @@ def draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss,FQE_step_Q_list,r
     plt.close()
 
 
+def sort_lists_by_first_dec(list_to_sort, names_list):
+    paired_list = sorted(zip(list_to_sort, names_list), key=lambda x: x[0][0], reverse=True)
+    sorted_list_to_sort, sorted_names_list = zip(*paired_list)
+    return list(sorted_list_to_sort), list(sorted_names_list)
+
+def draw_debug_graph(y_value_list, name_list, line_name_list):
+
+    plt.figure(figsize=(10, 6))
+
+    for i in range(len(line_name_list)):
+        plt.plot(name_list, [y[i] for y in y_value_list], label=line_name_list[i])
+
+    plt.legend(loc='upper right')
+
+    plt.xlabel("lien names")
+    plt.ylabel("Prediction value")
 
 
+    plt.title("Bvft performance Debug graph")
 
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    Bvft_saving_place = "Bvft_saving_place"
+    Bvft_plot = "Bvft_plot"
+    Bvft_saving_place = os.path.join(Bvft_saving_place,Bvft_plot)
+
+    saving_name= "Bvft_performance_debug.png"
+    saving_path = os.path.join(Bvft_saving_place, saving_name)
+    plt.savefig(saving_path)
+    plt.close()
 def plot_subplots(data, save_path, y_axis_names, line_names, colors,ci):
     num_subplots = len(data)
     fig, axes = plt.subplots(num_subplots, figsize=(10, 5 * num_subplots), squeeze=False)
