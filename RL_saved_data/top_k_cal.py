@@ -653,10 +653,9 @@ def sort_lists_by_first_dec(list_to_sort, names_list):
     sorted_list_to_sort, sorted_names_list = zip(*paired_list)
     return list(sorted_list_to_sort), list(sorted_names_list)
 
-
 def draw_debug_graph(y_value_list, name_list, line_name_list):
-    wide  = len(name_list)
-    high = (wide/2)+1
+    wide = int(len(name_list))
+    high = (int(wide / 2)) + 1
     plt.figure(wide, high)
 
     for i in range(len(line_name_list)):
@@ -664,25 +663,20 @@ def draw_debug_graph(y_value_list, name_list, line_name_list):
 
     plt.legend(loc='upper right')
 
-    plt.xlabel("Line names")
+    plt.xlabel("line names")
     plt.ylabel("Prediction value")
+
+
     plt.title("Bvft performance Debug graph")
 
-    plt.xticks(rotation=90, ha='right')
-
+    plt.xticks(rotation=45)
     plt.tight_layout()
-
-
     Bvft_saving_place = "Bvft_saving_place"
     Bvft_plot = "Bvft_plot"
-    Bvft_saving_place = os.path.join(Bvft_saving_place, Bvft_plot)
-    if not os.path.exists(Bvft_saving_place):
-        os.makedirs(Bvft_saving_place)
+    Bvft_saving_place = os.path.join(Bvft_saving_place,Bvft_plot)
 
-    saving_name = "Bvft_performance_debug.png"
+    saving_name= "Bvft_performance_debug.png"
     saving_path = os.path.join(Bvft_saving_place, saving_name)
-
-
     plt.savefig(saving_path)
     plt.close()
 def plot_subplots(data, save_path, y_axis_names, line_names, colors,ci):
