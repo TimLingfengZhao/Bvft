@@ -77,6 +77,7 @@ def extract_substrings(s):
 
     return parts[1], parts[2]
 def run_Debug_graph(device,FQE_saving_step_list):
+    print("start run debug graph")
     FQE_learning_rate_list = [1e-4, 2e-5]
     FQE_hidden_layer_list = [[128, 256],[128, 1024]]
     whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
@@ -144,6 +145,7 @@ def Draw_MSE_graph(FQE_saving_step_list):
     plot_performance_list, plot_name_list= run_Debug_graph(device,FQE_saving_step_list)
     line_name_list = ["Policy_performance","FQE_1e-4_256","FQE_1e-4_1024","FQE_2e-5_256","FQE_2e-5_1024","Bvft"]
     draw_debug_graph(plot_performance_list,plot_name_list,line_name_list)
+    print("finish draw graph")
         # time.sleep(60)
 def main():
     # tf.disable_v2_behavior()
