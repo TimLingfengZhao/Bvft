@@ -98,7 +98,7 @@ def run_Debug_graph(device,FQE_saving_step_list):
     policy_total_dictionary = load_from_pkl(policy_total_path)
 
     true_list = []
-    prediction_list = []
+    performance_list = []
     name_list = []
     max_step = max(FQE_saving_step_list)
     for policy_file_name in os.listdir("policy_trained"):
@@ -125,9 +125,9 @@ def run_Debug_graph(device,FQE_saving_step_list):
                     FQE_model_name_bvft = get_Bvft_FQE_name(policy_name + "_" + str(FQE_saving_step_list))
                     Bvft_FQE_learning_rate, Bvft_FQE_hidden_layer = extract_substrings(FQE_model_name_bvft)
                     FQE_directory = 'FQE_' + str(Bvft_FQE_learning_rate) + '_' + str(Bvft_FQE_hidden_layer)
-                    Prediction_list.append(FQE_total_dictionary[FQE_model_name_bvft])
+                    Performance_list.append(FQE_total_dictionary[FQE_model_name_bvft])
 
-        prediction_list.append(Performance_list)
+        performance_list.append(Performance_list)
         name_list.append(Name_list)
     plot_performance_list, plot_name_list = sort_lists_by_first_dec(performance_list, name_list)
 
