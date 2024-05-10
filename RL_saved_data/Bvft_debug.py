@@ -136,9 +136,6 @@ def run_Debug_graph(device,FQE_saving_step_list):
 
 
 
-def run_Debug_graph(device,FQE_saving_step_list):
-
-    return run_FQE_evaluation(device, FQE_learning_rate, FQE_hidden_layer,FQE_saving_step_list,Bvft=False)
 def Draw_MSE_graph(FQE_saving_step_list):
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     # while(True):
