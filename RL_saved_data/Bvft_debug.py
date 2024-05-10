@@ -124,8 +124,13 @@ def run_Debug_graph(device,FQE_saving_step_list):
                 if (FQE_learning_rate == 2e-5 and FQE_hidden_layer == [128, 1024]):
                     FQE_model_name_bvft = get_Bvft_FQE_name(policy_name + "_" + str(FQE_saving_step_list))
                     Bvft_FQE_learning_rate, Bvft_FQE_hidden_layer = extract_substrings(FQE_model_name_bvft)
-                    FQE_directory = 'FQE_' + str(Bvft_FQE_learning_rate) + '_' + str(Bvft_FQE_hidden_layer)
-                    Performance_list.append(FQE_total_dictionary[FQE_model_name_bvft])
+                    FQE_directory_bvft = 'FQE_' + str(Bvft_FQE_learning_rate) + '_' + str(Bvft_FQE_hidden_layer)
+                    FQE_folder_bvft = os.path.join(FQE_returned_folder, FQE_directory_bvft)
+                    FQE_total_result_folder_bvft = "FQE_returned_total"
+                    FQE_total_path_bvft = os.path.join(FQE_folder_bvft, FQE_total_result_folder_bvft)
+                    FQE_total_dictionary_bvft = load_from_pkl(FQE_total_path_bvft)
+
+                    Performance_list.append(FQE_total_dictionary_bvft[FQE_model_name_bvft])
 
         performance_list.append(Performance_list)
     plot_performance_list, plot_name_list = sort_lists_by_first_dec(performance_list, name_list)
