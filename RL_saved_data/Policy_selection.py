@@ -63,6 +63,18 @@ class policy_select(ABC):
     def select_Q(self):
         pass
 
+    def get_min_loss(self,loss_list):  # input 2d list, return 1d list
+        # print("loss list : ",loss_list)
+        if (len(loss_list) == 1):
+            return loss_list[0]
+        min_loss = []
+        # print("loss list : ",loss_list)
+        for i in range(len(loss_list[0])):
+            current_loss = []
+            for j in range(len(loss_list)):
+                current_loss.append(loss_list[j][i])
+            min_loss.append(min(current_loss))
+        return min_loss
     def load_FQE(self,policy_name_list, FQE_step_list, replay_buffer, device):
         policy_folder = 'policy_trained'
         FQE_lr_list = [1e-4, 2e-5]
@@ -402,7 +414,7 @@ class Bvft_poli(policy_select):
 
                 Bvft_losses.append(record.losses[0])
             # print('Bvft losses : ',Bvft_losses)
-            min_loss_list = get_min_loss(Bvft_losses)
+            min_loss_list = self.get_min_loss(Bvft_losses)
             # print("min loss list : ",min_loss_list)
             ranking_list = rank_elements_lower_higher(min_loss_list)
             # print(" ranking list : ",ranking_list)
