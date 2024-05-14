@@ -118,6 +118,7 @@ class policy_select(ABC):
             FQE_step_Q_list.append(inner_list)
         return Q_FQE, Q_name_list, FQE_step_Q_list
     def run(self):
+        print("object start run")
         Result_saving_place = 'Policy_ranking_saving_place'
         Result_k = 'Policy_k_saving_place'
         Result_k_save_path = os.path.join(Result_saving_place, Result_k)
