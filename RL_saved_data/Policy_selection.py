@@ -380,6 +380,6 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 k = 4
 num_runs = 10
-FQE_saving_step_lsit = [2000000]
+FQE_saving_step_list = [2000000]
 bvft_obj = Bvft_poli(device, whole_dataset,env,k,num_runs,FQE_saving_step_list)
 
