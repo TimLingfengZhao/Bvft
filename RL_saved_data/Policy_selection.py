@@ -50,10 +50,10 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 # dataset_d, env = get_d4rl('hopper-medium-v0')
 from d3rlpy.dataset import Episode
 class policy_select(ABC):
-    def __init__(self,device, whole_dataset,env,k,num_runs,FQE_saving_step_list):
+    def __init__(self,device,data_list, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state):
         self.device = device
         self.env = env
-        self.data_saving_path = []
+        self.data_saving_path = data_list
         self.k = k
         self.num_runs = num_runs
         self.FQE_saving_step_list = FQE_saving_step_list
@@ -437,6 +437,10 @@ whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 k = 4
 num_runs = 10
 FQE_saving_step_list = [2000000]
-bvft_obj = Bvft_poli(device, whole_dataset,env,k,num_runs,FQE_saving_step_list)
+initial_state = 12345
+data_saving_path = ["Bvft_ranking"]
+bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+
 bvft_obj.select_Q()
+bvft_obj.calculate_k(data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
 
