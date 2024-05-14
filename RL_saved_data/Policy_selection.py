@@ -382,4 +382,5 @@ k = 4
 num_runs = 10
 FQE_saving_step_list = [2000000]
 bvft_obj = Bvft_poli(device, whole_dataset,env,k,num_runs,FQE_saving_step_list)
+bvft_obj.select_Q()
 
