@@ -50,14 +50,62 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 # dataset_d, env = get_d4rl('hopper-medium-v0')
 from d3rlpy.dataset import Episode
 class policy_select(ABC):
-    def __init__(self,device, env):
+    def __init__(self,device, whole_dataset,env,k,num_runs,FQE_saving_step_list):
         self.device = device
         self.env = env
+        self.data_saving_path = []
+        self.k = k
+        self.num_runs = num_runs
+        self.FQE_saving_step_list = FQE_saving_step_list
+        self.whole_dataset = whole_dataset
+
+    @abstractmethod
     def select_Q(selfs):
-        @abstractmethod
         pass
     def run(self):
-        Bvft
+        Result_saving_place = 'Policy_ranking_saving_place'
+        Result_k = 'Policy_k_saving_place'
+        Result_k_save_path = os.path.join(Result_saving_place, Result_k)
+        if not os.path.exists(Result_k_save_path):
+            os.makedirs(Result_k_save_path)
+        k_precision_name = str(k) + "_mean_precision_" + str(num_runs)
+        k_regret_name = str(k) + "_mean_regret" + str(num_runs)
+        precision_ci_name = str(k) + "_CI_precision" + str(num_runs)
+        regret_ci_name = str(k) + "_CI_regret" + str(num_runs)
+        plot_name = "plots"
+
+        k_precision_mean_saving_path = os.path.join(Result_k_save_path, k_precision_name)
+        k_regret_mean_saving_path = os.path.join(Result_k_save_path, k_regret_name)
+        k_precision_ci_saving_path = os.path.join(Result_k_save_path, precision_ci_name)
+        k_regret_ci_saving_path = os.path.join(Result_k_save_path, regret_ci_name)
+        plot_name_saving_path = os.path.join(Result_k_save_path, plot_name)
+        precision_path = os.path.join(Result_k_save_path, k_precision_name)
+        if os.path.exists(precision_path):
+            print("load saved data")
+            precision_mean_list = load_from_pkl(k_precision_mean_saving_path)
+            regret_mean_list = load_from_pkl(k_regret_mean_saving_path)
+            precision_ci_list = load_from_pkl(k_precision_ci_saving_path)
+            regret_ci_list = load_from_pkl(k_regret_ci_saving_path)
+            line_name_list = load_from_pkl(plot_name_saving_path)
+        else:
+            precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = calculate_k(self, self.plot_name_list, self.plot_name_list, FQE_saving_step_list, self.initial_state,
+                        self.k, self.num_runs)
+
+        plot_mean_list = [precision_mean_list, regret_mean_list]
+        plot_ci_list = [precision_ci_list, regret_ci_list]
+
+        plot_folder = os.path.join(Result_k_save_path, "Figure_6_L_plot")
+        if not os.path.exists(plot_folder):
+            os.makedirs(plot_folder)
+        y_axis_names = ["k precision", "k regret"]
+        colors = generate_unique_colors(len(plot_mean_list[0]))
+        line_name = ["hopper-medium-expert-v0", "hopper-medium-expert-v0"]
+        print("line name list : ", line_name_list)
+        # print("plot mean list : ",plot_mean_list)
+        # print("ci lsit : ",plot_ci_list)
+        plot_subplots(data=plot_mean_list, save_path=plot_folder, y_axis_names=y_axis_names,
+                      line_names=line_name_list, colors=colors, ci=plot_ci_list)
+        print("plot finished")
     def load_policy(self,device):
         policy_folder = 'policy_trained'
         if not os.path.exists(policy_folder):
@@ -197,30 +245,141 @@ class policy_select(ABC):
         Bvft_k_save_path = os.path.join(Bvft_saving_place, Bvft_k)
         if not os.path.exists(Bvft_k_save_path):
             os.makedirs(Bvft_k_save_path)
-        # print("k : ",k)
-        k_precision_name = str(k)+"_mean_precision_"+str(num_runs)
-        k_regret_name = str(k)+"_mean_regret"+str(num_runs)
-        precision_ci_name = str(k)+"_CI_precision"+str(num_runs)
-        regret_ci_name = str(k)+"_CI_regret"+str(num_runs)
+
+        for ind in range(len(Ranking_list)):
+            saving_path = os.path.join(Bvft_k_save_path,data_address_lists[ind])
+            plot_name = "plots"
+            if not os.path.exists(saving_path):
+                os.makedirs(saving_path)
+            k_precision_name = str(k)+"_mean_precision_"+str(num_runs)
+            k_regret_name = str(k)+"_mean_regret"+str(num_runs)
+            precision_ci_name = str(k)+"_CI_precision"+str(num_runs)
+            regret_ci_name = str(k)+"_CI_regret"+str(num_runs)
 
 
-        k_precision_mean_saving_path = os.path.join(Bvft_k_save_path,k_precision_name)
-        k_regret_mean_saving_path = os.path.join(Bvft_k_save_path,k_regret_name)
-        k_precision_ci_saving_path = os.path.join(Bvft_k_save_path,precision_ci_name)
-        k_regret_ci_saving_path = os.path.join(Bvft_k_save_path,regret_ci_name)
-        plot_name_saving_path = os.path.join(Bvft_k_save_path,plot_name)
+            k_precision_mean_saving_path = os.path.join(saving_path,k_precision_name)
+            k_regret_mean_saving_path = os.path.join(saving_path,k_regret_name)
+            k_precision_ci_saving_path = os.path.join(saving_path,precision_ci_name)
+            k_regret_ci_saving_path = os.path.join(saving_path,regret_ci_name)
+            plot_name_saving_path = os.path.join(saving_path,plot_name)
 
-        save_as_pkl(k_precision_mean_saving_path,precision_mean_list)
-        save_as_pkl(k_regret_mean_saving_path,regret_mean_list)
-        save_as_pkl(k_precision_ci_saving_path,precision_ci_list)
-        save_as_pkl(k_regret_ci_saving_path,regret_ci_list)
-        save_as_pkl(plot_name_saving_path,plot_name_list)
+            save_as_pkl(k_precision_mean_saving_path,precision_mean_list)
+            save_as_pkl(k_regret_mean_saving_path,regret_mean_list)
+            save_as_pkl(k_precision_ci_saving_path,precision_ci_list)
+            save_as_pkl(k_regret_ci_saving_path,regret_ci_list)
+            save_as_pkl(plot_name_saving_path,plot_name_list)
 
-        save_as_txt(k_precision_mean_saving_path,precision_mean_list)
-        save_as_txt(k_regret_mean_saving_path,regret_mean_list)
-        save_as_txt(k_precision_ci_saving_path,precision_ci_list)
-        save_as_txt(k_regret_ci_saving_path,regret_ci_list)
-        save_as_txt(plot_name_saving_path,plot_name_list)
+            save_as_txt(k_precision_mean_saving_path,precision_mean_list)
+            save_as_txt(k_regret_mean_saving_path,regret_mean_list)
+            save_as_txt(k_precision_ci_saving_path,precision_ci_list)
+            save_as_txt(k_regret_ci_saving_path,regret_ci_list)
+            save_as_txt(plot_name_saving_path,plot_name_list)
 
 
         return precision_mean_list,regret_mean_list,precision_ci_list,regret_ci_list,plot_name_list
+class Bvft_poli(policy_select):
+    def select_Q(self):
+        device = self.device
+        print("begin save best Q, current device : ", device)
+        whole_dataset = self.whole_dataset
+        env = self.env
+        train_episodes = whole_dataset.episodes[0:2000]
+        test_episodes = whole_dataset.episodes[2000:2276]
+        Bvft_batch_dim = get_mean_length(test_episodes)
+        trajectory_num = len(test_episodes)
+        print("mean length : ", Bvft_batch_dim)
+        buffer_one = FIFOBuffer(limit=500000)
+        replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
+        buffer = FIFOBuffer(limit=500000)
+        replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
+
+        gamma = 0.99
+        rmax, rmin = env.reward_range[0], env.reward_range[1]
+        data_size = get_data_size(test_episodes)
+        print("data size : ", get_data_size(whole_dataset.episodes))
+        test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
+
+        Bvft_saving_folder = "Policy_ranking_saving_place"
+        Bvft_Q_saving_folder = "Bvft_ranking"
+        self.data_saving_path.append(Bvft_Q_saving_folder)
+        Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
+
+        # Bvft_resolution_losses_saving_folder = "Bvft_resolution_loss_saving_place"
+        # Bvft_resolution_losses_saving_path = os.path.join(Bvft_saving_folder, Bvft_resolution_losses_saving_folder)
+        # if not os.path.exists(Bvft_resolution_losses_saving_path):
+        #     os.makedirs(Bvft_resolution_losses_saving_path)
+        # if not os.path.exists(Bvft_Q_saving_path):
+        #     os.makedirs(Bvft_Q_saving_path)
+        policy_name_list, policy_list = load_policy(device)
+
+        Q_FQE, Q_name_list, FQE_step_Q_list = load_FQE(policy_name_list, self.FQE_saving_step_list, replay_buffer,
+                                                       device)  # 1d: how many policy #2d: how many step #3d: 4
+        FQE_lr_list = [1e-4, 2e-5]
+        FQE_hl_list = [[128, 256], [128, 1024]]
+        # resolution_list = np.array([0.1, 0.2, 0.5, 0.7, 1.0]) * 100
+        # print("input resolution list for Bvft : ", resolution_list)
+        Bvft_folder = "Bvft_Records"
+        if not os.path.exists(Bvft_folder):
+            os.makedirs(Bvft_folder)
+
+        line_name_list = []
+        for i in range(len(FQE_saving_step_list)):
+            for j in range(len(FQE_lr_list)):
+                for k in range(len(FQE_hl_list)):
+                    line_name_list.append('FQE_' + str(FQE_lr_list[j]) + '_' + str(FQE_hl_list[k]) + '_' + str(
+                        FQE_saving_step_list[i]) + "step")
+        for i in range(len(Q_FQE)):
+            save_folder_name = Q_name_list[i]
+            Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_losses_saving_path, save_folder_name)
+            Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
+
+            q_functions = []
+            q_name_functions = []
+            for j in range(len(Q_FQE[0])):
+                for h in range(len(Q_FQE[0][0])):
+                    q_functions.append(Q_FQE[i][j][h])
+                    q_name_functions.append(FQE_step_Q_list[i][j][h])
+            Bvft_losses = []
+            Bvft_final_resolution_loss = []
+            for i in range(len(FQE_saving_step_list) * 4):
+                current_list = []
+                Bvft_final_resolution_loss.append(current_list)
+            group_list = []
+            for resolution in resolution_list:
+                record = BvftRecord()
+                bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
+                                     "torch_actor_critic_cont", verbose=True, data_size=data_size,
+                                     trajectory_num=trajectory_num)
+                # print("resolution : ",resolution)
+                bvft_instance.run(resolution=resolution)
+
+                group_list.append(record.group_counts[0])
+                for i in range(len(record.losses[0])):
+                    Bvft_final_resolution_loss[i].append(record.losses[0][i])
+
+                Bvft_losses.append(record.losses[0])
+            # print('Bvft losses : ',Bvft_losses)
+            min_loss_list = get_min_loss(Bvft_losses)
+            # print("min loss list : ",min_loss_list)
+            ranking_list = rank_elements_lower_higher(min_loss_list)
+            # print(" ranking list : ",ranking_list)
+
+            best_ranking_index = np.argmin(ranking_list)
+            # print("best ranking index: ",best_ranking_index)
+            # sys.exit()
+            save_list = [q_name_functions[best_ranking_index]]
+            save_as_pkl(Bvft_resolution_loss_policy_saving_path, Bvft_final_resolution_loss)
+            save_as_txt(Bvft_resolution_loss_policy_saving_path, Bvft_final_resolution_loss)
+            save_as_txt(Bvft_Q_result_saving_path, save_list)
+            save_as_pkl(Bvft_Q_result_saving_path, save_list)
+            delete_files_in_folder(Bvft_folder)
+            draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss, FQE_saving_step_list, resolution_list,
+                                            save_folder_name, line_name_list, group_list)
+def main():
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
+    k = 4
+    num_runs = 10
+    FQE_saving_step_lsit = [2000000]
+    bvft_obj = Bvft_poli(device, whole_dataset,env,k,num_runs,FQE_saving_step_list)
+
