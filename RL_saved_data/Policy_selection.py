@@ -375,11 +375,11 @@ class Bvft_poli(policy_select):
             delete_files_in_folder(Bvft_folder)
             draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss, FQE_saving_step_list, resolution_list,
                                             save_folder_name, line_name_list, group_list)
-def main():
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
-    k = 4
-    num_runs = 10
-    FQE_saving_step_lsit = [2000000]
-    bvft_obj = Bvft_poli(device, whole_dataset,env,k,num_runs,FQE_saving_step_list)
+
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
+whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
+k = 4
+num_runs = 10
+FQE_saving_step_lsit = [2000000]
+bvft_obj = Bvft_poli(device, whole_dataset,env,k,num_runs,FQE_saving_step_list)
 
