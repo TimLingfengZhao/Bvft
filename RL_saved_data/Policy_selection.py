@@ -359,7 +359,7 @@ class Bvft_poli(policy_select):
                                                        device)  # 1d: how many policy #2d: how many step #3d: 4
         FQE_lr_list = [1e-4, 2e-5]
         FQE_hl_list = [[128, 256], [128, 1024]]
-        # resolution_list = np.array([0.1, 0.2, 0.5, 0.7, 1.0]) * 100
+        resolution_list = np.array([0.1, 0.2, 0.5, 0.7, 1.0]) * 100
         # print("input resolution list for Bvft : ", resolution_list)
         Bvft_folder = "Bvft_Records"
         if not os.path.exists(Bvft_folder):
