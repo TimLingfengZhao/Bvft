@@ -310,9 +310,9 @@ class Bvft_poli(policy_select):
         #     os.makedirs(Bvft_resolution_losses_saving_path)
         # if not os.path.exists(Bvft_Q_saving_path):
         #     os.makedirs(Bvft_Q_saving_path)
-        policy_name_list, policy_list = load_policy(self,device)
+        policy_name_list, policy_list = self.load_policy(device)
 
-        Q_FQE, Q_name_list, FQE_step_Q_list = load_FQE(policy_name_list, self.FQE_saving_step_list, replay_buffer,
+        Q_FQE, Q_name_list, FQE_step_Q_list = self.load_FQE(policy_name_list, self.FQE_saving_step_list, replay_buffer,
                                                        device)  # 1d: how many policy #2d: how many step #3d: 4
         FQE_lr_list = [1e-4, 2e-5]
         FQE_hl_list = [[128, 256], [128, 1024]]
