@@ -373,7 +373,7 @@ class Bvft_poli(policy_select):
                         FQE_saving_step_list[i]) + "step")
         for i in range(len(Q_FQE)):
             save_folder_name = Q_name_list[i]
-            Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_losses_saving_path, save_folder_name)
+            # Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_losses_saving_path, save_folder_name)
             Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
 
             q_functions = []
@@ -383,10 +383,10 @@ class Bvft_poli(policy_select):
                     q_functions.append(Q_FQE[i][j][h])
                     q_name_functions.append(FQE_step_Q_list[i][j][h])
             Bvft_losses = []
-            Bvft_final_resolution_loss = []
-            for i in range(len(FQE_saving_step_list) * 4):
-                current_list = []
-                Bvft_final_resolution_loss.append(current_list)
+            # Bvft_final_resolution_loss = []
+            # for i in range(len(FQE_saving_step_list) * 4):
+            #     current_list = []
+            #     Bvft_final_resolution_loss.append(current_list)
             group_list = []
             for resolution in resolution_list:
                 record = BvftRecord()
@@ -397,8 +397,8 @@ class Bvft_poli(policy_select):
                 bvft_instance.run(resolution=resolution)
 
                 group_list.append(record.group_counts[0])
-                for i in range(len(record.losses[0])):
-                    Bvft_final_resolution_loss[i].append(record.losses[0][i])
+                # for i in range(len(record.losses[0])):
+                #     Bvft_final_resolution_loss[i].append(record.losses[0][i])
 
                 Bvft_losses.append(record.losses[0])
             # print('Bvft losses : ',Bvft_losses)
@@ -411,13 +411,13 @@ class Bvft_poli(policy_select):
             # print("best ranking index: ",best_ranking_index)
             # sys.exit()
             save_list = [q_name_functions[best_ranking_index]]
-            save_as_pkl(Bvft_resolution_loss_policy_saving_path, Bvft_final_resolution_loss)
-            save_as_txt(Bvft_resolution_loss_policy_saving_path, Bvft_final_resolution_loss)
+            # save_as_pkl(Bvft_resolution_loss_policy_saving_path, Bvft_final_resolution_loss)
+            # save_as_txt(Bvft_resolution_loss_policy_saving_path, Bvft_final_resolution_loss)
             save_as_txt(Bvft_Q_result_saving_path, save_list)
             save_as_pkl(Bvft_Q_result_saving_path, save_list)
             delete_files_in_folder(Bvft_folder)
-            draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss, FQE_saving_step_list, resolution_list,
-                                            save_folder_name, line_name_list, group_list)
+            # draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss, FQE_saving_step_list, resolution_list,
+            #                                 save_folder_name, line_name_list, group_list)
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
