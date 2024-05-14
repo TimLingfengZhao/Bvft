@@ -358,7 +358,8 @@ class Bvft_poli(policy_select):
         Bvft_Q_saving_folder = "Bvft_ranking"
         self.data_saving_path.append(Bvft_Q_saving_folder)
         Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
-
+        if not os.path.exists(Bvft_Q_saving_path):
+            os.makedirs(Bvft_Q_saving_path)
         # Bvft_resolution_losses_saving_folder = "Bvft_resolution_loss_saving_place"
         # Bvft_resolution_losses_saving_path = os.path.join(Bvft_saving_folder, Bvft_resolution_losses_saving_folder)
         # if not os.path.exists(Bvft_resolution_losses_saving_path):
