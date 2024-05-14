@@ -58,6 +58,7 @@ class policy_select(ABC):
         self.num_runs = num_runs
         self.FQE_saving_step_list = FQE_saving_step_list
         self.whole_dataset = whole_dataset
+        self.initial_state = initial_state
 
     @abstractmethod
     def select_Q(self):
