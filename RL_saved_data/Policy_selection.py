@@ -60,8 +60,51 @@ class policy_select(ABC):
         self.whole_dataset = whole_dataset
 
     @abstractmethod
-    def select_Q(selfs):
+    def select_Q(self):
         pass
+
+    def load_FQE(self,policy_name_list, FQE_step_list, replay_buffer, device):
+        policy_folder = 'policy_trained'
+        FQE_lr_list = [1e-4, 2e-5]
+        FQE_hl_list = [[128, 256], [128, 1024]]
+        Q_FQE = []
+        Q_name_list = []
+        FQE_step_Q_list = []
+        for policy_file_name in policy_name_list:
+            policy_path = os.path.join(policy_folder, policy_file_name)
+            policy = d3rlpy.load_learnable(policy_path + ".d3", device=device)
+            Q_list = []
+            inner_list = []
+            Q_name_list.append(policy_file_name + "_" + str(FQE_step_list))
+            for FQE_step in FQE_step_list:
+                step_list = []
+                FQE_policy_name = []
+                for FQE_learning_rate in FQE_lr_list:
+                    for FQE_hidden_layer in FQE_hl_list:
+
+                        FQE_directory = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer)
+                        if not os.path.exists(FQE_directory):
+                            os.makedirs(FQE_directory)
+                        FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_' + str(
+                            FQE_step) + "step" + "_"
+                        FQE_model_name = FQE_model_pre + policy_file_name
+                        FQE_policy_name.append(FQE_model_name)
+
+                        FQE_model_name = FQE_model_name + ".pt"
+                        FQE_file_path = os.path.join(FQE_directory, FQE_model_name)
+                        fqeconfig = d3rlpy.ope.FQEConfig(
+                            learning_rate=FQE_learning_rate,
+                            encoder_factory=d3rlpy.models.VectorEncoderFactory(hidden_units=FQE_hidden_layer)
+                        )
+                        fqe = FQE(algo=policy, config=fqeconfig, device=device)
+                        fqe.build_with_dataset(replay_buffer)
+                        fqe.load_model(FQE_file_path)
+                        step_list.append(fqe)
+                inner_list.append(FQE_policy_name)
+                Q_list.append(step_list)
+            Q_FQE.append(Q_list)
+            FQE_step_Q_list.append(inner_list)
+        return Q_FQE, Q_name_list, FQE_step_Q_list
     def run(self):
         Result_saving_place = 'Policy_ranking_saving_place'
         Result_k = 'Policy_k_saving_place'
