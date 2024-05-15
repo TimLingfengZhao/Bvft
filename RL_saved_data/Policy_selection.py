@@ -566,7 +566,15 @@ class Bvft_FQE(policy_select):
         print("begin save best Q, current device : ", device)
         whole_dataset = self.whole_dataset
         env = self.env
+        train_episodes = whole_dataset.episodes[0:2000]
+        test_episodes = whole_dataset.episodes[2000:2276]
+        Bvft_batch_dim = get_mean_length(test_episodes)
         trajectory_num = len(test_episodes)
+        print("mean length : ", Bvft_batch_dim)
+        buffer_one = FIFOBuffer(limit=500000)
+        replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
+        buffer = FIFOBuffer(limit=500000)
+        replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
         gamma = 0.99
         rmax, rmin = env.reward_range[0], env.reward_range[1]
         data_size = get_data_size(test_episodes)
