@@ -627,8 +627,8 @@ initial_state = 12345
 data_saving_path = ["Bvft_ranking","Bvft_res_0"]
 bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
 bvft_res_0 = Bvft_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-# bvft_FQE = Bvft_FQE(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-# bvft_FQE.select_Q()
+bvft_FQE = Bvft_FQE(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+bvft_FQE.select_Q()
 bvft_obj.select_Q()
 bvft_res_0.select_Q()
 # bvft_obj.calculate_k(data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
