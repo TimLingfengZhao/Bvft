@@ -858,7 +858,63 @@ class Bvft_abs(policy_select):
             save_as_txt(Bvft_Q_result_saving_path, save_list)
             save_as_pkl(Bvft_Q_result_saving_path, save_list)
             delete_files_in_folder(Bvft_folder)
+class Bvft_FQE(policy_select):
+    def select_Q(self):
+        device = self.device
+        print("begin save best Q, current device : ", device)
+        whole_dataset = self.whole_dataset
+        env = self.env
+        trajectory_num = len(test_episodes)
+        gamma = 0.99
+        rmax, rmin = env.reward_range[0], env.reward_range[1]
+        data_size = get_data_size(test_episodes)
+        print("data size : ", get_data_size(whole_dataset.episodes))
+        test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
 
+        Bvft_saving_folder = "Policy_ranking_saving_place"
+        Bvft_Q_saving_folder = "Bvft_abs"
+        self.data_saving_path.append(Bvft_Q_saving_folder)
+        Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
+        if not os.path.exists(Bvft_Q_saving_path):
+            os.makedirs(Bvft_Q_saving_path)
+        policy_name_list, policy_list = self.load_policy(device)
+
+        Q_FQE, Q_name_list, FQE_step_Q_list = self.load_FQE(policy_name_list, self.FQE_saving_step_list, replay_buffer,
+                                                       device)  # 1d: how many policy #2d: how many step #3d: 4
+        FQE_lr_list = [1e-4, 2e-5]
+        FQE_hl_list = [[128, 256], [128, 1024]]
+        resolution_list = np.array([0.1, 0.2, 0.5, 0.7, 1.0]) * 100
+        # print("input resolution list for Bvft : ", resolution_list)
+        Bvft_folder = "FQE_"
+        if not os.path.exists(Bvft_folder):
+            os.makedirs(Bvft_folder)
+
+        line_name_list = []
+        for i in range(len(FQE_saving_step_list)):
+            for j in range(len(FQE_lr_list)):
+                for k in range(len(FQE_hl_list)):
+                    line_name_list.append('FQE_' + str(FQE_lr_list[j]) + '_' + str(FQE_hl_list[k]) + '_' + str(
+                        FQE_saving_step_list[i]) + "step")
+        print("Q_fqe: ", Q_FQE)
+        for i in range(len(Q_FQE)):
+            save_folder_name = Q_name_list[i]
+            # Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_losses_saving_path, save_folder_name)
+            Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
+
+            q_functions = []
+            q_name_functions = []
+            for j in range(len(Q_FQE[0])):
+                for h in range(len(Q_FQE[0][0])):
+                    q_functions.append(Q_FQE[i][j][h])
+                    q_name_functions.append(FQE_step_Q_list[i][j][h])
+            print(q_name_functions)
+            sys.exit()
+            ranking_list = rank_elements_lower_higher(min_loss_list)
+            best_ranking_index = np.argmin(ranking_list)
+            save_list = [q_name_functions[best_ranking_index]]
+            save_as_txt(Bvft_Q_result_saving_path, save_list)
+            save_as_pkl(Bvft_Q_result_saving_path, save_list)
+            delete_files_in_folder(Bvft_folder)
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 k = 5
@@ -869,9 +925,11 @@ initial_state = 12345
 data_saving_path = ["Bvft_ranking","Bvft_abs"]
 bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
 bvft_res_0 = Bvft_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+bvft_FQE = Bvft_FQE(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+bvft_FQE.select_Q()
 # bvft_abs_0 = Bvft_abs(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-bvft_obj.select_Q()
-bvft_res_0.select_Q()
+# bvft_obj.select_Q()
+# bvft_res_0.select_Q()
 # bvft_abs_0.select_Q()
 # bvft_obj.calculate_k(data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
 bvft_res_0.run()
