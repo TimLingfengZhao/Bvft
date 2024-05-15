@@ -861,17 +861,18 @@ class Bvft_abs(policy_select):
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
-k = 4
+k = 5
 num_runs = 300
 FQE_saving_step_list = [2000000]
 initial_state = 12345
-data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_abs"]
+# data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_abs"]
+data_saving_path = ["Bvft_ranking","Bvft_abs"]
 bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
 bvft_res_0 = Bvft_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-bvft_abs_0 = Bvft_abs(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+# bvft_abs_0 = Bvft_abs(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
 bvft_obj.select_Q()
 bvft_res_0.select_Q()
-bvft_abs_0.select_Q()
+# bvft_abs_0.select_Q()
 # bvft_obj.calculate_k(data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-bvft_abs_0.run()
+bvft_res_0.run()
 
