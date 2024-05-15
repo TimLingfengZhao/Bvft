@@ -864,12 +864,6 @@ class Bvft_FQE(policy_select):
         print("begin save best Q, current device : ", device)
         whole_dataset = self.whole_dataset
         env = self.env
-        trajectory_num = len(test_episodes)
-        gamma = 0.99
-        rmax, rmin = env.reward_range[0], env.reward_range[1]
-        data_size = get_data_size(test_episodes)
-        print("data size : ", get_data_size(whole_dataset.episodes))
-        test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
 
         Bvft_saving_folder = "Policy_ranking_saving_place"
         Bvft_Q_saving_folder = "Bvft_abs"
