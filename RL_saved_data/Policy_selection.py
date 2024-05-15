@@ -126,8 +126,6 @@ class policy_select(ABC):
         if not os.path.exists(Result_k_save_folder):
             os.makedirs(Result_k_save_folder)
         Result_k_save_path = os.path.join(Result_k_save_folder,"k_statistic")
-        if not os.path.exists(Result_k_save_path):
-            os.makedirs(Result_k_save_path)
         k_precision_name = str(k) + "_mean_precision_" + str(num_runs)
         k_regret_name = str(k) + "_mean_regret" + str(num_runs)
         precision_ci_name = str(k) + "_CI_precision" + str(num_runs)
@@ -322,8 +320,6 @@ class policy_select(ABC):
 
         saving_path = os.path.join(k_saving_path,"k_statistic")
         plot_name = "plots"
-        if not os.path.exists(saving_path):
-            os.makedirs(saving_path)
         k_precision_name = str(k)+"_mean_precision_"+str(num_runs)
         k_regret_name = str(k)+"_mean_regret"+str(num_runs)
         precision_ci_name = str(k)+"_CI_precision"+str(num_runs)
@@ -459,7 +455,7 @@ initial_state = 12345
 data_saving_path = ["Bvft_ranking"]
 bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
 
-# bvft_obj.select_Q()
+bvft_obj.select_Q()
 # bvft_obj.calculate_k(data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
 bvft_obj.run()
 
