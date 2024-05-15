@@ -542,13 +542,110 @@ class Bvft_zero(policy_select):
             save_as_txt(Bvft_Q_result_saving_path, save_list)
             save_as_pkl(Bvft_Q_result_saving_path, save_list)
             delete_files_in_folder(Bvft_folder)
+class Bvft_abs(policy_select):
+    def select_Q(self):
+        device = self.device
+        print("begin save best Q, current device : ", device)
+        whole_dataset = self.whole_dataset
+        env = self.env
+        train_episodes = whole_dataset.episodes[0:2000]
+        test_episodes = whole_dataset.episodes[2000:2276]
+        Bvft_batch_dim = get_mean_length(test_episodes)
+        trajectory_num = len(test_episodes)
+        print("mean length : ", Bvft_batch_dim)
+        buffer_one = FIFOBuffer(limit=500000)
+        replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
+        buffer = FIFOBuffer(limit=500000)
+        replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
+
+        gamma = 0.99
+        rmax, rmin = env.reward_range[0], env.reward_range[1]
+        data_size = get_data_size(test_episodes)
+        print("data size : ", get_data_size(whole_dataset.episodes))
+        test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
+
+        Bvft_saving_folder = "Policy_ranking_saving_place"
+        Bvft_Q_saving_folder = "Bvft_abs"
+        self.data_saving_path.append(Bvft_Q_saving_folder)
+        Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
+        if not os.path.exists(Bvft_Q_saving_path):
+            os.makedirs(Bvft_Q_saving_path)
+        # Bvft_resolution_losses_saving_folder = "Bvft_resolution_loss_saving_place"
+        # Bvft_resolution_losses_saving_path = os.path.join(Bvft_saving_folder, Bvft_resolution_losses_saving_folder)
+        # if not os.path.exists(Bvft_resolution_losses_saving_path):
+        #     os.makedirs(Bvft_resolution_losses_saving_path)
+        # if not os.path.exists(Bvft_Q_saving_path):
+        #     os.makedirs(Bvft_Q_saving_path)
+        policy_name_list, policy_list = self.load_policy(device)
+
+        Q_FQE, Q_name_list, FQE_step_Q_list = self.load_FQE(policy_name_list, self.FQE_saving_step_list, replay_buffer,
+                                                       device)  # 1d: how many policy #2d: how many step #3d: 4
+        FQE_lr_list = [1e-4, 2e-5]
+        FQE_hl_list = [[128, 256], [128, 1024]]
+        resolution_list = np.array([0.000000001])
+        # print("input resolution list for Bvft : ", resolution_list)
+        Bvft_folder = "Bvft_Records"
+        if not os.path.exists(Bvft_folder):
+            os.makedirs(Bvft_folder)
+
+        line_name_list = []
+        for i in range(len(FQE_saving_step_list)):
+            for j in range(len(FQE_lr_list)):
+                for k in range(len(FQE_hl_list)):
+                    line_name_list.append('FQE_' + str(FQE_lr_list[j]) + '_' + str(FQE_hl_list[k]) + '_' + str(
+                        FQE_saving_step_list[i]) + "step")
+        for i in range(len(Q_FQE)):
+            save_folder_name = Q_name_list[i]
+            # Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_losses_saving_path, save_folder_name)
+            Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
+
+            q_functions = []
+            q_name_functions = []
+            for j in range(len(Q_FQE[0])):
+                for h in range(len(Q_FQE[0][0])):
+                    q_functions.append(Q_FQE[i][j][h])
+                    q_name_functions.append(FQE_step_Q_list[i][j][h])
+            Bvft_losses = []
+            # Bvft_final_resolution_loss = []
+            # for i in range(len(FQE_saving_step_list) * 4):
+            #     current_list = []
+            #     Bvft_final_resolution_loss.append(current_list)
+            group_list = []
+            for resolution in resolution_list:
+                record = BvftRecord()
+                bvft_instance = BVFT_abs(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
+                                     "torch_actor_critic_cont", verbose=True, data_size=data_size,
+                                     trajectory_num=trajectory_num)
+                # print("resolution : ",resolution)
+                bvft_instance.run(resolution=resolution)
+
+                group_list.append(record.group_counts[0])
+                # for i in range(len(record.losses[0])):
+                #     Bvft_final_resolution_loss[i].append(record.losses[0][i])
+
+                Bvft_losses.append(record.losses[0])
+            # print('Bvft losses : ',Bvft_losses)
+            min_loss_list = self.get_min_loss(Bvft_losses)
+            # print("min loss list : ",min_loss_list)
+            ranking_list = rank_elements_lower_higher(min_loss_list)
+            # print(" ranking list : ",ranking_list)
+
+            best_ranking_index = np.argmin(ranking_list)
+            # print("best ranking index: ",best_ranking_index)
+            # sys.exit()
+            save_list = [q_name_functions[best_ranking_index]]
+            # save_as_pkl(Bvft_resolution_loss_policy_saving_path, Bvft_final_resolution_loss)
+            # save_as_txt(Bvft_resolution_loss_policy_saving_path, Bvft_final_resolution_loss)
+            save_as_txt(Bvft_Q_result_saving_path, save_list)
+            save_as_pkl(Bvft_Q_result_saving_path, save_list)
+            delete_files_in_folder(Bvft_folder)
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 k = 4
 num_runs = 300
 FQE_saving_step_list = [2000000]
 initial_state = 12345
-data_saving_path = ["Bvft_ranking","Bvft_res_0"]
+data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_abs"]
 # bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
 bvft_res_0 = Bvft_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
 bvft_res_0.select_Q()
