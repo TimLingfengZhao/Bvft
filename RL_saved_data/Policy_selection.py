@@ -312,9 +312,9 @@ class policy_select(ABC):
         policy_ranking_saving_place = 'Policy_ranking_saving_place'
         k_saving_folder = 'Policy_k_saving_place'
         k_saving_path = os.path.join(policy_ranking_saving_place,k_saving_folder)
-        Bvft_k_save_path = os.path.join(Bvft_saving_place, Bvft_k)
-        if not os.path.exists(Bvft_k_save_path):
-            os.makedirs(Bvft_k_save_path)
+        # Bvft_k_save_path = os.path.join(Bvft_saving_place, Bvft_k)
+        # if not os.path.exists(Bvft_k_save_path):
+        #     os.makedirs(Bvft_k_save_path)
 
         for ind in range(len(Ranking_list)):
             saving_path = os.path.join(Bvft_k_save_path,data_address_lists[ind])
