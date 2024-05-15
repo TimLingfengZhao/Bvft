@@ -680,7 +680,7 @@ class Bvft_zero(policy_select):
                                                        device)  # 1d: how many policy #2d: how many step #3d: 4
         FQE_lr_list = [1e-4, 2e-5]
         FQE_hl_list = [[128, 256], [128, 1024]]
-        resolution_list = np.array([0.0000])
+        resolution_list = np.array([0.00001])
         # print("input resolution list for Bvft : ", resolution_list)
         Bvft_folder = "Bvft_Records"
         if not os.path.exists(Bvft_folder):
@@ -850,7 +850,9 @@ initial_state = 12345
 data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_abs"]
 # bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
 bvft_res_0 = Bvft_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+bvft_abs_0 = Bvft_abs(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
 bvft_res_0.select_Q()
+bvft_abs_0.select_Q()
 # bvft_obj.calculate_k(data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-bvft_res_0.run()
+bvft_abs_0.run()
 
