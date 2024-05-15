@@ -317,7 +317,7 @@ class policy_select(ABC):
         #     os.makedirs(Bvft_k_save_path)
 
         for ind in range(len(Ranking_list)):
-            saving_path = os.path.join(Bvft_k_save_path,data_address_lists[ind])
+            saving_path = os.path.join(k_saving_path,data_address_lists[ind])
             plot_name = "plots"
             if not os.path.exists(saving_path):
                 os.makedirs(saving_path)
