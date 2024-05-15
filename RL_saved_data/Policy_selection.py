@@ -273,6 +273,7 @@ class policy_select(ABC):
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
         Ranking_list = []
         Policy_name_list = []
+        data_address_lists = remove_duplicates(data_address_lists)
         for i in range(len(data_address_lists)):
             Ranking_list.append([])
         for runs in range(num_runs):
@@ -841,6 +842,7 @@ class Bvft_abs(policy_select):
             save_as_txt(Bvft_Q_result_saving_path, save_list)
             save_as_pkl(Bvft_Q_result_saving_path, save_list)
             delete_files_in_folder(Bvft_folder)
+
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 k = 4

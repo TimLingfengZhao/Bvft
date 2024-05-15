@@ -318,3 +318,4 @@ def delete_files_in_folder(folder_path):
             print(f'Failed to delete {file_path}. Reason: {e}')
 
 
+

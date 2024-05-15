@@ -735,4 +735,11 @@ def get_mean_length(episodes):
     return int(get_data_size(episodes)/len(episodes))
 
 
-
+def remove_duplicates(lst):
+    seen = set()
+    result = []
+    for item in lst:
+        if item not in seen:
+            seen.add(item)
+            result.append(item)
+    return result
