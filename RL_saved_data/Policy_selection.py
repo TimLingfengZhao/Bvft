@@ -270,7 +270,7 @@ class policy_select(ABC):
         FQE_name_list_new = []
         # whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
         env = self.env
-        device = "cuda:0" if torch.cuda.is_available() else "cpu"
+        device = self.device
         Ranking_list = []
         Policy_name_list = []
         data_address_lists = remove_duplicates(data_address_lists)
@@ -288,8 +288,24 @@ class policy_select(ABC):
             Regret_list.append([])
         for i in range(num_runs):
             for num_index in range(len(data_address_lists)):
-                Precision_list[num_index].append(calculate_top_k_precision(initial_state,env,Policy_name_list[num_index],Ranking_list[num_index][i]))
+                Precision_list[num_index].append(calculate_top_k_precision(initial_state,env,Policy_name_list[num_index],Ranking_list[num_index][i],k))
                 Regret_list[num_index].append(calculate_top_k_normalized_regret(Ranking_list[num_index][i],Policy_name_list[i],env,k))
+
+        Precision_k_list = []
+        Regret_k_list = []
+        for i in range(len(Ranking_list)):
+            Precision_k_list.append([])
+            Regret_k_list.append([])
+
+        for i in range(k):
+            for ku in range(len(Ranking_list)):
+                k_precision = []
+                k_regret = []
+                for j in range(num_runs):
+                    k_precision.append(Precision_list[ku][j][i])
+                    k_regret.append(Regret_list[ku][j][i])
+                Precision_k_list[ku].append(k_precision)
+                Regret_k_list[ku].append(k_regret)
 
         precision_mean_list = []
         regret_mean_list = []
@@ -301,8 +317,8 @@ class policy_select(ABC):
             current_precision_ci_list = []
             current_regret_ci_list = []
             for j in range(k):
-                current_precision_mean, current_precision_ci = calculate_statistics(Precision_list[i][j])
-                current_regret_mean, current_regret_ci = calculate_statistics(Regret_list[i][j])
+                current_precision_mean, current_precision_ci = calculate_statistics(Precision_k_list[i][j])
+                current_regret_mean, current_regret_ci = calculate_statistics(Regret_k_list[i][j])
                 current_precision_mean_list.append(current_precision_mean)
                 current_precision_ci_list.append(current_precision_ci)
                 current_regret_mean_list.append(current_regret_mean)
@@ -785,7 +801,7 @@ class Bvft_abs(policy_select):
                                                        device)  # 1d: how many policy #2d: how many step #3d: 4
         FQE_lr_list = [1e-4, 2e-5]
         FQE_hl_list = [[128, 256], [128, 1024]]
-        resolution_list = np.array([0.00001])
+        resolution_list = np.array([0.1, 0.2, 0.5, 0.7, 1.0]) * 100
         # print("input resolution list for Bvft : ", resolution_list)
         Bvft_folder = "Bvft_Records"
         if not os.path.exists(Bvft_folder):
