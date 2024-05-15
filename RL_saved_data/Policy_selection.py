@@ -213,6 +213,20 @@ class policy_select(ABC):
         FQE_result = FQE_dictionary[FQE_name]
         return FQE_result
 
+    def pick_policy(self,m, device):
+        policy_folder = 'policy_trained'
+        if not os.path.exists(policy_folder):
+            os.makedirs(policy_folder)
+        policy_files = sample_files(policy_folder, m)
+        policy_name_list = []
+        policy_list = []
+        for policy_file_name in policy_files:  # policy we want to evaluate
+            policy_path = os.path.join(policy_folder, policy_file_name)
+            policy = d3rlpy.load_learnable(policy_path, device=device)
+
+            policy_name_list.append(policy_file_name[:-3])
+            policy_list.append(policy)
+        return policy_name_list, policy_list
     def load_FQE_performance(self,FQE_name):
         FQE_returned_result = "FQE_returned_result"
         FQE_folder = "FQE_0.0001_[128, 1024]"
