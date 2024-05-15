@@ -453,7 +453,7 @@ class Bvft_poli(policy_select):
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 k = 4
-num_runs = 10
+num_runs = 300
 FQE_saving_step_list = [2000000]
 initial_state = 12345
 data_saving_path = ["Bvft_ranking"]
