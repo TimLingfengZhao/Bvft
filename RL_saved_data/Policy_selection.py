@@ -277,7 +277,7 @@ class policy_select(ABC):
         for runs in range(num_runs):
             policy_name_list, policy_list = self.pick_policy(15,device)
             for data_address_index in range(len(data_address_lists)):
-                Ranking_list[data_address_index].append(get_ranking(data_address_lists[data_address_index],policy_name_list,FQE_saving_step_list))
+                Ranking_list[data_address_index].append(self.get_ranking(data_address_lists[data_address_index],policy_name_list,FQE_saving_step_list))
             Policy_name_list.append(policy_name_list)
         Precision_list = []
         Regret_list = []
