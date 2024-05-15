@@ -122,7 +122,10 @@ class policy_select(ABC):
         print("object start run")
         Result_saving_place = 'Policy_ranking_saving_place'
         Result_k = 'Policy_k_saving_place'
-        Result_k_save_path = os.path.join(Result_saving_place, Result_k)
+        Result_k_save_folder = os.path.join(Result_saving_place, Result_k)
+        if not os.path.exists(Result_k_save_folder):
+            os.makedirs(Result_k_save_folder)
+        Result_k_save_path = os.path.join(Result_k_save_folder,"k_statistic")
         if not os.path.exists(Result_k_save_path):
             os.makedirs(Result_k_save_path)
         k_precision_name = str(k) + "_mean_precision_" + str(num_runs)
@@ -316,34 +319,34 @@ class policy_select(ABC):
         # if not os.path.exists(Bvft_k_save_path):
         #     os.makedirs(Bvft_k_save_path)
 
-        for ind in range(len(Ranking_list)):
-            saving_path = os.path.join(k_saving_path,data_address_lists[ind])
-            plot_name = "plots"
-            if not os.path.exists(saving_path):
-                os.makedirs(saving_path)
-            k_precision_name = str(k)+"_mean_precision_"+str(num_runs)
-            k_regret_name = str(k)+"_mean_regret"+str(num_runs)
-            precision_ci_name = str(k)+"_CI_precision"+str(num_runs)
-            regret_ci_name = str(k)+"_CI_regret"+str(num_runs)
+
+        saving_path = os.path.join(k_saving_path,"k_statistic")
+        plot_name = "plots"
+        if not os.path.exists(saving_path):
+            os.makedirs(saving_path)
+        k_precision_name = str(k)+"_mean_precision_"+str(num_runs)
+        k_regret_name = str(k)+"_mean_regret"+str(num_runs)
+        precision_ci_name = str(k)+"_CI_precision"+str(num_runs)
+        regret_ci_name = str(k)+"_CI_regret"+str(num_runs)
 
 
-            k_precision_mean_saving_path = os.path.join(saving_path,k_precision_name)
-            k_regret_mean_saving_path = os.path.join(saving_path,k_regret_name)
-            k_precision_ci_saving_path = os.path.join(saving_path,precision_ci_name)
-            k_regret_ci_saving_path = os.path.join(saving_path,regret_ci_name)
-            plot_name_saving_path = os.path.join(saving_path,plot_name)
+        k_precision_mean_saving_path = os.path.join(saving_path,k_precision_name)
+        k_regret_mean_saving_path = os.path.join(saving_path,k_regret_name)
+        k_precision_ci_saving_path = os.path.join(saving_path,precision_ci_name)
+        k_regret_ci_saving_path = os.path.join(saving_path,regret_ci_name)
+        plot_name_saving_path = os.path.join(saving_path,plot_name)
 
-            save_as_pkl(k_precision_mean_saving_path,precision_mean_list)
-            save_as_pkl(k_regret_mean_saving_path,regret_mean_list)
-            save_as_pkl(k_precision_ci_saving_path,precision_ci_list)
-            save_as_pkl(k_regret_ci_saving_path,regret_ci_list)
-            save_as_pkl(plot_name_saving_path,plot_name_list)
+        save_as_pkl(k_precision_mean_saving_path,precision_mean_list)
+        save_as_pkl(k_regret_mean_saving_path,regret_mean_list)
+        save_as_pkl(k_precision_ci_saving_path,precision_ci_list)
+        save_as_pkl(k_regret_ci_saving_path,regret_ci_list)
+        save_as_pkl(plot_name_saving_path,plot_name_list)
 
-            save_as_txt(k_precision_mean_saving_path,precision_mean_list)
-            save_as_txt(k_regret_mean_saving_path,regret_mean_list)
-            save_as_txt(k_precision_ci_saving_path,precision_ci_list)
-            save_as_txt(k_regret_ci_saving_path,regret_ci_list)
-            save_as_txt(plot_name_saving_path,plot_name_list)
+        save_as_txt(k_precision_mean_saving_path,precision_mean_list)
+        save_as_txt(k_regret_mean_saving_path,regret_mean_list)
+        save_as_txt(k_precision_ci_saving_path,precision_ci_list)
+        save_as_txt(k_regret_ci_saving_path,regret_ci_list)
+        save_as_txt(plot_name_saving_path,plot_name_list)
 
 
         return precision_mean_list,regret_mean_list,precision_ci_list,regret_ci_list,plot_name_list
