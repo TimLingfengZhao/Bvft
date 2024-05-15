@@ -67,7 +67,7 @@ class BvftRecord:
     def summary(self):
         pass
 import numpy as np
-class BVFT_abs(object):
+class BVFT(object):
     def __init__(self, q_functions, data, gamma, rmax, rmin,file_name_pre, record: BvftRecord = BvftRecord(), q_type='torch_actor_critic_cont',
                  verbose=False, bins=None, data_size=5000,trajectory_num=200):
         self.data = data                                                        #Data D
