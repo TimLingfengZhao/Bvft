@@ -138,17 +138,15 @@ class policy_select(ABC):
         k_regret_ci_saving_path = os.path.join(Result_k_save_path, regret_ci_name)
         plot_name_saving_path = os.path.join(Result_k_save_path, plot_name)
         precision_path = os.path.join(Result_k_save_path, k_precision_name)
-        if os.path.exists(precision_path):
-            print("load saved data")
-            precision_mean_list = load_from_pkl(k_precision_mean_saving_path)
-            regret_mean_list = load_from_pkl(k_regret_mean_saving_path)
-            precision_ci_list = load_from_pkl(k_precision_ci_saving_path)
-            regret_ci_list = load_from_pkl(k_regret_ci_saving_path)
-            line_name_list = load_from_pkl(plot_name_saving_path)
-        else:
-            precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-        print("regret_mean_list : ",regret_mean_list)
-        sys.exit()
+        # if os.path.exists(precision_path):
+        #     print("load saved data")
+        #     precision_mean_list = load_from_pkl(k_precision_mean_saving_path)
+        #     regret_mean_list = load_from_pkl(k_regret_mean_saving_path)
+        #     precision_ci_list = load_from_pkl(k_precision_ci_saving_path)
+        #     regret_ci_list = load_from_pkl(k_regret_ci_saving_path)
+        #     line_name_list = load_from_pkl(plot_name_saving_path)
+        # else:
+        precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
         plot_mean_list = [precision_mean_list, regret_mean_list]
         plot_ci_list = [precision_ci_list, regret_ci_list]
 
@@ -808,20 +806,20 @@ num_runs = 300
 FQE_saving_step_list = [2000000]
 initial_state = 12345
 # data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_abs"]
-# data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_0.0001_256","Bvft_0.0001_1024","Bvft_0.00002_256","Bvft_0.00002_1024"]
-data_saving_path = ["Bvft_ranking"]
+data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_0.0001_256","Bvft_0.0001_1024","Bvft_0.00002_256","Bvft_0.00002_1024"]
+# data_saving_path = ["Bvft_ranking"]
 bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-# bvft_res_0 = Bvft_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-# bvft_FQE_zero = Bvft_FQE_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-# bvft_FQE_one = Bvft_FQE_one(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-# bvft_FQE_two = Bvft_FQE_two(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-# bvft_FQE_three = Bvft_FQE_three(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-# bvft_FQE_zero.select_Q()
-# bvft_FQE_one.select_Q()
-# bvft_FQE_two.select_Q()
-# bvft_FQE_three.select_Q()
-# bvft_obj.select_Q()
-# bvft_res_0.select_Q()
+bvft_res_0 = Bvft_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+bvft_FQE_zero = Bvft_FQE_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+bvft_FQE_one = Bvft_FQE_one(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+bvft_FQE_two = Bvft_FQE_two(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+bvft_FQE_three = Bvft_FQE_three(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+bvft_FQE_zero.select_Q()
+bvft_FQE_one.select_Q()
+bvft_FQE_two.select_Q()
+bvft_FQE_three.select_Q()
+bvft_obj.select_Q()
+bvft_res_0.select_Q()
 # bvft_obj.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
 bvft_obj.run()
 
