@@ -470,6 +470,7 @@ def plot_normalized_k(FQE_saving_step_list, initial_state ,k, num_runs):
     # else :
     precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list=calculate_k(FQE_saving_step_list, initial_state, k, num_runs)
     print("precision mean list : ",precision_mean_list)
+    sys.exit()
     plot_mean_list = [precision_mean_list,regret_mean_list]
     plot_ci_list = [precision_ci_list,regret_ci_list]
 
