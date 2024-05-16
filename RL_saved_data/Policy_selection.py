@@ -819,7 +819,7 @@ bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_
 # bvft_FQE_one.select_Q()
 # bvft_FQE_two.select_Q()
 # bvft_FQE_three.select_Q()
-bvft_obj.select_Q()
+# bvft_obj.select_Q()
 # bvft_res_0.select_Q()
 bvft_obj.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
 bvft_obj.run()
