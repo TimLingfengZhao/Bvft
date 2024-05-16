@@ -157,6 +157,7 @@ def FQE_ranking(policy_name_list,FQE_saving_step_list,env):
                     policy_name = policy_name_list[i]
                     current_performance_list.append(load_FQE_performance_specific(FQE_learning_rate,FQE_hidden_layer,steps,policy_name))
                 performance_list.append(rank_elements_larger_higher(current_performance_list))
+
     return performance_list,FQE_name_list
 
 
