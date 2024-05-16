@@ -615,6 +615,7 @@ class Bvft_FQE_zero(policy_select):
                 for h in range(len(Q_FQE[0][0])):
                     q_functions.append(Q_FQE[i][j][h])
                     q_name_functions.append(FQE_step_Q_list[i][j][h])
+            print(q_functions)
             save_list = [q_name_functions[0]]
             save_as_txt(Bvft_Q_result_saving_path, save_list)
             save_as_pkl(Bvft_Q_result_saving_path, save_list)
@@ -815,11 +816,11 @@ bvft_FQE_one = Bvft_FQE_one(device, data_saving_path, whole_dataset,env,k,num_ru
 bvft_FQE_two = Bvft_FQE_two(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
 bvft_FQE_three = Bvft_FQE_three(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
 bvft_FQE_zero.select_Q()
-bvft_FQE_one.select_Q()
-bvft_FQE_two.select_Q()
-bvft_FQE_three.select_Q()
-bvft_obj.select_Q()
-bvft_res_0.select_Q()
-# bvft_obj.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-bvft_obj.run()
+# bvft_FQE_one.select_Q()
+# bvft_FQE_two.select_Q()
+# bvft_FQE_three.select_Q()
+# bvft_obj.select_Q()
+# bvft_res_0.select_Q()
+# # bvft_obj.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+# bvft_obj.run()
 
