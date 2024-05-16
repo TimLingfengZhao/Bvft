@@ -291,8 +291,8 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
                                                                     Policy_name_list[i],
                                                                     env,
                                                                     k))
-        print("Bvft_k_precision_list : ",Bvft_k_precision_list)
-        sys.exit()
+        # print("Bvft_k_precision_list : ",Bvft_k_precision_list)
+        # sys.exit()
         for j in range(len(FQE_ranking_list)):
             FQE_k_precision_list[j].append(calculate_top_k_precision(initial_state,env,Policy_name_list[i],FQE_ranking_list[j][i],k))
             FQE_k_regret_list[j].append(calculate_top_k_normalized_regret(FQE_ranking_list[j][i],Policy_name_list[i],env,k))
@@ -471,7 +471,7 @@ def plot_normalized_k(FQE_saving_step_list, initial_state ,k, num_runs):
         line_name_list = load_from_pkl(plot_name_saving_path)
     else :
         precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list=calculate_k(FQE_saving_step_list, initial_state, k, num_runs)
-    print("precision mean list final : ",precision_mean_list)
+    print("regret mean list final : ",regret_mean_list)
     sys.exit()
     plot_mean_list = [precision_mean_list,regret_mean_list]
     plot_ci_list = [precision_ci_list,regret_ci_list]

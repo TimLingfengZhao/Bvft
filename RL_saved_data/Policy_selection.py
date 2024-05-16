@@ -147,7 +147,7 @@ class policy_select(ABC):
             line_name_list = load_from_pkl(plot_name_saving_path)
         else:
             precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-        print("precision_mean_list : ",precision_mean_list)
+        print("regret_mean_list : ",regret_mean_list)
         sys.exit()
         plot_mean_list = [precision_mean_list, regret_mean_list]
         plot_ci_list = [precision_ci_list, regret_ci_list]
