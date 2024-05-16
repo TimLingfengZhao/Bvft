@@ -281,6 +281,11 @@ class policy_select(ABC):
                 # print("ranking : ",self.get_ranking(data_address_lists[data_address_index],policy_name_list,FQE_saving_step_list))
                 # sys.exit()
                 Ranking_list[data_address_index].append(self.get_ranking(data_address_lists[data_address_index],policy_name_list,FQE_saving_step_list))   #多少个 不同的种类 #多少run #多少个policy ranking
+            print(Ranking_list)
+            performance_list, FQE_name_list = FQE_ranking(policy_name_list,FQE_saving_step_list,env)
+            print(performance_list)
+            print(FQE_name_list)
+            sys.exit()
             Policy_name_list.append(policy_name_list)
 
         Precision_list = []

@@ -743,3 +743,24 @@ def remove_duplicates(lst):
             seen.add(item)
             result.append(item)
     return result
+def FQE_ranking(policy_name_list,FQE_saving_step_list,env):
+
+    FQE_learning_rate_list = [0.0001,2e-5]
+    FQE_hidden_layer_list = [[128, 256],[128, 1024]]
+    performance_list = []
+    FQE_name_list = []
+    for steps in FQE_saving_step_list:
+        for FQE_learning_rate in FQE_learning_rate_list:
+            for FQE_hidden_layer in FQE_hidden_layer_list:
+                FQE_name = "FQE_"+str(FQE_learning_rate)+"_"+str(FQE_hidden_layer)+"_"+str(steps)+"step"
+                FQE_name_list.append(FQE_name)
+                current_performance_list = []
+                for i in range(len(policy_name_list)):
+                    policy_name = policy_name_list[i]
+                    print("i : ", i)
+                    print("FQE_name list : ", FQE_name_list)
+                    current_performance_list.append(load_FQE_performance_specific(FQE_learning_rate,FQE_hidden_layer,steps,policy_name))
+                performance_list.append(rank_elements_larger_higher(current_performance_list))
+                sys.exit()
+
+    return performance_list,FQE_name_list
