@@ -403,7 +403,7 @@ class Bvft_poli(policy_select):
                                                        device)  # 1d: how many policy #2d: how many step #3d: 4
         FQE_lr_list = [1e-4, 2e-5]
         FQE_hl_list = [[128, 256], [128, 1024]]
-        resolution_list = [0.000002,20.,22.,23.,25.,27.,50.]
+        resolution_list = [2, 3, 4, 8, 16, 100, 1e10]
         # print("input resolution list for Bvft : ", resolution_list)
         Bvft_folder = "Bvft_Records"
         if not os.path.exists(Bvft_folder):
@@ -575,6 +575,7 @@ class Bvft_FQE_zero(policy_select):
         replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
         buffer = FIFOBuffer(limit=500000)
         replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
+
         gamma = 0.99
         rmax, rmin = env.reward_range[0], env.reward_range[1]
         data_size = get_data_size(test_episodes)
@@ -582,28 +583,27 @@ class Bvft_FQE_zero(policy_select):
         test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
 
         Bvft_saving_folder = "Policy_ranking_saving_place"
-        Bvft_Q_saving_folder = "Bvft_0.0001_256"
+        Bvft_Q_saving_folder = "Bvft_res_0"
         self.data_saving_path.append(Bvft_Q_saving_folder)
         Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
         if not os.path.exists(Bvft_Q_saving_path):
             os.makedirs(Bvft_Q_saving_path)
+
         policy_name_list, policy_list = self.load_policy(device)
 
         Q_FQE, Q_name_list, FQE_step_Q_list = self.load_FQE(policy_name_list, self.FQE_saving_step_list, replay_buffer,
                                                        device)  # 1d: how many policy #2d: how many step #3d: 4
         FQE_lr_list = [1e-4, 2e-5]
         FQE_hl_list = [[128, 256], [128, 1024]]
-        resolution_list = np.array([0.1, 0.2, 0.5, 0.7, 1.0]) * 100
+        resolution_list = np.array([0.00001])
         # print("input resolution list for Bvft : ", resolution_list)
-        Bvft_folder = "FQE_"
+        Bvft_folder = "Bvft_Records"
         if not os.path.exists(Bvft_folder):
             os.makedirs(Bvft_folder)
 
         line_name_list = []
         for i in range(len(FQE_saving_step_list)):
-            for j in range(len(FQE_lr_list)):
-                for k in range(len(FQE_hl_list)):
-                    line_name_list.append('FQE_' + str(FQE_lr_list[j]) + '_' + str(FQE_hl_list[k]) + '_' + str(
+            line_name_list.append('FQE_' + str(FQE_lr_list[0]) + '_' + str(FQE_hl_list[0]) + '_' + str(
                         FQE_saving_step_list[i]) + "step")
         for i in range(len(Q_FQE)):
             save_folder_name = Q_name_list[i]
@@ -616,7 +616,37 @@ class Bvft_FQE_zero(policy_select):
                 for h in range(len(Q_FQE[0][0])):
                     q_functions.append(Q_FQE[i][j][h])
                     q_name_functions.append(FQE_step_Q_list[i][j][h])
-            save_list = [q_name_functions[0]]
+            Bvft_losses = []
+            # Bvft_final_resolution_loss = []
+            # for i in range(len(FQE_saving_step_list) * 4):
+            #     current_list = []
+            #     Bvft_final_resolution_loss.append(current_list)
+            group_list = []
+            for resolution in resolution_list:
+                record = BvftRecord()
+                bvft_instance = BVFT(q_functions, test_data, gamma, rmax, rmin, policy_name_list[i], record,
+                                     "torch_actor_critic_cont", verbose=True, data_size=data_size,
+                                     trajectory_num=trajectory_num)
+                # print("resolution : ",resolution)
+                bvft_instance.run(resolution=resolution)
+
+                group_list.append(record.group_counts[0])
+                # for i in range(len(record.losses[0])):
+                #     Bvft_final_resolution_loss[i].append(record.losses[0][i])
+
+                Bvft_losses.append(record.losses[0])
+            # print('Bvft losses : ',Bvft_losses)
+            min_loss_list = self.get_min_loss(Bvft_losses)
+            # print("min loss list : ",min_loss_list)
+            ranking_list = rank_elements_lower_higher(min_loss_list)
+            # print(" ranking list : ",ranking_list)
+
+            best_ranking_index = np.argmin(ranking_list)
+            # print("best ranking index: ",best_ranking_index)
+            # sys.exit()
+            save_list = [q_name_functions[best_ranking_index]]
+            # save_as_pkl(Bvft_resolution_loss_policy_saving_path, Bvft_final_resolution_loss)
+            # save_as_txt(Bvft_resolution_loss_policy_saving_path, Bvft_final_resolution_loss)
             save_as_txt(Bvft_Q_result_saving_path, save_list)
             save_as_pkl(Bvft_Q_result_saving_path, save_list)
             delete_files_in_folder(Bvft_folder)
@@ -821,6 +851,6 @@ bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_
 # bvft_FQE_three.select_Q()
 bvft_obj.select_Q()
 # bvft_res_0.select_Q()
-# bvft_obj.calculate_k(data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+bvft_obj.calculate_k(data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
 bvft_obj.run()
 

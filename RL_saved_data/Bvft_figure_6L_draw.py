@@ -369,10 +369,6 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
         k_regret_list.append(FQE_k_regret_result[dudu])
 
 
-
-
-
-
     precision_mean_list = []
     regret_mean_list = []
     precision_ci_list = []
