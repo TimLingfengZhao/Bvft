@@ -616,8 +616,6 @@ class Bvft_FQE_zero(policy_select):
                 for h in range(len(Q_FQE[0][0])):
                     q_functions.append(Q_FQE[i][j][h])
                     q_name_functions.append(FQE_step_Q_list[i][j][h])
-            print("q_name  functions : ",q_name_functions)
-            sys.exit()
             save_list = [q_name_functions[0]]
             save_as_txt(Bvft_Q_result_saving_path, save_list)
             save_as_pkl(Bvft_Q_result_saving_path, save_list)
