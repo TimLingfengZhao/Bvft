@@ -238,7 +238,7 @@ def Calculate_best_Q(FQE_saving_step_list,resolution_list):
 def main():
     parser = argparse.ArgumentParser(description="Run specific Bvft based on learning rate and combination.")
     parser.add_argument("--FQE_saving_step_list", type=int, nargs='+', default=[500000, 1000000, 1500000, 2000000], help="Number of steps in each episode of FQE")
-    parser.add_argument("--resolution_list", type=float, nargs='+', default=[0.000002,20.,22.,23.,25.,27.,50.], help="Resolution list parameter for Bvft")
+    parser.add_argument("--resolution_list", type=float, nargs='+', default=[2, 3, 4, 8, 16, 100, 1e10], help="Resolution list parameter for Bvft")
     # parser.add_argument("--resolution_list", type=float, nargs='+', default=[0.0000002,0.0001, 0.01, 3., 10., 20.,10000.], help="Resolution list parameter for Bvft")
     args = parser.parse_args()
 
