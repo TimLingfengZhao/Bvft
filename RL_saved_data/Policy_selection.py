@@ -256,7 +256,7 @@ class policy_select(ABC):
             folder_name = policy_file_name + "_" + str(FQE_saving_step_list)
             FQE_name_path = os.path.join(ranking_path, folder_name)
             FQE_name = load_from_pkl(FQE_name_path)[0]
-            FQE_performance = load_FQE_performance(FQE_name)
+            FQE_performance = self.load_FQE_performance(FQE_name)
             FQE_performance_list.append(FQE_performance)
         FQE_rank_list = rank_elements_larger_higher(FQE_performance_list)
         return FQE_rank_list
@@ -282,6 +282,9 @@ class policy_select(ABC):
                 # sys.exit()
                 Ranking_list[data_address_index].append(self.get_ranking(data_address_lists[data_address_index],policy_name_list,FQE_saving_step_list))   #多少个 不同的种类 #多少run #多少个policy ranking
             Policy_name_list.append(policy_name_list)
+        print("ranking list : ",Ranking_list)
+        print("policy name lsit : ",Policy_name_list)
+        sys.exit()
         Precision_list = []
         Regret_list = []
         for index in range(len(data_address_lists)):
