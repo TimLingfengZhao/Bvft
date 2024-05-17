@@ -56,8 +56,8 @@ from d3rlpy.ope import FQE, FQEConfig
 from d3rlpy.models.encoders import VectorEncoderFactory
 import torch
 import time
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
+# import tensorflow.compat.v1 as tf
+# tf.disable_v2_behavior()
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 print("device : ",device)
 def load_checkpoint_policy(model, checkpoint_path):
