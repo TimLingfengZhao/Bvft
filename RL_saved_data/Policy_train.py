@@ -102,7 +102,7 @@ replay_buffer_limit = 1500000
 checkpoint_interval = 1
 
 
-import tensorflow.compat.v1 as tf
+# import tensorflow.compat.v1 as tf
 
 buffer = d3rlpy.dataset.FIFOBuffer(limit=replay_buffer_limit)
 transition_picker = d3rlpy.dataset.BasicTransitionPicker()
