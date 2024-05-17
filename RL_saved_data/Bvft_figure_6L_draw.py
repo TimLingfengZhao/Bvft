@@ -276,8 +276,8 @@ def calculate_k(FQE_saving_step_list, initial_state ,k, num_runs):
     # InitialQ_k_precision_list = []
     Random_k_precision_list = []
     FQE_k_precision_list = []
-
     FQE_k_regret_list = []
+
     Bvft_k_regret_list = []
     # InitialQ_k_regret_list = []
     Random_k_regret_list = []

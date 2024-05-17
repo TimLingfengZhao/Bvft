@@ -281,11 +281,11 @@ class policy_select(ABC):
                 # print("ranking : ",self.get_ranking(data_address_lists[data_address_index],policy_name_list,FQE_saving_step_list))
                 # sys.exit()
                 Ranking_list[data_address_index].append(self.get_ranking(data_address_lists[data_address_index],policy_name_list,FQE_saving_step_list))   #多少个 不同的种类 #多少run #多少个policy ranking
-            print(Ranking_list)
-            performance_list, FQE_name_list = FQE_ranking(policy_name_list,FQE_saving_step_list,env)
-            print(performance_list)
-            print(FQE_name_list)
-            sys.exit()
+            # print(Ranking_list)
+            # performance_list, FQE_name_list = FQE_ranking(policy_name_list,FQE_saving_step_list,env)
+            # print(performance_list)
+            # print(FQE_name_list)
+
             Policy_name_list.append(policy_name_list)
 
         Precision_list = []
@@ -294,13 +294,14 @@ class policy_select(ABC):
             Precision_list.append([])
             Regret_list.append([])
         for i in range(num_runs):
-            for num_index in range(len(data_address_lists)):
-                Precision_list[num_index].append(calculate_top_k_precision(initial_state,env,Policy_name_list[num_index],Ranking_list[num_index][i],k))
+            for num_index in range(len(Ranking_list)):
+                Precision_list[num_index].append(calculate_top_k_precision(initial_state,env,Policy_name_list[i],Ranking_list[num_index][i],k))
                 Regret_list[num_index].append(calculate_top_k_normalized_regret(Ranking_list[num_index][i],Policy_name_list[i],env,k))
+
 
         Precision_k_list = []
         Regret_k_list = []
-        for i in range(len(Ranking_list)):
+        for iu in range(len(Ranking_list)):
             Precision_k_list.append([])
             Regret_k_list.append([])
 
