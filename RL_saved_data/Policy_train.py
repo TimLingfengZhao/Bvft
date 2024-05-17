@@ -98,7 +98,7 @@ policy_episode_step = 10000
 daytime = datetime.now()
 
 
-replay_buffer_limit = 500000
+replay_buffer_limit = 1500000
 checkpoint_interval = 1
 
 
@@ -114,7 +114,7 @@ whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 train_episodes = whole_dataset.episodes[0:2000]
 test_episodes = whole_dataset.episodes[2000:2276]
 
-buffer = FIFOBuffer(limit=500000)
+buffer = FIFOBuffer(limit=1500000)
 
 dataset = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 
