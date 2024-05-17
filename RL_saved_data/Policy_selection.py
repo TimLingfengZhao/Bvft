@@ -873,8 +873,8 @@ class Bvft_abs(policy_select):
             r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]
             ptr = 0
             while ptr < trajectory_num:  # for everything in data size
-                length = self.data.get_iter_length(ptr)
-                state, action, next_state, reward, done = self.data.sample(ptr)
+                length = test_data.get_iter_length(ptr)
+                state, action, next_state, reward, done = test_data.sample(ptr)
                 # print("state : ",state)
                 # print("reward : ", reward)
                 # print("next state : ",next_state)
