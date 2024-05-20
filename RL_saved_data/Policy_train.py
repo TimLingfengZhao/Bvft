@@ -93,8 +93,8 @@ policy_hidden_layer = [2,3]
 policy_learning_rate = [0.001,0.00001]
 policy_learning_steps = [300000]
 # policy_algorithm_name =  ["bcq","cql"]
-# policy_algorithm_name =  ["cql"]
-policy_algorithm_name =  ["bcq"]
+policy_algorithm_name =  ["cql"]
+# policy_algorithm_name =  ["bcq"]
 policy_episode_step = 10000
 daytime = datetime.now()
 
