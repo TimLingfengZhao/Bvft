@@ -191,8 +191,8 @@ for policy_hidden in policy_hidden_size :
                         else:
                             policy_hidden_list = [policy_hidden,policy_hidden,policy_hidden]
                         cql = CQLConfig(
-                            actor_encoder_factory=d3rlpy.models.DefaultEncoderFactory(hidden_units=policy_hidden_list),
-                            critic_encoder_factory=d3rlpy.models.DefaultEncoderFactory(hidden_units=policy_hidden_list),
+                            actor_encoder_factory=d3rlpy.models.VectorEncoderFactory(hidden_units=policy_hidden_list),
+                            critic_encoder_factory=d3rlpy.models.VectorEncoderFactory(hidden_units=policy_hidden_list),
                             actor_learning_rate= policy_rate,
                             critic_learning_rate=policy_rate,
                         ).create(device=device)
