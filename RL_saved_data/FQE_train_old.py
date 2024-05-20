@@ -93,7 +93,7 @@ def run_FQE(FQE_learning_rate,FQE_hidden_layer,FQE_total_step, FQE_episode_step,
     train_episodes = whole_dataset.episodes[0:2000]
     test_episodes = whole_dataset.episodes[2000:2276]
 
-    buffer = FIFOBuffer(limit=500000)
+    buffer = FIFOBuffer(limit=1500000)
 
     replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 
