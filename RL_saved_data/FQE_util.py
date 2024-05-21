@@ -49,7 +49,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class FC_Q(nn.Module):
-    def __init__(self, state_dim, action_dim,hidden_layer_list):
+    def __init__(self, state_dim, action_dim,hidden_layer_list=[128, 256]):
         super(FC_Q, self).__init__()
         self.l1 = nn.Linear(state_dim + action_dim, hidden_layer_list[0])
         self.l2 = nn.Linear(hidden_layer_list[0], hidden_layer_list[1])
@@ -74,6 +74,7 @@ class continuous_FQE:
             polyak_target_update=False,
             target_update_frequency=8e3,
             tau=0.005,
+            qloss = 999
     ):
 
         self.device = device
@@ -92,41 +93,48 @@ class continuous_FQE:
 
     def train(self, replay_buffer,  policy, trajectory_number):
 
-        state, action, next_state, reward, done = replay_buffer.sample(trajectory_number)
+        states, actions, next_states, rewards, dones = replay_buffer.sample(trajectory_number)
+        states = torch.tensor(states, dtype=torch.float32, device=self.device)
+        actions = torch.tensor(actions, dtype=torch.float32, device=self.device)
 
-        state = torch.tensor(state, dtype=torch.float32, device=self.device)
-        action = torch.tensor(action, dtype=torch.float32, device=self.device)
+        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
 
-        reward = torch.tensor(reward, dtype=torch.float32, device=self.device)
+        dones = torch.tensor(dones, dtype=torch.float32, device=self.device)
+        for i in range(len(states)):
+            state = torch.tensor(states[i], dtype=torch.float32, device=self.device)
+            action = torch.tensor(actions[i], dtype=torch.float32, device=self.device)
 
-        done = torch.tensor(done, dtype=torch.float32, device=self.device)
-        done = done.unsqueeze(-1) if done.dim() == 1 else done
-        with torch.no_grad():
-            next_action = policy.predict(next_state)
-            next_state = torch.tensor(next_state, dtype=torch.float32, device=self.device)
-            next_action= torch.tensor(next_action, dtype=torch.float32, device=self.device)
-            # print("1 - dfone : ",1-done)
-            # print(self.Q_target(next_state, next_action))
-            # print((1 - done) * self.discount * self.Q_target(next_state, next_action))
-            # print(((1 - done) * self.discount * self.Q_target(next_state, next_action)).squeeze(-1))
-            # print(reward)
-            # print((reward + (1 - done) * self.discount * self.Q_target(next_state, next_action)).squeeze(-1))
-            # print(self.Q(state, action))
-            # print(self.Q(state, action).squeeze(-1))
-            # sys.exit()
-            target_Q = (reward + (1 - done) * self.discount * self.Q_target(next_state, next_action)).squeeze(-1)
-        current_Q = self.Q(state, action).squeeze(-1)
+            reward = torch.tensor(rewards[i], dtype=torch.float32, device=self.device)
+
+            done = dones[i]
+            with torch.no_grad():
+                next_action = policy.predict(next_states[i])
+                next_state = torch.tensor(next_states[i], dtype=torch.float32, device=self.device)
+                next_action = torch.tensor(next_action, dtype=torch.float32, device=self.device)
+                # print("1 - dfone : ",1-done)
+                # print(self.Q_target(next_state, next_action))
+                # print((1 - done) * self.discount * self.Q_target(next_state, next_action))
+                # print(((1 - done) * self.discount * self.Q_target(next_state, next_action)).squeeze(-1))
+                # print(reward)
+                # print((reward + (1 - done) * self.discount * self.Q_target(next_state, next_action)).squeeze(-1))
+                # print(self.Q(state, action))
+                # print(self.Q(state, action).squeeze(-1))
+                # sys.exit()
+                target_Q = (reward + (1 - done) * self.discount * self.Q_target(next_state, next_action,
+                                                                                hidden_layer_list)).squeeze(-1)
+            current_Q = self.Q(state, action).squeeze(-1)
 
 
-        Q_loss = F.mse_loss(current_Q, target_Q)
-        self.Q_optimizer.zero_grad()
-        Q_loss.backward()
-        self.Q_optimizer.step()
+            Q_loss = F.mse_loss(current_Q, target_Q)
+            self.Q_optimizer.zero_grad()
+            Q_loss.backward()
+            self.Q_optimizer.step()
+            self.qloss = Q_loss.item()
+            self.iterations += 1
+            self.maybe_update_target()
 
-        self.iterations += 1
-        self.maybe_update_target()
-
-        print("current loss : ", Q_loss.item())
+        print("current loss : ", self.qloss)
+        print("iteration : ",self.iterations)
 
     def polyak_target_update(self):
         for param, target_param in zip(self.Q.parameters(), self.Q_target.parameters()):
