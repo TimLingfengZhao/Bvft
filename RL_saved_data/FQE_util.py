@@ -152,7 +152,7 @@ buffer = FIFOBuffer(limit=1500000)
 
 replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 policy_folder = 'policy_trained'
-policy_name = "cql_300000_0.001_2_64_300000step.d3"
+policy_name = "cql_300000_0.001_2_64_250000step.d3"
 
 # Usage Example
 state_dim = 11
