@@ -134,13 +134,15 @@ class BVFT(object):
                     # print("type next state : ",type(next_state))
                     # print("action : ",actor.predict(next_state))
                     # print("predicted qa value : ",critic.predict_value(next_state, actor.predict(next_state)))
-                    print(reward)
-                    print(critic.predict_value(next_state, actor.predict(next_state)))
-                    print( critic.predict_value(next_state, actor.predict(next_state)) *np.array(done).squeeze(-1) * self.gamma)
-                    print(reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) * np.array(done).squeeze(-1) * self.gamma)
-                    sys.exit()
-                    vfsp = (reward + critic.predict_value(next_state, actor.predict(next_state)) * done * self.gamma)
 
+                    # print(reward)
+                    # print(critic.predict_value(next_state, actor.predict(next_state)))
+                    # print( critic.predict_value(next_state, actor.predict(next_state)) *np.array(done).squeeze(-1) * self.gamma)
+                    # print(reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) * np.array(done).squeeze(-1) * self.gamma)
+                    # sys.exit()
+                    # vfsp = (reward + critic.predict_value(next_state, actor.predict(next_state)) * done * self.gamma)
+
+                    vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) * np.array(done).squeeze(-1) * self.gamma)
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
                     self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
                     # print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
