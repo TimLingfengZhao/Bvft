@@ -113,6 +113,8 @@ class continuous_FQE:
             next_action= torch.tensor(next_action, dtype=torch.float32, device=self.device)
             print("1 - dfone : ",1-done)
             print(self.Q_target(next_state, next_action))
+            print((1 - done) * self.discount * self.Q_target(next_state, next_action))
+            print((1 - done) * self.discount * self.Q_target(next_state, next_action).squeeze(1))
             sys.exit()
             target_Q = reward + (1 - done) * self.discount * self.Q_target(next_state, next_action).squeeze(1)
         # Get current Q estimate
