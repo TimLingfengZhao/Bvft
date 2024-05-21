@@ -295,6 +295,7 @@ class CustomDataLoader:
         padded_next_states = np.append(padded_next_states, [self.dataset.episodes[iteration_number].observations[-1]], axis=0)
         rewards = self.dataset.episodes[iteration_number].rewards
         done = self.dataset.episodes[iteration_number].terminated
+        print("done : ",done)
         return states, actions, padded_next_states, rewards, done
 
 
