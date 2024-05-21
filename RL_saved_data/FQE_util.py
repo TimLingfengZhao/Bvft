@@ -170,3 +170,4 @@ fqe = continuous_FQE(state_dim, action_dim, [128, 256], device=device)
 test_data = CustomDataLoader(replay_buffer, batch_size=1000)
 for i in range(2000):
     fqe.train(test_data, policy,i)
+print(fqe.Q[[0,1,2,3,4,5,6,7,3,2,1],[1,3,4]])
