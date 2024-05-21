@@ -115,7 +115,9 @@ class continuous_FQE:
 
         # Get current Q estimate
         current_Q = self.Q(state, action).squeeze(-1)
-
+        print("current Q : ",current_Q)
+        print("target Q : ",target_Q)
+        sys.exit()
         # Compute Q loss
         Q_loss = F.mse_loss(current_Q, target_Q, reduction='none')
         mask = (done != -1).float()
