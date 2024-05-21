@@ -298,7 +298,10 @@ class CustomDataLoader:
         done = self.dataset.episodes[iteration_number].terminated
         for i in range(len(states)):
             if(i == len(states)-1):
-                dones.append([done])
+                if done:
+                    dones.append([1])
+                else:
+                    dones.append([0])
             else:
                 dones.append([0])
         return states, actions, padded_next_states, rewards, dones
