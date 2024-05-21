@@ -108,7 +108,7 @@ class continuous_FQE:
 
             done = dones[i]
             with torch.no_grad():
-                next_action = policy.predict(np.array([next_states[i]]))
+                next_action = policy.predict(np.array([next_states[i]])[0])
                 next_state = torch.tensor(next_states[i], dtype=torch.float32, device=self.device)
                 next_action = torch.tensor(next_action, dtype=torch.float32, device=self.device)
                 # print("1 - dfone : ",1-done)
