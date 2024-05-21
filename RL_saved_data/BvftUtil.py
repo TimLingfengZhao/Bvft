@@ -305,6 +305,9 @@ class CustomDataLoader:
             else:
                 dones.append([0])
         dones = np.concatenate(dones)
+        actions = np.concatenate(actions)
+        padded_next_states = np.concatenate(padded_next_states)
+        rewards = np.concatenate(rewards)
         states = np.concatenate(states)
         print(dones)
         print(states)
