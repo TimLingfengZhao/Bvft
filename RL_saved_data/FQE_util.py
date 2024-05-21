@@ -169,7 +169,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 policy_path = os.path.join(policy_folder,policy_name)
 policy = d3rlpy.load_learnable(policy_path, device=device)
 fqe = continuous_FQE(state_dim, action_dim, [128, 256], device=device)
-print(len(replay_buffer.episodes()))
+print(len(replay_buffer.episodes))
 sys.exit()
 test_data = CustomDataLoader(replay_buffer, batch_size=1000)
 # Training loop
