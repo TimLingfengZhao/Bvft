@@ -296,8 +296,12 @@ class CustomDataLoader:
         padded_next_states = np.append(padded_next_states, [self.dataset.episodes[iteration_number].observations[-1]], axis=0)
         rewards = self.dataset.episodes[iteration_number].rewards
         done = self.dataset.episodes[iteration_number].terminated
-        dones.append([0] * (len(self.dataset.episodes[iteration_number].observations) - 1) + [done])  # Create done array
-        print("dones : ",dones)
+        for i in range(len(states)):
+            if(i == len(states)-1):
+                dones.append([done])
+            else:
+                dones.append([0])
+        print(dones)
         sys.exit()
         return states, actions, padded_next_states, rewards, dones
 
