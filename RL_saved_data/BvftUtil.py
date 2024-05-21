@@ -136,8 +136,8 @@ class BVFT(object):
                     # print("predicted qa value : ",critic.predict_value(next_state, actor.predict(next_state)))
                     print(reward)
                     print(critic.predict_value(next_state, actor.predict(next_state)))
-                    print( critic.predict_value(next_state, actor.predict(next_state)) * done.squeeze(-1) * self.gamma)
-                    print(reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) * done.squeeze(-1) * self.gamma)
+                    print( critic.predict_value(next_state, actor.predict(next_state)) *np.array(done).squeeze(-1) * self.gamma)
+                    print(reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) * np.array(done).squeeze(-1) * self.gamma)
                     sys.exit()
                     vfsp = (reward + critic.predict_value(next_state, actor.predict(next_state)) * done * self.gamma)
 
