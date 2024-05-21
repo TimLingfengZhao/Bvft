@@ -115,9 +115,13 @@ class continuous_FQE:
 
         # Get current Q estimate
         current_Q = self.Q(state, action).squeeze(-1)
-        print("current Q : ",current_Q)
-        print("target Q : ",target_Q)
-        sys.exit()
+
+        # Ensure current_Q and target_Q have the same shape
+        assert current_Q.shape == target_Q.shape, f"Shape mismatch: {current_Q.shape} vs {target_Q.shape}"
+
+        print("current Q : ", current_Q)
+        print("target Q : ", target_Q)
+
         # Compute Q loss
         Q_loss = F.mse_loss(current_Q, target_Q, reduction='none')
         mask = (done != -1).float()
