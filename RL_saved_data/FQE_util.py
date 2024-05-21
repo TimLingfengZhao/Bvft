@@ -157,7 +157,7 @@ policy_name = "cql_300000_0.001_2_64_250000step.d3"
 # Usage Example
 state_dim = 11
 action_dim = 3
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = "cuda" if torch.cuda.is_available() else "cpu"
 policy_path = os.path.join(policy_folder,policy_name)
 policy = d3rlpy.load_learnable(policy_path, device=device)
 fqe = continuous_FQE(state_dim, action_dim, [128, 256], device)
