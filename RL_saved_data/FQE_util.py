@@ -115,6 +115,7 @@ class continuous_FQE:
             print(self.Q_target(next_state, next_action))
             print((1 - done) * self.discount * self.Q_target(next_state, next_action))
             print((1 - done) * self.discount * self.Q_target(next_state, next_action).squeeze(-1))
+            print(self.Q(state, action))
             sys.exit()
             target_Q = reward + (1 - done) * self.discount * self.Q_target(next_state, next_action).squeeze(1)
         # Get current Q estimate
