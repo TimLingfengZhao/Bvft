@@ -104,6 +104,7 @@ class continuous_FQE:
 
         reward = torch.tensor(reward, dtype=torch.float32, device=self.device)
         done = torch.tensor(done, dtype=torch.float32, device=self.device)
+        print("done : ",done)
         # Compute the target Q value
         with torch.no_grad():
             next_action = policy.predict(next_state)
