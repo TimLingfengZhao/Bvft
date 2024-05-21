@@ -304,6 +304,9 @@ class CustomDataLoader:
                     dones.append([0])
             else:
                 dones.append([0])
+        print(dones)
+        print(states)
+        sys.exit()
         return states, actions, padded_next_states, rewards, dones
 
 
