@@ -296,7 +296,7 @@ class CustomDataLoader:
         rewards = self.dataset.episodes[iteration_number].rewards
         done = self.dataset.episodes[iteration_number].terminated
         print("length next state : ",len(padded_next_states))
-        print("length state : ",len(state))
+        print("length state : ",len(states))
         sys.exit()
         return states, actions, padded_next_states, rewards, done
 
