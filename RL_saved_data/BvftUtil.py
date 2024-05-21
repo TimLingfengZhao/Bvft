@@ -309,9 +309,9 @@ class CustomDataLoader:
         padded_next_states = np.concatenate(padded_next_states)
         rewards = np.concatenate(rewards)
         states = np.concatenate(states)
-        print(dones)
-        print(states)
-        sys.exit()
+        # print(dones)
+        # print(states)
+        # sys.exit()
         return states, actions, padded_next_states, rewards, dones
 
 
