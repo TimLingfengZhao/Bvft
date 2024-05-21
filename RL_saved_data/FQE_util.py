@@ -121,7 +121,7 @@ class continuous_FQE:
                 # print(self.Q(state, action).squeeze(-1))
                 # sys.exit()
                 target_Q = (reward + (1 - done) * self.discount * self.Q_target(next_state, next_action,
-                                                                                self.hidden_layer_list)).squeeze(-1)
+                                                                                hidden_layer_list)).squeeze(-1)
             current_Q = self.Q(state, action).squeeze(-1)
 
 
