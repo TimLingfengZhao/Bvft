@@ -93,11 +93,10 @@ class continuous_FQE:
         # Number of training iterations
         self.iterations = 0
 
-    def train(self, replay_buffer,  policy):
+    def train(self, replay_buffer,  policy, trajectory_number):
         # Sample replay buffer
-        state, action, next_state, reward, done = replay_buffer.sample(1000)
-        print(state)
-        sys.exit()
+
+        state, action, next_state, reward, done = replay_buffer.sample(trajectory_number)
 
         # Convert to PyTorch tensors
         state = torch.tensor(state, dtype=torch.float32, device=self.device)
@@ -160,10 +159,11 @@ action_dim = 3
 device = "cuda" if torch.cuda.is_available() else "cpu"
 policy_path = os.path.join(policy_folder,policy_name)
 policy = d3rlpy.load_learnable(policy_path, device=device)
-fqe = continuous_FQE(state_dim, action_dim, [128, 256], device)
+fqe = continuous_FQE(state_dim, action_dim, [128, 256], device=device)
 
+test_data = CustomDataLoader(replay_buffer, batch_size=Bvft_batch_dim)
 # Training loop
 num_epochs = 100  # Number of epochs to train
-for _ in range(num_epochs):
+for i in range(2000):
     # Sample from replay buffer and train
-    fqe.train(replay_buffer, policy)
+    fqe.train(test_data, policy,i)
