@@ -96,37 +96,37 @@ class continuous_FQE:
     def train(self, replay_buffer,  policy, trajectory_number):
         # Sample replay buffer
 
-        states, actions, next_states, rewards, dones = replay_buffer.sample(trajectory_number)
+        state, action, next_state, reward, done = replay_buffer.sample(trajectory_number)
 
-        for i in range(len(states)):
-            # Convert to PyTorch tensors
-            state = torch.tensor(states[i], dtype=torch.float32, device=self.device)
-            action = torch.tensor(actions[i], dtype=torch.float32, device=self.device)
-            next_state = next_states[i]
-            reward = torch.tensor(rewards[i], dtype=torch.float32, device=self.device)
-            done = torch.tensor(dones[i], dtype=torch.float32, device=self.device)
-            # Compute the target Q value
-            with torch.no_grad():
-                next_action = policy.predict(next_state)
-                next_state = torch.tensor(next_state, dtype=torch.float32, device=self.device)
-                next_action = torch.tensor(next_actions[i], dtype=torch.float32, device=self.device)
-                target_Q = reward + (1 - done) * self.discount * self.Q_target(next_state, next_action).squeeze(1)
+        # Convert to PyTorch tensors
+        state = torch.tensor(state, dtype=torch.float32, device=self.device)
+        action = torch.tensor(action, dtype=torch.float32, device=self.device)
 
-            # Get current Q estimate
-            current_Q = self.Q(state, action).squeeze(1)
+        reward = torch.tensor(reward, dtype=torch.float32, device=self.device)
+        done = torch.tensor(done, dtype=torch.float32, device=self.device)
+        # Compute the target Q value
+        with torch.no_grad():
+            next_action = policy.predict(next_state)
+            next_state = torch.tensor(next_state, dtype=torch.float32, device=self.device)
+            next_action= torch.tensor(next_action, dtype=torch.float32, device=self.device)
+            target_Q = reward + (1 - done) * self.discount * self.Q_target(next_state, next_action).squeeze(1)
 
-            # Compute Q loss
-            Q_loss = F.mse_loss(current_Q, target_Q)
+        # Get current Q estimate
+        current_Q = self.Q(state, action).squeeze(-1)
 
-            # Optimize the Q
-            self.Q_optimizer.zero_grad()
-            Q_loss.backward()
-            self.Q_optimizer.step()
+        # Compute Q loss
+        mask = (done != -1).float()  # Mask for valid values
+        Q_loss = (F.mse_loss(current_Q, target_Q, reduction='none') * mask).sum() / mask.sum()
 
-            # Update target network by polyak or full copy every X iterations.
-            self.iterations += 1
-            self.maybe_update_target()
-            print("current loss : ", Q_loss)
+        # Optimize the Q
+        self.Q_optimizer.zero_grad()
+        Q_loss.backward()
+        self.Q_optimizer.step()
+
+        # Update target network by polyak or full copy every X iterations.
+        self.iterations += 1
+        self.maybe_update_target()
+        print("current loss : ", Q_loss)
 
     def polyak_target_update(self):
         for param, target_param in zip(self.Q.parameters(), self.Q_target.parameters()):
