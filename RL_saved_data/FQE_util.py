@@ -103,8 +103,9 @@ class continuous_FQE:
         action = torch.tensor(action, dtype=torch.float32, device=self.device)
 
         reward = torch.tensor(reward, dtype=torch.float32, device=self.device)
-        done = torch.tensor(done, dtype=torch.float32, device=self.device)
 
+        done = torch.tensor(done, dtype=torch.float32, device=self.device)
+        done = done.unsqueeze(-1) if done.dim() == 1 else done
         # Compute the target Q value
         with torch.no_grad():
             next_action = policy.predict(next_state)
@@ -116,8 +117,9 @@ class continuous_FQE:
         current_Q = self.Q(state, action).squeeze(-1)
 
         # Compute Q loss
-        mask = (done != -1).float()  # Mask for valid values
-        Q_loss = (F.mse_loss(current_Q, target_Q, reduction='none') * mask).sum() / mask.sum()
+        Q_loss = F.mse_loss(current_Q, target_Q, reduction='none')
+        mask = (done != -1).float()
+        Q_loss = (Q_loss * mask).sum() / mask.sum()
 
         # Optimize the Q
         self.Q_optimizer.zero_grad()
