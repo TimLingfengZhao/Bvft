@@ -101,14 +101,14 @@ class continuous_FQE:
 
         dones = torch.tensor(dones, dtype=torch.float32, device=self.device)
         for i in range(len(states)):
-            state = torch.tensor(states[i], dtype=torch.float32, device=self.device)
-            action = torch.tensor(actions[i], dtype=torch.float32, device=self.device)
+            state = states[i]
+            action = actions[i]
 
-            reward = torch.tensor(rewards[i], dtype=torch.float32, device=self.device)
+            reward = rewards[i]
 
             done = dones[i]
             with torch.no_grad():
-                next_action = policy.predict(np.array(next_states[i]))
+                next_action = policy.predict(np.array([next_states[i]]))
                 next_state = torch.tensor(next_states[i], dtype=torch.float32, device=self.device)
                 next_action = torch.tensor(next_action, dtype=torch.float32, device=self.device)
                 # print("1 - dfone : ",1-done)
