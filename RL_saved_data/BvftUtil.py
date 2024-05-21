@@ -289,6 +289,7 @@ class CustomDataLoader:
         first_state = self.dataset.observations[0]
         return np.array(first_state).shape
     def sample(self, iteration_number):
+        print( self.dataset.episodes[iteration_number])
         states = self.dataset.episodes[iteration_number].observations
         actions =  self.dataset.episodes[iteration_number].actions
         padded_next_states =  self.dataset.episodes[iteration_number].observations[1:len(self.dataset.episodes[iteration_number].observations)]
