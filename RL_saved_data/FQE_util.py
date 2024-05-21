@@ -101,13 +101,15 @@ class continuous_FQE:
         # Convert to PyTorch tensors
         state = torch.tensor(state, dtype=torch.float32, device=self.device)
         action = torch.tensor(action, dtype=torch.float32, device=self.device)
-        next_state = torch.tensor(next_state, dtype=torch.float32, device=self.device)
+
         reward = torch.tensor(reward, dtype=torch.float32, device=self.device)
         done = torch.tensor(done, dtype=torch.float32, device=self.device)
 
         # Compute the target Q value
         with torch.no_grad():
-            next_action = policy.predict(next_state.cpu().detach().numpy())
+            next_action = policy.predict(next_state)
+            next_state = torch.tensor(next_state, dtype=torch.float32, device=self.device)
+            next_action= torch.tensor(next_action, dtype=torch.float32, device=self.device)
             target_Q = reward + (1 - done) * self.discount * self.Q_target(next_state, next_action).squeeze(1)
 
         # Get current Q estimate
