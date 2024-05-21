@@ -159,7 +159,7 @@ test_episodes = whole_dataset.episodes[2000:2276]
 buffer = FIFOBuffer(limit=1500000)
 
 replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
-policy_folder = 'policy_trained'
+policy_folder = 'policy_trained_backup'
 policy_name = "cql_300000_0.001_2_64_250000step.d3"
 
 # Usage Example
