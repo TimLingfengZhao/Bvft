@@ -114,7 +114,7 @@ class continuous_FQE:
             target_Q = reward + (1 - done) * self.discount * self.Q_target(next_state, next_action).squeeze(1)
 
         # Get current Q estimate
-        current_Q = self.Q(state, action).squeeze(-1)
+        current_Q = self.Q(state, action)
 
         # Ensure current_Q and target_Q have the same shape
         assert current_Q.shape == target_Q.shape, f"Shape mismatch: {current_Q.shape} vs {target_Q.shape}"
