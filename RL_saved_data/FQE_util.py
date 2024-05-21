@@ -143,7 +143,7 @@ class continuous_FQE:
         self.Q.load_state_dict(torch.load(filename + "_Q"))
         self.Q_target = copy.deepcopy(self.Q)
         # self.Q_optimizer.load_state_dict(torch.load(filename + "_optimizer"))
-
+whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 # Example policy function (replace with actual policy to be evaluated)
 train_episodes = whole_dataset.episodes[0:2000]
 test_episodes = whole_dataset.episodes[2000:2276]
