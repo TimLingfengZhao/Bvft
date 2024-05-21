@@ -114,7 +114,7 @@ class continuous_FQE:
             print("1 - dfone : ",1-done)
             print(self.Q_target(next_state, next_action))
             print((1 - done) * self.discount * self.Q_target(next_state, next_action))
-            print((1 - done) * self.discount * self.Q_target(next_state, next_action).squeeze(-1))
+            print(((1 - done) * self.discount * self.Q_target(next_state, next_action)).squeeze(-1))
             print(self.Q(state, action))
             print(self.Q(state, action).squeeze(-1))
             sys.exit()
