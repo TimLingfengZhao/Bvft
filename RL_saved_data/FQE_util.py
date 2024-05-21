@@ -114,28 +114,18 @@ class continuous_FQE:
             target_Q = reward + (1 - done) * self.discount * self.Q_target(next_state, next_action).squeeze(1)
 
         # Get current Q estimate
-        current_Q = self.Q(state, action)
+        current_Q = self.Q(state, action).squeeze(-1)
 
-        # Ensure current_Q and target_Q have the same shape
-        assert current_Q.shape == target_Q.shape, f"Shape mismatch: {current_Q.shape} vs {target_Q.shape}"
 
-        print("current Q : ", current_Q)
-        print("target Q : ", target_Q)
-
-        # Compute Q loss
-        Q_loss = F.mse_loss(current_Q, target_Q, reduction='none')
-        mask = (done != -1).float()
-        Q_loss = (Q_loss * mask).sum() / mask.sum()
-
-        # Optimize the Q
+        Q_loss = F.mse_loss(current_Q, target_Q)
         self.Q_optimizer.zero_grad()
         Q_loss.backward()
         self.Q_optimizer.step()
 
-        # Update target network by polyak or full copy every X iterations.
         self.iterations += 1
         self.maybe_update_target()
-        print("current loss : ", Q_loss)
+
+        print("current loss : ", Q_loss.item())
 
     def polyak_target_update(self):
         for param, target_param in zip(self.Q.parameters(), self.Q_target.parameters()):
