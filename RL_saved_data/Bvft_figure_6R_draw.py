@@ -213,6 +213,6 @@ def main():
     parser.add_argument("--NMSE_normalization_factor",type=int,default=0,help="MSE's normalization factor is 0: (max - min ) ^2, 1: (variance of ground truth list)")
     args = parser.parse_args()
     Draw_MSE_graph(args.FQE_saving_step_list,args.NMSE_normalization_factor)
-#python Bvft_figure_6R_draw.py --FQE_saving_step_list 900000
+#python Bvft_figure_6R_draw.py --FQE_saving_step_list 2000000
 if __name__ == "__main__":
     main()

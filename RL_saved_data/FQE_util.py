@@ -78,27 +78,22 @@ class continuous_FQE:
 
         self.device = device
 
-        # Create Q-network and target Q-network
         self.Q = FC_Q(state_dim, action_dim,hidden_layer_list).to(self.device)
         self.Q_target = copy.deepcopy(self.Q)
         self.Q_optimizer = getattr(torch.optim, optimizer)(self.Q.parameters(), **optimizer_parameters)
 
         self.discount = discount
 
-        # Target update rule
         self.maybe_update_target = self.polyak_target_update if polyak_target_update else self.copy_target_update
         self.target_update_frequency = target_update_frequency
         self.tau = tau
 
-        # Number of training iterations
         self.iterations = 0
 
     def train(self, replay_buffer,  policy, trajectory_number):
-        # Sample replay buffer
 
         state, action, next_state, reward, done = replay_buffer.sample(trajectory_number)
 
-        # Convert to PyTorch tensors
         state = torch.tensor(state, dtype=torch.float32, device=self.device)
         action = torch.tensor(action, dtype=torch.float32, device=self.device)
 
@@ -106,7 +101,6 @@ class continuous_FQE:
 
         done = torch.tensor(done, dtype=torch.float32, device=self.device)
         done = done.unsqueeze(-1) if done.dim() == 1 else done
-        # Compute the target Q value
         with torch.no_grad():
             next_action = policy.predict(next_state)
             next_state = torch.tensor(next_state, dtype=torch.float32, device=self.device)
@@ -121,7 +115,6 @@ class continuous_FQE:
             # print(self.Q(state, action).squeeze(-1))
             # sys.exit()
             target_Q = (reward + (1 - done) * self.discount * self.Q_target(next_state, next_action)).squeeze(-1)
-        # Get current Q estimate
         current_Q = self.Q(state, action).squeeze(-1)
 
 
@@ -152,7 +145,6 @@ class continuous_FQE:
         self.Q_target = copy.deepcopy(self.Q)
         # self.Q_optimizer.load_state_dict(torch.load(filename + "_optimizer"))
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
-# Example policy function (replace with actual policy to be evaluated)
 train_episodes = whole_dataset.episodes[0:2000]
 test_episodes = whole_dataset.episodes[2000:2276]
 
@@ -162,7 +154,6 @@ replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 policy_folder = 'policy_trained_backup'
 policy_name = "cql_300000_0.001_2_64_250000step.d3"
 
-# Usage Example
 state_dim = 11
 action_dim = 3
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -170,8 +161,5 @@ policy_path = os.path.join(policy_folder,policy_name)
 policy = d3rlpy.load_learnable(policy_path, device=device)
 fqe = continuous_FQE(state_dim, action_dim, [128, 256], device=device)
 test_data = CustomDataLoader(replay_buffer, batch_size=1000)
-# Training loop
-num_epochs = 100  # Number of epochs to train
 for i in range(2000):
-    # Sample from replay buffer and train
     fqe.train(test_data, policy,i)
