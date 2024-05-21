@@ -305,6 +305,7 @@ class CustomDataLoader:
             else:
                 dones.append([0])
         dones = np.concatenate(dones)
+        states = np.concatenate(states)
         print(dones)
         print(states)
         sys.exit()
