@@ -107,7 +107,7 @@ class continuous_FQE:
 
         # Compute the target Q value
         with torch.no_grad():
-            next_action = policy.predict(next_state,device)
+            next_action = policy.predict(next_state.cpu().detach().numpy())
             target_Q = reward + (1 - done) * self.discount * self.Q_target(next_state, next_action).squeeze(1)
 
         # Get current Q estimate
