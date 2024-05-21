@@ -84,7 +84,7 @@ class continuous_FQE:
         self.Q_optimizer = getattr(torch.optim, optimizer)(self.Q.parameters(), **optimizer_parameters)
 
         self.discount = discount
-
+        self.hidden_layer_list = hidden_layer_list
         self.maybe_update_target = self.polyak_target_update if polyak_target_update else self.copy_target_update
         self.target_update_frequency = target_update_frequency
         self.tau = tau
@@ -121,7 +121,7 @@ class continuous_FQE:
                 # print(self.Q(state, action).squeeze(-1))
                 # sys.exit()
                 target_Q = (reward + (1 - done) * self.discount * self.Q_target(next_state, next_action,
-                                                                                hidden_layer_list)).squeeze(-1)
+                                                                                self.hidden_layer_list)).squeeze(-1)
             current_Q = self.Q(state, action).squeeze(-1)
 
 
