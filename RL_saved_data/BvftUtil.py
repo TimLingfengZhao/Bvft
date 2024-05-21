@@ -297,8 +297,7 @@ class CustomDataLoader:
         rewards = self.dataset.episodes[iteration_number].rewards
         done = self.dataset.episodes[iteration_number].terminated
         dones.append(np.array([0] * (len(self.dataset.episodes[iteration_number].observations) - 1) + [done]))  # Create done array
-        print(dones)
-        sys.exit()
+
         return states, actions, padded_next_states, rewards, dones
 
 
