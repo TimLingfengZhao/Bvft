@@ -193,7 +193,13 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
                             observation, info = env.reset(seed=12345)
                             action = policy.predict(
                                 np.array([observation]))  # sample action for many times (stochastic)
+
                             total_reward = fqe.predict_value(np.array([observation]), action)[0]
+                            print(fqe.predict_value(np.array([observation]), action)[0])
+                            print(len(fqe.predict_value(np.array([observation]), action)))
+                            print(len(fqe.predict_value(np.array([observation]), action)[0]))
+                            sys.exit()
+
 
                             if ((total_reward > outlier_max)):
                                 outlier_name_list.append(FQE_model_name[:-3])
