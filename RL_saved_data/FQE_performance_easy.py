@@ -114,8 +114,8 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
             for i in range(FQE_number_epoch):
                 FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+ str(FQE_episode_step * (i + 1)) + "step"+"_"
                 FQE_model_name = FQE_model_pre + policy_file_name
-                plot = False
-
+                # plot = False
+                plot = True
                 if (os.path.exists(FQE_normal_path)):
                     print("exist")
                     FQE_normal_dictionary = load_from_pkl(FQE_normal_path)
