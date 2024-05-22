@@ -71,7 +71,7 @@ class continuous_FQE:
             discount=0.99,
             optimizer="Adam",
             optimizer_parameters={},
-            polyak_target_update=False,
+            polyak_target_update=True,
             target_update_frequency=8e3,
             tau=0.005,
             qloss = 999
