@@ -976,7 +976,7 @@ class Bvft_abs(policy_select):
                     # print("type next state : ",type(next_state))
                     # print("action : ",actor.predict(next_state))
                     # print("predicted qa value : ",critic.predict_value(next_state, actor.predict(next_state)))
-                    vfsp = (reward + critic.predict_value(next_state, actor.predict(next_state)) * (1-done) * gamma)
+                    vfsp = (reward + critic.predict_value(next_state, actor.predict(next_state)) * (1-np.array(done)) * gamma)
 
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
                     r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
