@@ -103,7 +103,7 @@ class policy_select(ABC):
 
             FQE_learning_rate, FQE_hidden_layer = extract_substrings(FQE_model_name)
 
-            FQE_directory = 'FQE_' + str(Bvft_FQE_learning_rate) + '_' + str(Bvft_FQE_hidden_layer)
+            FQE_directory = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer)
             FQE_folder = os.path.join(FQE_returned_folder, FQE_directory)
             if not os.path.exists(FQE_folder):
                 os.makedirs(FQE_folder)
