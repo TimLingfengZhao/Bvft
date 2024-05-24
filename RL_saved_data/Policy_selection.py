@@ -467,7 +467,7 @@ class Bvft_poli(policy_select):
         print("mean length : ", Bvft_batch_dim)
         buffer_one = FIFOBuffer(limit=500000)
         replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
-        buffer = FIFOBuffer(limit=500000)
+        buffer = FIFOBuffer(limit=1500000)
         replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 
         gamma = 0.99
@@ -566,7 +566,7 @@ class Bvft_zero(policy_select):
         print("mean length : ", Bvft_batch_dim)
         buffer_one = FIFOBuffer(limit=500000)
         replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
-        buffer = FIFOBuffer(limit=500000)
+        buffer = FIFOBuffer(limit=1500000)
         replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 
         gamma = 0.99
@@ -907,7 +907,7 @@ class Bvft_abs(policy_select):
         print("mean length : ", Bvft_batch_dim)
         buffer_one = FIFOBuffer(limit=500000)
         replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
-        buffer = FIFOBuffer(limit=500000)
+        buffer = FIFOBuffer(limit=1500000)
         replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
         gamma = 0.99
         rmax, rmin = env.reward_range[0], env.reward_range[1]
