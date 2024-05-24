@@ -127,7 +127,7 @@ class policy_select(ABC):
         max_step = str(max(self.FQE_saving_step_list))
         for i in range(len(self_data_saving_path)):
             repo_name = self_data_saving_path[i]
-            NMSE,standard_error = self.get_NMSE(repo_name)
+            NMSE,standard_error = self_get_NMSE(repo_name)
             means.append(NMSE)
             SE.append(standard_error)
             labels.append(self_data_saving_path[i]+"_"+max_step)
@@ -976,7 +976,7 @@ class Bvft_abs(policy_select):
                     # print("type next state : ",type(next_state))
                     # print("action : ",actor.predict(next_state))
                     # print("predicted qa value : ",critic.predict_value(next_state, actor.predict(next_state)))
-                    vfsp = (reward + critic.predict_value(next_state, actor.predict(next_state)) * (1-np.array(done)) * gamma)
+                    vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1) * self.gamma)
 
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
                     r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
