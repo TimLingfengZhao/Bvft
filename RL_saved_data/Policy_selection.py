@@ -50,7 +50,7 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 # dataset_d, env = get_d4rl('hopper-medium-v0')
 from d3rlpy.dataset import Episode
 class policy_select(ABC):
-    def __init__(self,device,data_list, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state):
+    def __init__(self,device,data_list, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor):
         self.device = device
         self.env = env
         self.data_saving_path = data_list
@@ -59,11 +59,91 @@ class policy_select(ABC):
         self.FQE_saving_step_list = FQE_saving_step_list
         self.whole_dataset = whole_dataset
         self.initial_state = initial_state
+        self.normalization_factor = normalization_factor
 
     @abstractmethod
     def select_Q(self):
         pass
+    def SixR_get_FQE_name(self,policy_name,repo_name):
+        ranking_folder = "Policy_ranking_saving_place"
+        if not os.path.exists(ranking_folder):
+            os.makedirs(ranking_folder)
+        folder_path = os.path.join(ranking_folder,repo_name)
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        policy_path = os.path.join(folder_path,policy_name)
+        return load_from_pkl(policy_path)[0]
+    def get_NMSE(selfs,repo_name):
+        print("Plot FQE MSE")
 
+        whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
+        train_episodes = whole_dataset.episodes[0:2000]
+        test_episodes = whole_dataset.episodes[2000:2276]
+        buffer = FIFOBuffer(limit=1500000)
+        replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
+
+        policy_returned_result_folder = "policy_returned_result"
+        if not os.path.exists(policy_returned_result_folder):
+            os.makedirs(policy_returned_result_folder)
+
+        FQE_returned_folder = "FQE_returned_result"
+
+        policy_total_model = 'policy_returned_total'
+        policy_total_path = os.path.join(policy_returned_result_folder, policy_total_model)
+        policy_total_dictionary = load_from_pkl(policy_total_path)
+
+        true_list = []
+        prediction_list = []
+        max_step = max(FQE_saving_step_list)
+        for policy_file_name in os.listdir("policy_trained"):
+            policy_name = policy_file_name[:-3]
+
+            FQE_model_name = self.SixR_Get_FQE_name(policy_name,repo_name)
+
+            FQE_learning_rate, FQE_hidden_layer = extract_substrings(FQE_model_name)
+
+            FQE_directory = 'FQE_' + str(Bvft_FQE_learning_rate) + '_' + str(Bvft_FQE_hidden_layer)
+            FQE_folder = os.path.join(FQE_returned_folder, FQE_directory)
+            if not os.path.exists(FQE_folder):
+                os.makedirs(FQE_folder)
+
+            FQE_total_result_folder = "FQE_returned_total"
+            FQE_total_path = os.path.join(FQE_folder, FQE_total_result_folder)
+
+            FQE_total_dictionary = load_from_pkl(FQE_total_path)
+
+            true_list.append(policy_total_dictionary[policy_name])
+            prediction_list.append(FQE_total_dictionary[FQE_model_name])
+        NMSE, standard_error = normalized_mean_square_error_with_error_bar(true_list, prediction_list,
+                                                                           self.normalization_factor)
+
+        return NMSE, standard_error
+    def draw_figure_6R(self):
+        means = []
+        SE = []
+        labels = []
+        max_step = str(max(self.FQE_saving_step_list))
+        for i in range(len(self.data_saving_path)):
+            repo_name = self.data_saving_path[i]
+            NMSE,standard_error = self.get_NMSE(repo_name)
+            means.append(NMSE)
+            SE.append(standard_error)
+            labels.append(self.data_saving_path[i]+"_"+max_step)
+        name_list = ["hopper-medium-expert-v0"]
+
+        FQE_returned_folder = "Policy_ranking_saving_placce/Policy_k_saving_place/Figure_6R_plot"
+        plot = "NMSE_plot"
+        Figure_saving_path = os.path.join(FQE_returned_folder, plot)
+        #
+        colors = generate_unique_colors(len(self.data_saving_path))
+        figure_name = 'Normalized MSE of FQE min max'
+        filename = "Figure6R_max_min_NMSE_graph" + "_" + str(self.FQE_saving_step_list)
+        if self.normalization_factor == 1:
+            figure_name = 'Normalized MSE of FQE groundtruth variance'
+            filename = "Figure6R_groundtruth_variance_NMSE_graph" + "_" + str(self.FQE_saving_step_list)
+        draw_mse_graph(combinations=name_list, means=means, colors=colors, standard_errors=SE,
+                       labels=labels, folder_path=Figure_saving_path, FQE_step_list=self.FQE_saving_step_list,
+                       filename=filename, figure_name=figure_name)
     def get_min_loss(self,loss_list):  # input 2d list, return 1d list
         # print("loss list : ",loss_list)
         if (len(loss_list) == 1):
@@ -915,14 +995,15 @@ FQE_saving_step_list = [2000000]
 initial_state = 12345
 # data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_abs"]
 data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_0.0001_256","Bvft_0.0001_1024","Bvft_0.00002_256","Bvft_0.00002_1024","l1_norm"]
+normalization_factor = 0
 # data_saving_path = ["Bvft_ranking"]
-bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-bvft_res_0 = Bvft_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-bvft_FQE_zero = Bvft_FQE_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-bvft_FQE_one = Bvft_FQE_one(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-bvft_FQE_two = Bvft_FQE_two(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-bvft_FQE_three = Bvft_FQE_three(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
-bvft_abs = Bvft_abs(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state)
+bvft_obj = Bvft_poli(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor)
+bvft_res_0 = Bvft_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor)
+bvft_FQE_zero = Bvft_FQE_zero(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor)
+bvft_FQE_one = Bvft_FQE_one(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor)
+bvft_FQE_two = Bvft_FQE_two(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor)
+bvft_FQE_three = Bvft_FQE_three(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor)
+bvft_abs = Bvft_abs(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor)
 # bvft_abs.select_Q()
 # bvft_FQE_zero.select_Q()
 # bvft_FQE_one.select_Q()
@@ -937,5 +1018,6 @@ bvft_abs = Bvft_abs(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_s
 # bvft_FQE_three.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
 # bvft_abs.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
 # bvft_res_0.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-bvft_abs.run()
+# bvft_abs.run()
+bvft_abs.draw_figure_6R()
 
