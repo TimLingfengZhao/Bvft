@@ -982,10 +982,13 @@ class Bvft_abs(policy_select):
                     print("predict value : ",critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1))
                     print("len predict value : ",len(critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1)))
                     vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1) * gamma)
-                    sys.exit()
+
 
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
                     r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
+                    print("r plus i : ",r_plus_vfsp[i])
+                    print("len r plus i : ",len(r_plus_vfsp[i]))
+                    sys.exit()
                     # print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
                 ptr += 1
             for i in range(len(q_functions)):
