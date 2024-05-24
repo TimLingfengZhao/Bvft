@@ -73,7 +73,7 @@ class policy_select(ABC):
             os.makedirs(folder_path)
         policy_path = os.path.join(folder_path,policy_name)
         return load_from_pkl(policy_path)[0]
-    def get_NMSE(selfs,repo_name):
+    def get_NMSE(self,repo_name):
         print("Plot FQE MSE")
 
         whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
@@ -98,7 +98,7 @@ class policy_select(ABC):
         for policy_file_name in os.listdir("policy_trained"):
             policy_name = policy_file_name[:-3]
 
-            FQE_model_name = SixR_Get_FQE_name(policy_name,repo_name)
+            FQE_model_name = self.SixR_Get_FQE_name(policy_name,repo_name)
 
             FQE_learning_rate, FQE_hidden_layer = extract_substrings(FQE_model_name)
 
