@@ -5,4 +5,10 @@ Bvft_0.0001_1024
 Bvft_0.00002_256
 Bvft_0.00002_1024
 l1_norm
+Bvft_ranking
+Bvft_0.0001_256
+Bvft_0.0001_1024
+Bvft_0.00002_256
+Bvft_0.00002_1024
+Bvft_res_0
 l1_norm
