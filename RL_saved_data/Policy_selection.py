@@ -72,6 +72,7 @@ class policy_select(ABC):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         policy_path = os.path.join(folder_path,policy_name)
+        policy_path = policy_path + "_"+str(self.FQE_saving_step_list)
         return load_from_pkl(policy_path)[0]
     def get_NMSE(self,repo_name):
         print("Plot FQE MSE")
