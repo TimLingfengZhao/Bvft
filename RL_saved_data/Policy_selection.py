@@ -127,7 +127,7 @@ class policy_select(ABC):
         max_step = str(max(self.FQE_saving_step_list))
         for i in range(len(self_data_saving_path)):
             repo_name = self_data_saving_path[i]
-            NMSE,standard_error = self_get_NMSE(repo_name)
+            NMSE,standard_error = self.get_NMSE(repo_name)
             means.append(NMSE)
             SE.append(standard_error)
             labels.append(self_data_saving_path[i]+"_"+max_step)
