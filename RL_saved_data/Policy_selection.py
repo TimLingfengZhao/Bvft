@@ -987,7 +987,7 @@ class Bvft_abs(policy_select):
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
                     r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
                     print("r plus i : ",r_plus_vfsp[i])
-                    print("len r plus i : ",len(r_plus_vfsp[i]))
+                    print("len r plus i : ",len(r_plus_vfsp[i][ptr:ptr + length]))
                     sys.exit()
                     # print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
                 ptr += 1
