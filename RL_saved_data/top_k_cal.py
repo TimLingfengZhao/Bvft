@@ -531,8 +531,8 @@ def load_policy_performance(policy_name_list,env):
     performance_list = []
     for policy_name in policy_name_list:
         included =False
-        print("policy name : ",policy_name)
-        print("performance dict : " , performance_dict)
+        # print("policy name : ",policy_name)
+        # print("performance dict : " , performance_dict)
         if policy_name in performance_dict:
             performance_list.append(float(performance_dict[policy_name]))
             print("included")
@@ -687,7 +687,7 @@ def plot_subplots(data, save_path, y_axis_names, line_names, colors,ci):
     for i, subplot_data in enumerate(data):
 
         for j, line_data  in enumerate(subplot_data):
-            print("len line data : ", len(line_data))
+            # print("len line data : ", len(line_data))
             x_values = list(range(1, len(line_data) + 1))
 
             top = []
