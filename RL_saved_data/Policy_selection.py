@@ -956,6 +956,7 @@ class Bvft_abs(policy_select):
             q_sa = [np.zeros(data_size) for _ in q_functions]
             r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]
             ptr = 0
+            gamma = 0.99
             while ptr < trajectory_num:  # for everything in data size
                 length = test_data.get_iter_length(ptr)
                 state, action, next_state, reward, done = test_data.sample(ptr)
@@ -980,7 +981,7 @@ class Bvft_abs(policy_select):
                     print("len reward : ",len(reward.squeeze(-1)))
                     print("predict value : ",critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1))
                     print("len predict value : ",len(critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1)))
-                    vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1) * self.gamma)
+                    vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1) * gamma)
                     sys.exit()
 
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
