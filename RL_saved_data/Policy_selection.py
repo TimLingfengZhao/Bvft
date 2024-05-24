@@ -132,7 +132,7 @@ class policy_select(ABC):
             labels.append(self.data_saving_path[i]+"_"+max_step)
         name_list = ["hopper-medium-expert-v0"]
 
-        FQE_returned_folder = "Policy_ranking_saving_placce/Policy_k_saving_place/Figure_6R_plot"
+        FQE_returned_folder = "Policy_ranking_saving_place/Policy_k_saving_place/Figure_6R_plot"
         if not os.path.exists(FQE_returned_folder):
             os.makedirs(FQE_returned_folder)
         plot = "NMSE_plot"
