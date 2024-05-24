@@ -123,6 +123,7 @@ class policy_select(ABC):
         means = []
         SE = []
         labels = []
+        self.data_saving_path = remove_duplicates(self.data_saving_path)
         max_step = str(max(self.FQE_saving_step_list))
         for i in range(len(self.data_saving_path)):
             repo_name = self.data_saving_path[i]
