@@ -262,8 +262,8 @@ def main():
     # tf.disable_v2_behavior()
     parser = argparse.ArgumentParser(description="Plot specific FQE function prediction plot based on learning rate and combination.")
 #    parser.add_argument("FQE", choices=["FQE_1", "FQE_2", "FQE_3", "FQE_4"], help="Identifier of the function to run")
-    parser.add_argument("--FQE_total_step", type=int, default=600000, help="Total number of steps for FQE training")
-    parser.add_argument("--FQE_episode_step", type=int, default=100000, help="Number of steps in one episode for FQE training")
+    parser.add_argument("--FQE_total_step", type=int, default=2000000, help="Total number of steps for FQE training")
+    parser.add_argument("--FQE_episode_step", type=int, default=400000, help="Number of steps in one episode for FQE training")
     args = parser.parse_args()
     # function_to_run = function_map[args.FQE]
     # function_to_run(args.FQE_total_step,args.FQE_episode_step)
