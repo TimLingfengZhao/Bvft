@@ -1021,6 +1021,6 @@ bvft_res_0.select_Q()
 # bvft_FQE_three.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
 # bvft_abs.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
 # bvft_res_0.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-bvft_abs.run()
-bvft_abs.draw_figure_6R()
+bvft_obj.run()
+bvft_obj.draw_figure_6R()
 
