@@ -761,3 +761,10 @@ def FQE_ranking(policy_name_list,FQE_saving_step_list,env):
                 performance_list.append(rank_elements_larger_higher(current_performance_list))
 
     return performance_list,FQE_name_list
+def extract_substrings(s):
+    parts = s.split('_')
+
+    if len(parts) < 4:
+        return None, None
+
+    return parts[1], parts[2]
