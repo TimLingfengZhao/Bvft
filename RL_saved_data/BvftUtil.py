@@ -69,7 +69,7 @@ class BvftRecord:
 import numpy as np
 class BVFT(object):
     def __init__(self, q_functions, data, gamma, rmax, rmin,file_name_pre, record: BvftRecord = BvftRecord(), q_type='torch_actor_critic_cont',
-                 verbose=False, bins=None, data_size=5000,trajectory_num=277):
+                 verbose=False, bins=None, data_size=5000,trajectory_num=276):
         self.data = data                                                        #Data D
         self.gamma = gamma                                                      #gamma
         self.res = 0                                                            #\epsilon k (discretization parameter set)
