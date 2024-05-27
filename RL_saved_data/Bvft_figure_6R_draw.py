@@ -100,6 +100,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_saving_step
     prediction_list = []
     max_step = max(FQE_saving_step_list)
     for policy_file_name in os.listdir("policy_trained"):
+        policy_file_name = 'FQE_0.0001_[128, 256]_2000000step_bcq_300000_1e-05_2_64_200000step.pt'
         policy_name = policy_file_name[:-3]
         if not Bvft:
             FQE_directory = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer)
