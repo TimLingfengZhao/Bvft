@@ -140,9 +140,6 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
                             fqe.load_model(FQE_file_path)
 
                             observation, info = env.reset(seed=12345)
-                            print(observation)
-                            print(info)
-                            sys.exit()
                             action = policy.predict(
                                 np.array([observation]))  # sample action for many times (stochastic)
                             total_reward = fqe.predict_value(np.array([observation]), action)[0]
