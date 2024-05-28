@@ -356,7 +356,8 @@ class policy_select(ABC):
         device = self.device
         Ranking_list = []
         Policy_name_list = []
-        data_address_lists = remove_duplicates(data_address_lists)
+        self.data_saving_path = remove_duplicates(self.data_saving_path)
+        data_address_lists = remove_duplicates(self.data_saving_path)
         for i in range(len(data_address_lists)):
             Ranking_list.append([])
         for runs in range(num_runs):
@@ -480,6 +481,7 @@ class Bvft_poli(policy_select):
         Bvft_saving_folder = "Policy_ranking_saving_place"
         Bvft_Q_saving_folder = "Bvft_ranking"
         self.data_saving_path.append(Bvft_Q_saving_folder)
+        self.data_saving_path = remove_duplicates(self.data_saving_path)
         Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
         if not os.path.exists(Bvft_Q_saving_path):
             os.makedirs(Bvft_Q_saving_path)
@@ -579,6 +581,7 @@ class Bvft_zero(policy_select):
         Bvft_saving_folder = "Policy_ranking_saving_place"
         Bvft_Q_saving_folder = "Bvft_res_0"
         self.data_saving_path.append(Bvft_Q_saving_folder)
+        self.data_saving_path = remove_duplicates(self.data_saving_path)
         Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
         if not os.path.exists(Bvft_Q_saving_path):
             os.makedirs(Bvft_Q_saving_path)
@@ -676,6 +679,7 @@ class Bvft_FQE_zero(policy_select):
         Bvft_saving_folder = "Policy_ranking_saving_place"
         Bvft_Q_saving_folder = "Bvft_0.0001_256"
         self.data_saving_path.append(Bvft_Q_saving_folder)
+        self.data_saving_path = remove_duplicates(self.data_saving_path)
         Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
         if not os.path.exists(Bvft_Q_saving_path):
             os.makedirs(Bvft_Q_saving_path)
@@ -737,6 +741,7 @@ class Bvft_FQE_one(policy_select):
         Bvft_saving_folder = "Policy_ranking_saving_place"
         Bvft_Q_saving_folder = "Bvft_0.0001_1024"
         self.data_saving_path.append(Bvft_Q_saving_folder)
+        self.data_saving_path = remove_duplicates(self.data_saving_path)
         Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
         if not os.path.exists(Bvft_Q_saving_path):
             os.makedirs(Bvft_Q_saving_path)
@@ -797,6 +802,7 @@ class Bvft_FQE_two(policy_select):
         Bvft_saving_folder = "Policy_ranking_saving_place"
         Bvft_Q_saving_folder = "Bvft_0.00002_256"
         self.data_saving_path.append(Bvft_Q_saving_folder)
+        self.data_saving_path = remove_duplicates(self.data_saving_path)
         Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
         if not os.path.exists(Bvft_Q_saving_path):
             os.makedirs(Bvft_Q_saving_path)
@@ -857,6 +863,7 @@ class Bvft_FQE_three(policy_select):
         Bvft_saving_folder = "Policy_ranking_saving_place"
         Bvft_Q_saving_folder = "Bvft_0.00002_1024"
         self.data_saving_path.append(Bvft_Q_saving_folder)
+        self.data_saving_path = remove_duplicates(self.data_saving_path)
         Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
         if not os.path.exists(Bvft_Q_saving_path):
             os.makedirs(Bvft_Q_saving_path)
@@ -919,6 +926,7 @@ class Bvft_abs(policy_select):
         Bvft_saving_folder = "Policy_ranking_saving_place"
         Bvft_Q_saving_folder = "l1_norm"
         self.data_saving_path.append(Bvft_Q_saving_folder)
+        self.data_saving_path = remove_duplicates(self.data_saving_path)
         Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
         if not os.path.exists(Bvft_Q_saving_path):
             os.makedirs(Bvft_Q_saving_path)
@@ -1019,12 +1027,12 @@ bvft_abs = Bvft_abs(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_s
 # bvft_res_0.select_Q()
 # bvft_abs.select_Q()
 bvft_obj.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
+bvft_res_0.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
 bvft_FQE_zero.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
 bvft_FQE_one.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
 bvft_FQE_two.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
 bvft_FQE_three.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
 bvft_abs.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
-bvft_res_0.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
 bvft_obj.run()
 # bvft_obj.draw_figure_6R()
 
