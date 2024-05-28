@@ -167,11 +167,11 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 policy_path = os.path.join(policy_folder,policy_name)
 policy = d3rlpy.load_learnable(policy_path, device=device)
 fqe = continuous_FQE(state_dim, action_dim, [128, 256], device=device)
-# test_data = CustomDataLoader(replay_buffer, batch_size=1000)
-# for i in range(2000):
-#     fqe.train(test_data, policy,i)
-# fqe.save("self_trained_FQE")
-fqe.load("self_trained_FQE")
+test_data = CustomDataLoader(replay_buffer, batch_size=1000)
+for i in range(2000):
+    fqe.train(test_data, policy,i)
+fqe.save("self_trained_FQE")
+# fqe.load("self_trained_FQE")
 observation, info = env.reset(seed=12345)
 action = policy.predict(
     np.array([observation]))
