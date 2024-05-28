@@ -222,15 +222,15 @@ class policy_select(ABC):
         k_regret_ci_saving_path = os.path.join(Result_k_save_path, regret_ci_name)
         plot_name_saving_path = os.path.join(Result_k_save_path, plot_name)
         precision_path = os.path.join(Result_k_save_path, k_precision_name)
-        # if os.path.exists(precision_path):
-        #     print("load saved data")
-        #     precision_mean_list = load_from_pkl(k_precision_mean_saving_path)
-        #     regret_mean_list = load_from_pkl(k_regret_mean_saving_path)
-        #     precision_ci_list = load_from_pkl(k_precision_ci_saving_path)
-        #     regret_ci_list = load_from_pkl(k_regret_ci_saving_path)
-        #     line_name_list = load_from_pkl(plot_name_saving_path)
-        # else:
-        precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+        if os.path.exists(precision_path):
+            print("load saved data")
+            precision_mean_list = load_from_pkl(k_precision_mean_saving_path)
+            regret_mean_list = load_from_pkl(k_regret_mean_saving_path)
+            precision_ci_list = load_from_pkl(k_precision_ci_saving_path)
+            regret_ci_list = load_from_pkl(k_regret_ci_saving_path)
+            line_name_list = load_from_pkl(plot_name_saving_path)
+        else:
+            precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
         plot_mean_list = [precision_mean_list, regret_mean_list]
         plot_ci_list = [precision_ci_list, regret_ci_list]
 
