@@ -175,6 +175,8 @@ fqe.load("self_trained_FQE")
 observation, info = env.reset(seed=12345)
 action = policy.predict(
     np.array([observation]))
+print(len(torch.tensor(np.array([observation]))))
+print(len(torch.tensor(action)[0]))
 total_reward = fqe.Q(torch.tensor(np.array([observation])), torch.tensor(action)[0])
 print(total_reward)
 
