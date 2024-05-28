@@ -204,6 +204,7 @@ class policy_select(ABC):
         return Q_FQE, Q_name_list, FQE_step_Q_list
     def run(self):
         print("object start run")
+        num_runs = self.num_runs
         Result_saving_place = 'Policy_ranking_saving_place'
         Result_k = 'Policy_k_saving_place'
         Result_k_save_folder = os.path.join(Result_saving_place, Result_k)
@@ -222,15 +223,17 @@ class policy_select(ABC):
         k_regret_ci_saving_path = os.path.join(Result_k_save_path, regret_ci_name)
         plot_name_saving_path = os.path.join(Result_k_save_path, plot_name)
         precision_path = os.path.join(Result_k_save_path, k_precision_name)
-        if os.path.exists(precision_path):
-            print("load saved data")
-            precision_mean_list = load_from_pkl(k_precision_mean_saving_path)
-            regret_mean_list = load_from_pkl(k_regret_mean_saving_path)
-            precision_ci_list = load_from_pkl(k_precision_ci_saving_path)
-            regret_ci_list = load_from_pkl(k_regret_ci_saving_path)
-            line_name_list = load_from_pkl(plot_name_saving_path)
-        else:
-            precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+        # if os.path.exists(precision_path):
+        #     print("load saved data")
+        #     precision_mean_list = load_from_pkl(k_precision_mean_saving_path)
+        #     regret_mean_list = load_from_pkl(k_regret_mean_saving_path)
+        #     precision_ci_list = load_from_pkl(k_precision_ci_saving_path)
+        #     regret_ci_list = load_from_pkl(k_regret_ci_saving_path)
+        #     line_name_list = load_from_pkl(plot_name_saving_path)
+        # else:
+        precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+        print("precision mean list : ",precision_mean_list)
+        print("regret mean list : ",regret_mean_list)
         plot_mean_list = [precision_mean_list, regret_mean_list]
         plot_ci_list = [precision_ci_list, regret_ci_list]
 
@@ -358,6 +361,7 @@ class policy_select(ABC):
         Policy_name_list = []
         self.data_saving_path = remove_duplicates(self.data_saving_path)
         data_address_lists = remove_duplicates(self.data_saving_path)
+        print("data address lists : ",data_address_lists)
         for i in range(len(data_address_lists)):
             Ranking_list.append([])
         for runs in range(num_runs):
@@ -1026,13 +1030,13 @@ bvft_abs = Bvft_abs(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_s
 # bvft_FQE_three.select_Q()
 # bvft_res_0.select_Q()
 # bvft_abs.select_Q()
-bvft_obj.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
-bvft_res_0.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
-bvft_FQE_zero.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
-bvft_FQE_one.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
-bvft_FQE_two.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
-bvft_FQE_three.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
-bvft_abs.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
+# bvft_obj.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
+# bvft_res_0.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
+# bvft_FQE_zero.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
+# bvft_FQE_one.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
+# bvft_FQE_two.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
+# bvft_FQE_three.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
+# bvft_abs.calculate_k(data_saving_path,data_saving_path,FQE_saving_step_list,initial_state,k,num_runs)
 bvft_obj.run()
 # bvft_obj.draw_figure_6R()
 
