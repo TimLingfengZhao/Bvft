@@ -171,7 +171,7 @@ fqe = continuous_FQE(state_dim, action_dim, [128, 256], device=device)
 # for i in range(2000):
 #     fqe.train(test_data, policy,i)
 # fqe.save("self_trained_FQE")
-fqe.load("self_trained_FQE_Q")
+fqe.load("self_trained_FQE")
 observation, info = env.reset(seed=12345)
 action = policy.predict(
     np.array([observation]))
