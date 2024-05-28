@@ -997,7 +997,7 @@ class Bvft_abs(policy_select):
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 k = 5
-num_runs = 300
+num_runs = 100
 FQE_saving_step_list = [2000000]
 initial_state = 12345
 # data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_abs"]
@@ -1011,20 +1011,20 @@ bvft_FQE_one = Bvft_FQE_one(device, data_saving_path, whole_dataset,env,k,num_ru
 bvft_FQE_two = Bvft_FQE_two(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor)
 bvft_FQE_three = Bvft_FQE_three(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor)
 bvft_abs = Bvft_abs(device, data_saving_path, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor)
-bvft_obj.select_Q()
-bvft_FQE_zero.select_Q()
-bvft_FQE_one.select_Q()
-bvft_FQE_two.select_Q()
-bvft_FQE_three.select_Q()
-bvft_res_0.select_Q()
-bvft_abs.select_Q()
-# bvft_obj.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-# bvft_FQE_zero.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-# bvft_FQE_one.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-# bvft_FQE_two.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-# bvft_FQE_three.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-# bvft_abs.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-# bvft_res_0.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+# bvft_obj.select_Q()
+# bvft_FQE_zero.select_Q()
+# bvft_FQE_one.select_Q()
+# bvft_FQE_two.select_Q()
+# bvft_FQE_three.select_Q()
+# bvft_res_0.select_Q()
+# bvft_abs.select_Q()
+bvft_obj.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+bvft_FQE_zero.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+bvft_FQE_one.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+bvft_FQE_two.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+bvft_FQE_three.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+bvft_abs.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+bvft_res_0.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
 bvft_obj.run()
 bvft_obj.draw_figure_6R()
 
