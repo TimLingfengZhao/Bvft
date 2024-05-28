@@ -179,6 +179,6 @@ observation_tensor = torch.tensor(np.array([observation]), dtype=torch.float32, 
 action_tensor = torch.tensor(action, dtype=torch.float32, device=device)
 print(len(torch.tensor(np.array([observation]))))
 print(len(torch.tensor(action)[0]))
-total_reward = fqe.Q(torch.tensor(np.array([observation]))[0], torch.tensor(action)[0])
+total_reward = fqe.Q([observation][0], action[0])
 print(total_reward)
 
