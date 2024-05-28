@@ -374,9 +374,10 @@ class policy_select(ABC):
             # performance_list, FQE_name_list = FQE_ranking(policy_name_list,FQE_saving_step_list,env)
             # print(performance_list)
             # print(FQE_name_list)
-
             Policy_name_list.append(policy_name_list)
 
+        print("ranking list : ",Ranking_list)
+        sys.exit()
         Precision_list = []
         Regret_list = []
         for index in range(len(data_address_lists)):
@@ -386,6 +387,8 @@ class policy_select(ABC):
             for num_index in range(len(Ranking_list)):
                 Precision_list[num_index].append(calculate_top_k_precision(initial_state,env,Policy_name_list[i],Ranking_list[num_index][i],k))
                 Regret_list[num_index].append(calculate_top_k_normalized_regret(Ranking_list[num_index][i],Policy_name_list[i],env,k))
+        print("precision list : ",Precision_list)
+        print("regret list  :",Regret_list)
 
 
         Precision_k_list = []
