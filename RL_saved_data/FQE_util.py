@@ -56,7 +56,7 @@ class FC_Q(nn.Module):
         self.l3 = nn.Linear(hidden_layer_list[1], 1)
 
     def forward(self, state, action):
-        x = torch.cat((state, action))
+        x = torch.cat((state, action),dim=-1)
         x = F.relu(self.l1(x))
         x = F.relu(self.l2(x))
         return self.l3(x)
