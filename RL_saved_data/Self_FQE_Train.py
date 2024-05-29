@@ -47,7 +47,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from FQE_util import *
+from FQE_util import continuous_FQE
+from FQE_util import FC_Q
 def load_checkpoint_FQE(model, checkpoint_path):
     if os.path.exists(checkpoint_path):
         return True
