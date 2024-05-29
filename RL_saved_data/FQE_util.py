@@ -179,7 +179,7 @@ for policy_file_name in os.listdir(policy_folder):
             for i in range(2000):
                 fqe.train(test_data, policy, i)
             fqe.save("self_trained_FQE")
-            FQE_directory = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer)
+            FQE_directory = 'FQE_' + str(learning_rate) + '_' + str(hidden_layer)
             FQE_directory = os.path.join(self_defined_FQE,FQE_directory)
             if not os.path.exists(FQE_directory):
                 os.makedirs(FQE_directory)
