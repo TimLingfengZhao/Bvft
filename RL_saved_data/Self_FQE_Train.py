@@ -86,15 +86,15 @@ def FQE_train(choice_number, save_iter):
     action_dim = 3
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    FQE_directory = 'FQE_' + str(learning_rate) + '_' + str(hidden_layer)
-    FQE_directory = os.path.join(self_defined_FQE, FQE_directory)
+    FQE_folder = 'FQE_' + str(learning_rate) + '_' + str(hidden_layer)
+    FQE_directory = os.path.join(self_defined_FQE, FQE_folder)
     if not os.path.exists(FQE_directory):
         os.makedirs(FQE_directory)
 
     FQE_model_pre = 'FQE_' + str(learning_rate) + '_' + str(hidden_layer) + '_'
 
     FQE_checkpoint_directory = "FQE_checkpoints"
-    FQE_checkpoint_directory = os.path.join(FQE_directory, FQE_checkpoint_directory)
+    FQE_checkpoint_directory = os.path.join(self_defined_FQE, FQE_checkpoint_directory)
 
     if not os.path.exists(FQE_checkpoint_directory):
         os.makedirs(FQE_checkpoint_directory)
@@ -104,7 +104,7 @@ def FQE_train(choice_number, save_iter):
 
             policy_path = os.path.join(policy_folder, policy_file_name)
             policy = d3rlpy.load_learnable(policy_path, device=device)
-            FQE_total_file_name = FQE_directory + "_" + str(2000) + "step" + "_" + policy_file_name
+            FQE_total_file_name = FQE_folder + "_" + str(2000) + "step" + "_" + policy_file_name
 
             FQE_checkpoint_list_path = os.path.join(FQE_checkpoint_directory,
                                                     FQE_total_file_name[:-2] + '_' + 'checkpoint_list.pkl')
