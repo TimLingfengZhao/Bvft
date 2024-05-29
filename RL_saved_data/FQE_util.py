@@ -49,7 +49,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class FC_Q(nn.Module):
-    def __init__(self, state_dim, action_dim,hidden_layer_list=[128, 256]):
+    def __init__(self, state_dim, action_dim,hidden_layer_list=[128, 256],learning_rate = 1e-4):
         super(FC_Q, self).__init__()
         self.l1 = nn.Linear(state_dim + action_dim, hidden_layer_list[0])
         self.l2 = nn.Linear(hidden_layer_list[0], hidden_layer_list[1])
@@ -78,15 +78,15 @@ class continuous_FQE:
     ):
 
         self.device = device
-
-        self.Q = FC_Q(state_dim, action_dim,hidden_layer_list).to(self.device)
+        self.hidden_layer_list = hidden_layer_list
+        self.maybe_update_target = self.polyak_target_update if polyak_target_update else self.copy_target_update
+        self.target_update_frequency = target_update_frequency
+        self.Q = FC_Q(state_dim, action_dim,self.hidden_layer_list,self.target_update_frequency).to(self.device)
         self.Q_target = copy.deepcopy(self.Q)
         self.Q_optimizer = getattr(torch.optim, optimizer)(self.Q.parameters(), **optimizer_parameters)
 
         self.discount = discount
-        self.hidden_layer_list = hidden_layer_list
-        self.maybe_update_target = self.polyak_target_update if polyak_target_update else self.copy_target_update
-        self.target_update_frequency = target_update_frequency
+
         self.tau = tau
 
         self.iterations = 0
@@ -159,26 +159,46 @@ buffer = FIFOBuffer(limit=1500000)
 
 replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 policy_folder = 'policy_trained'
-policy_name = "bcq_300000_1e-05_2_64_200000step.d3"
-
+# policy_name = "bcq_300000_1e-05_2_64_200000step.d3"
+self_defined_FQE = "Self_defined_FQE"
+if not os.path.exists(self_defined_FQE ):
+    os.makedirs(self_defined_FQE )
 state_dim = 11
 action_dim = 3
 device = "cuda" if torch.cuda.is_available() else "cpu"
-policy_path = os.path.join(policy_folder,policy_name)
-policy = d3rlpy.load_learnable(policy_path, device=device)
-fqe = continuous_FQE(state_dim, action_dim, [128, 256], device=device)
-test_data = CustomDataLoader(replay_buffer, batch_size=1000)
-for i in range(2000):
-    fqe.train(test_data, policy,i)
-fqe.save("self_trained_FQE")
-# fqe.load("self_trained_FQE")
-observation, info = env.reset(seed=12345)
-action = policy.predict(
-    np.array([observation]))
-observation_tensor = torch.tensor(np.array([observation]), dtype=torch.float32, device=device)
-action_tensor = torch.tensor(action, dtype=torch.float32, device=device)
-print(len(torch.tensor(np.array([observation]))))
-print(len(torch.tensor(action)[0]))
-total_reward = fqe.Q(observation_tensor[0], action_tensor[0])
-print(total_reward)
+hidden_list = [[128, 256],[128, 1024]]
+learning_rate_list = [1e-4,2e-5]
+for policy_file_name in os.listdir(policy_folder):
+    policy_path = os.path.join(policy_folder, policy_file_name)
+    policy = d3rlpy.load_learnable(policy_path, device=device)
+    for hidden_layer in hidden_list:
+        for learning_rate in learning_rate_list:
 
+            fqe = continuous_FQE(state_dim, action_dim, hidden_layer_list=hidden_layer, device=device,target_update_frequency=learning_rate)
+            test_data = CustomDataLoader(replay_buffer, batch_size=1000)
+            for i in range(2000):
+                fqe.train(test_data, policy, i)
+            fqe.save("self_trained_FQE")
+            FQE_directory = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer)
+            FQE_directory = os.path.join(self_defined_FQE,FQE_directory)
+            if not os.path.exists(FQE_directory):
+                os.makedirs(FQE_directory)
+            FQE_checkpoint_directory = "FQE_checkpoints"
+            FQE_checkpoint_directory = os.path.join(self_defined_FQE,FQE_checkpoint_directory)
+            if not os.path.exists(FQE_checkpoint_directory):
+                os.makedirs(FQE_checkpoint_directory)
+            FQE_model_pre = 'FQE_' + str(learning_rate) + '_' + str(hidden_layer) + '_'
+            FQE_ep_name = FQE_model_pre + str(2000) + "iteration_" + policy_file_name
+            FQE_ep_name = FQE_ep_name[:-2]
+            FQE_save_path = os.path.join(FQE_directory, FQE_ep_name)
+            fqe.save(FQE_save_path)
+            # fqe.load("self_trained_FQE")
+            # observation, info = env.reset(seed=12345)
+            # action = policy.predict(
+            #     np.array([observation]))
+            # observation_tensor = torch.tensor(np.array([observation]), dtype=torch.float32, device=device)
+            # action_tensor = torch.tensor(action, dtype=torch.float32, device=device)
+            # print(len(torch.tensor(np.array([observation]))))
+            # print(len(torch.tensor(action)[0]))
+            # total_reward = fqe.Q(observation_tensor[0], action_tensor[0])
+            # print(total_reward)
