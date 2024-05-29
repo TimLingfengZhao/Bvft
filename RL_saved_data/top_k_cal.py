@@ -290,6 +290,8 @@ def plot_and_save_bar_graph_with_labels(y_values, x_labels, folder_path, filenam
 def plot_and_save_bar_graph_with_labels_FQE(y_values, x_labels, folder_path, filename="bar_graph_with_labels.png"):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
+    print("y value : ",y_values)
+    print("x value : ",x_labels)
     base_width = 1
     figure_width = max(len(x_labels) * base_width, 8)
     figure_height = 15
