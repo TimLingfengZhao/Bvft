@@ -166,7 +166,8 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
                             FQE_total_name_list.append(FQE_model_name)
 
                             FQE_total_reward_list.append(total_reward)
-                            plot_and_save_bar_graph_with_labels_FQE(normal_reward_list, normal_name_list, FQE_folder)
+                            # plot_and_save_bar_graph_with_labels_FQE(normal_reward_list, normal_name_list, FQE_folder)
+                            plot_and_save_bar_graph_with_labels_FQE(FQE_total_reward_list, FQE_total_name_list, FQE_folder)
 
                             normal_dict = list_to_dict(normal_name_list, normal_reward_list)
                             outlier_dict = list_to_dict(outlier_name_list, outlier_reward_list)
@@ -217,7 +218,9 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
                             FQE_total_name_list.append(FQE_model_name)
 
                             FQE_total_reward_list.append(total_reward)
-                            plot_and_save_bar_graph_with_labels_FQE(normal_reward_list, normal_name_list, FQE_folder)
+                            # plot_and_save_bar_graph_with_labels_FQE(normal_reward_list, normal_name_list, FQE_folder)
+                            plot_and_save_bar_graph_with_labels_FQE(FQE_total_reward_list, FQE_total_name_list,
+                                                                    FQE_folder)
 
                             normal_dict = list_to_dict(normal_name_list, normal_reward_list)
                             outlier_dict = list_to_dict(outlier_name_list, outlier_reward_list)
