@@ -97,50 +97,53 @@ def FQE_train(choice_number, save_iter):
 
     if not os.path.exists(FQE_checkpoint_directory):
         os.makedirs(FQE_checkpoint_directory)
-    for policy_file_name in os.listdir(policy_folder):
+    while(True):
+        print("start to train FQE")
+        for policy_file_name in os.listdir(policy_folder):
 
-        policy_path = os.path.join(policy_folder, policy_file_name)
-        policy = d3rlpy.load_learnable(policy_path, device=device)
-        FQE_total_file_name = FQE_directory + "_" + str(2000) + "step" + "_" + policy_file_name
+            policy_path = os.path.join(policy_folder, policy_file_name)
+            policy = d3rlpy.load_learnable(policy_path, device=device)
+            FQE_total_file_name = FQE_directory + "_" + str(2000) + "step" + "_" + policy_file_name
 
-        FQE_checkpoint_list_path = os.path.join(FQE_checkpoint_directory,
-                                                FQE_total_file_name[:-2] + '_' + 'checkpoint_list.pkl')
-        FQE_checkpoint_path = os.path.join(FQE_checkpoint_directory, FQE_total_file_name[:-2] + '_' + 'checkpoint')
+            FQE_checkpoint_list_path = os.path.join(FQE_checkpoint_directory,
+                                                    FQE_total_file_name[:-2] + '_' + 'checkpoint_list.pkl')
+            FQE_checkpoint_path = os.path.join(FQE_checkpoint_directory, FQE_total_file_name[:-2] + '_' + 'checkpoint')
 
-        fqe = continuous_FQE(state_dim, action_dim, hidden_layer_list=hidden_layer, device=device,
-                             target_update_frequency=learning_rate)
-        test_data = CustomDataLoader(replay_buffer, batch_size=1000)
-        check_point_list = []
-        if not load_checkpoint_FQE(fqe, FQE_checkpoint_path):
-            for i in range(2000):
-                fqe.train(test_data, policy, i)
-                fqe.save(FQE_checkpoint_path)
-                check_point_list.append(i)
-                save_list(check_point_list, FQE_checkpoint_list_path)
-                if (i+1) % save_iter == 0 :
-                    FQE_ep_name = FQE_model_pre + str(i) + "iteration_" + policy_file_name
-                    FQE_ep_name = FQE_ep_name[:-2]
-                    FQE_save_path = os.path.join(FQE_directory, FQE_ep_name)
-                    fqe.save(FQE_save_path)
+            fqe = continuous_FQE(state_dim, action_dim, hidden_layer_list=hidden_layer, device=device,
+                                 target_update_frequency=learning_rate)
+            test_data = CustomDataLoader(replay_buffer, batch_size=1000)
+            check_point_list = []
+            if not load_checkpoint_FQE(fqe, FQE_checkpoint_path):
+                for i in range(2000):
+                    fqe.train(test_data, policy, i)
+                    fqe.save(FQE_checkpoint_path)
+                    check_point_list.append(i)
+                    save_list(check_point_list, FQE_checkpoint_list_path)
+                    if (i + 1) % save_iter == 0:
+                        FQE_ep_name = FQE_model_pre + str(i) + "iteration_" + policy_file_name
+                        FQE_ep_name = FQE_ep_name[:-2]
+                        FQE_save_path = os.path.join(FQE_directory, FQE_ep_name)
+                        fqe.save(FQE_save_path)
 
-
-            if os.path.exists(FQE_checkpoint_list_path):
-                os.remove(FQE_checkpoint_list_path)
-            if os.path.exists(FQE_checkpoint_path):
-                os.remove(FQE_checkpoint_path)
-        else:
-            fqe.load(FQE_checkpoint_path)
-            check_point_list = read_list(check_point_list, FQE_checkpoint_list_path)
-            for i in range(check_point_list[-1] + 1,2000):
-                fqe.train(test_data, policy, i)
-                fqe.save(FQE_checkpoint_path)
-                check_point_list.append(i)
-                save_list(check_point_list, FQE_checkpoint_list_path)
-                if (i+1) % save_iter == 0 :
-                    FQE_ep_name = FQE_model_pre + str(i) + "iteration_" + policy_file_name
-                    FQE_ep_name = FQE_ep_name[:-2]
-                    FQE_save_path = os.path.join(FQE_directory, FQE_ep_name)
-                    fqe.save(FQE_save_path)
+                if os.path.exists(FQE_checkpoint_list_path):
+                    os.remove(FQE_checkpoint_list_path)
+                if os.path.exists(FQE_checkpoint_path):
+                    os.remove(FQE_checkpoint_path)
+            else:
+                fqe.load(FQE_checkpoint_path)
+                check_point_list = read_list(check_point_list, FQE_checkpoint_list_path)
+                for i in range(check_point_list[-1] + 1, 2000):
+                    fqe.train(test_data, policy, i)
+                    fqe.save(FQE_checkpoint_path)
+                    check_point_list.append(i)
+                    save_list(check_point_list, FQE_checkpoint_list_path)
+                    if (i + 1) % save_iter == 0:
+                        FQE_ep_name = FQE_model_pre + str(i) + "iteration_" + policy_file_name
+                        FQE_ep_name = FQE_ep_name[:-2]
+                        FQE_save_path = os.path.join(FQE_directory, FQE_ep_name)
+                        fqe.save(FQE_save_path)
+        print("trained, start to sleep")
+        time.sleep(600)
 def main():
     parser = argparse.ArgumentParser(description="Run specific FQE function based on learning rate and combination.")
     parser.add_argument("FQE", choices=["0", "1", "2", "3"], help="0：1e-4,256 1: 1e-4, 1024 2: 2e-5,256 3: 2e-5: 1024")
