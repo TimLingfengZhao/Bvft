@@ -116,7 +116,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
     while(True):
         print("come while loop")
         for policy_file_name in os.listdir(policy_folder):
-            for i in range(FQE_number_epoch):
+            for i in range(FQE_total_step):
                 FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+ str((i + 1)) + "iteration"+"_"
                 FQE_model_name = FQE_model_pre + policy_file_name
                 plot = False
@@ -127,9 +127,10 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
                     saved = True
                 else:
                     saved = False
-                if ((i + 1) % num_intervel == 0):
-                    FQE_model_name = FQE_model_name[:-3] + ".pt"
+                if ((i + 1) % FQE_episode_step == 0):
+                    FQE_model_name = FQE_model_name[:-3]
                     plot = True
+                    print("plot :  True ")
                 if (plot):
                     Self_FQE_folder = os.path.join(Self_defined_FQE, FQE_directory)
                     FQE_file_path = os.path.join(Self_FQE_folder, FQE_model_name)
