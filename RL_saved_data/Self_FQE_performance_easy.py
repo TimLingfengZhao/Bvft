@@ -148,7 +148,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
                                 np.array([observation]))
                             observation_tensor = torch.tensor(np.array([observation]), dtype=torch.float32, device=device)
                             action_tensor = torch.tensor(action, dtype=torch.float32, device=device)
-                            total_reward = fqe.Q(observation_tensor[0], action_tensor[0]).cpu().numpy()
+                            total_reward = fqe.Q(observation_tensor[0], action_tensor[0]).cpu().detach().numpy()
 
                             if ((total_reward > outlier_max)):
                                 outlier_name_list.append(FQE_model_name)
