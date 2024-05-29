@@ -118,7 +118,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
         for policy_file_name in os.listdir(policy_folder):
             for i in range(FQE_total_step):
                 FQE_model_pre = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer) + '_'+ str((i + 1)) + "iteration"+"_"
-                FQE_model_name = FQE_model_pre + policy_file_name
+                FQE_model_name = FQE_model_pre + policy_file_name[:-3]
                 plot = False
                 FQE_normal_dictionary = {}
                 if (os.path.exists(FQE_normal_path)):
@@ -128,7 +128,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
                 else:
                     saved = False
                 if ((i + 1) % FQE_episode_step == 0):
-                    FQE_model_name = FQE_model_name[:-3]
+                    FQE_model_name = FQE_model_name
                     plot = True
                     print("plot :  True ")
                 if (plot):
@@ -151,19 +151,19 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
                             total_reward = fqe.Q(observation_tensor[0], action_tensor[0])
 
                             if ((total_reward > outlier_max)):
-                                outlier_name_list.append(FQE_model_name[:-3])
+                                outlier_name_list.append(FQE_model_name)
                                 outlier_reward_list.append(total_reward)
-                                normal_name_list.append(FQE_model_name[:-3])
+                                normal_name_list.append(FQE_model_name)
                                 normal_reward_list.append(outlier_max)
                             elif ((total_reward < 0)):
-                                outlier_name_list.append(FQE_model_name[:-3])
+                                outlier_name_list.append(FQE_model_name)
                                 outlier_reward_list.append(total_reward)
-                                normal_name_list.append(FQE_model_name[:-3])
+                                normal_name_list.append(FQE_model_name)
                                 normal_reward_list.append(outlier_min)
                             else:
-                                normal_name_list.append(FQE_model_name[:-3])
+                                normal_name_list.append(FQE_model_name)
                                 normal_reward_list.append(total_reward)
-                            FQE_total_name_list.append(FQE_model_name[:-3])
+                            FQE_total_name_list.append(FQE_model_name)
 
                             FQE_total_reward_list.append(total_reward)
                             plot_and_save_bar_graph_with_labels_FQE(normal_reward_list, normal_name_list, FQE_folder)
@@ -202,19 +202,19 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
 
 
                             if ((total_reward > outlier_max)):
-                                outlier_name_list.append(FQE_model_name[:-3])
+                                outlier_name_list.append(FQE_model_name)
                                 outlier_reward_list.append(total_reward)
-                                normal_name_list.append(FQE_model_name[:-3])
+                                normal_name_list.append(FQE_model_name)
                                 normal_reward_list.append(outlier_max)
                             elif ((total_reward < 0)):
-                                outlier_name_list.append(FQE_model_name[:-3])
+                                outlier_name_list.append(FQE_model_name)
                                 outlier_reward_list.append(total_reward)
-                                normal_name_list.append(FQE_model_name[:-3])
+                                normal_name_list.append(FQE_model_name)
                                 normal_reward_list.append(outlier_min)
                             else:
-                                normal_name_list.append(FQE_model_name[:-3])
+                                normal_name_list.append(FQE_model_name)
                                 normal_reward_list.append(total_reward)
-                            FQE_total_name_list.append(FQE_model_name[:-3])
+                            FQE_total_name_list.append(FQE_model_name)
 
                             FQE_total_reward_list.append(total_reward)
                             plot_and_save_bar_graph_with_labels_FQE(normal_reward_list, normal_name_list, FQE_folder)

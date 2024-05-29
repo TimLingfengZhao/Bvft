@@ -107,8 +107,8 @@ def FQE_train(choice_number, save_iter):
             FQE_total_file_name = FQE_folder + "_" + str(2000) + "step" + "_" + policy_file_name
 
             FQE_checkpoint_list_path = os.path.join(FQE_checkpoint_directory,
-                                                    FQE_total_file_name[:-2] + '_' + 'checkpoint_list.pkl')
-            FQE_checkpoint_path = os.path.join(FQE_checkpoint_directory, FQE_total_file_name[:-2] + '_' + 'checkpoint')
+                                                    FQE_total_file_name[:-3] + '_' + 'checkpoint_list.pkl')
+            FQE_checkpoint_path = os.path.join(FQE_checkpoint_directory, FQE_total_file_name[:-3] + '_' + 'checkpoint')
 
             fqe = continuous_FQE(state_dim, action_dim, hidden_layer_list=hidden_layer, device=device,
                                  target_update_frequency=learning_rate)
@@ -123,7 +123,7 @@ def FQE_train(choice_number, save_iter):
                     save_list(check_point_list, FQE_checkpoint_list_path)
                     if (i + 1) % save_iter == 0:
                         FQE_ep_name = FQE_model_pre + str(i+1) + "iteration_" + policy_file_name
-                        FQE_ep_name = FQE_ep_name[:-2]
+                        FQE_ep_name = FQE_ep_name[:-3]
                         FQE_save_path = os.path.join(FQE_directory, FQE_ep_name)
                         fqe.save(FQE_save_path)
 
