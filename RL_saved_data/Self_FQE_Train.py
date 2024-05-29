@@ -94,7 +94,7 @@ def FQE_train(choice_number, save_iter):
     FQE_model_pre = 'FQE_' + str(learning_rate) + '_' + str(hidden_layer) + '_'
 
     FQE_checkpoint_directory = "FQE_checkpoints"
-    FQE_checkpoint_directory = os.path.join(self_defined_FQE, FQE_checkpoint_directory)
+    FQE_checkpoint_directory = os.path.join(FQE_directory, FQE_checkpoint_directory)
 
     if not os.path.exists(FQE_checkpoint_directory):
         os.makedirs(FQE_checkpoint_directory)
