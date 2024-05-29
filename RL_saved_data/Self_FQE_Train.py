@@ -131,6 +131,7 @@ def FQE_train(choice_number, save_iter):
                 if os.path.exists(FQE_checkpoint_path):
                     os.remove(FQE_checkpoint_path)
             else:
+                print("have checkpoint record")
                 fqe.load(FQE_checkpoint_path)
                 check_point_list = read_list(check_point_list, FQE_checkpoint_list_path)
                 for i in range(check_point_list[-1] + 1, 2000):
@@ -143,6 +144,10 @@ def FQE_train(choice_number, save_iter):
                         FQE_ep_name = FQE_ep_name[:-2]
                         FQE_save_path = os.path.join(FQE_directory, FQE_ep_name)
                         fqe.save(FQE_save_path)
+                if os.path.exists(FQE_checkpoint_list_path):
+                    os.remove(FQE_checkpoint_list_path)
+                if os.path.exists(FQE_checkpoint_path):
+                    os.remove(FQE_checkpoint_path)
         print("trained, start to sleep")
         time.sleep(600)
 def main():
