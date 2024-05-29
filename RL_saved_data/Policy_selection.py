@@ -376,12 +376,12 @@ class policy_select(ABC):
             # print(performance_list)
             # print(FQE_name_list)
             Policy_name_list.append(policy_name_list)
-        print("len 0 : ",len(Ranking_list))
-        print("len 1 : ",len(Ranking_list[0]))
-        print("len 2 : ",len(Ranking_list[0][0]))
-
-        print("ranking list : ",Ranking_list)
-        sys.exit()
+        # print("len 0 : ",len(Ranking_list))
+        # print("len 1 : ",len(Ranking_list[0]))
+        # print("len 2 : ",len(Ranking_list[0][0]))
+        #
+        # print("ranking list : ",Ranking_list)
+        # sys.exit()
         Precision_list = []
         Regret_list = []
         for index in range(len(data_address_lists)):
