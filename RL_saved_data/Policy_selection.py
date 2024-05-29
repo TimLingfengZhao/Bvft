@@ -365,7 +365,8 @@ class policy_select(ABC):
         for i in range(len(data_address_lists)):
             Ranking_list.append([])
         for runs in range(num_runs):
-            policy_name_list, policy_list = self.pick_policy(15,device)
+            policy_name_list, policy_list = self.pick_policy(5,device)
+            print("policy name list : ",policy_name_list)
             for data_address_index in range(len(data_address_lists)):
                 # print("ranking : ",self.get_ranking(data_address_lists[data_address_index],policy_name_list,FQE_saving_step_list))
                 # sys.exit()
@@ -1014,7 +1015,7 @@ class Bvft_abs(policy_select):
             delete_files_in_folder(Bvft_folder)
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
-k = 5
+k = 3
 num_runs = 1000
 FQE_saving_step_list = [2000000]
 initial_state = 12345
