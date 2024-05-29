@@ -271,10 +271,10 @@ def main():
     args = parser.parse_args()
     # function_to_run = function_map[args.FQE]
     # function_to_run(args.FQE_total_step,args.FQE_episode_step)
-    run_FQE_1(args.FQE_total_step,args.FQE_episode_step)
-    run_FQE_2(args.FQE_total_step,args.FQE_episode_step)
-    run_FQE_3(args.FQE_total_step,args.FQE_episode_step)
-    run_FQE_4(args.FQE_total_step,args.FQE_episode_step)
+    run_FQE_1(args.FQE_total_iter,args.FQE_episode_iter)
+    run_FQE_2(args.FQE_total_iter,args.FQE_episode_iter)
+    run_FQE_3(args.FQE_total_iter,args.FQE_episode_iter)
+    run_FQE_4(args.FQE_total_iter,args.FQE_episode_iter)
 
 if __name__ == "__main__":
     main()
