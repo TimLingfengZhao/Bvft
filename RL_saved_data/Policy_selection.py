@@ -365,7 +365,7 @@ class policy_select(ABC):
         for i in range(len(data_address_lists)):
             Ranking_list.append([])
         for runs in range(num_runs):
-            policy_name_list, policy_list = self.pick_policy(3,device)
+            policy_name_list, policy_list = self.pick_policy(15,device)
             print("policy name list : ",policy_name_list)
             for data_address_index in range(len(data_address_lists)):
                 # print("ranking : ",self.get_ranking(data_address_lists[data_address_index],policy_name_list,FQE_saving_step_list))
