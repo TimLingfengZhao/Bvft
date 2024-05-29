@@ -115,6 +115,7 @@ def FQE_train(choice_number, save_iter):
             check_point_list = []
             if not load_checkpoint_FQE(fqe, FQE_checkpoint_path):
                 for i in range(2000):
+                    print("start iteration : ",i)
                     fqe.train(test_data, policy, i)
                     fqe.save(FQE_checkpoint_path)
                     check_point_list.append(i)
