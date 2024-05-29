@@ -122,7 +122,7 @@ def FQE_train(choice_number, save_iter):
                     check_point_list.append(i)
                     save_list(check_point_list, FQE_checkpoint_list_path)
                     if (i + 1) % save_iter == 0:
-                        FQE_ep_name = FQE_model_pre + str(i) + "iteration_" + policy_file_name
+                        FQE_ep_name = FQE_model_pre + str(i+1) + "iteration_" + policy_file_name
                         FQE_ep_name = FQE_ep_name[:-2]
                         FQE_save_path = os.path.join(FQE_directory, FQE_ep_name)
                         fqe.save(FQE_save_path)
@@ -141,7 +141,7 @@ def FQE_train(choice_number, save_iter):
                     check_point_list.append(i)
                     save_list(check_point_list, FQE_checkpoint_list_path)
                     if (i + 1) % save_iter == 0:
-                        FQE_ep_name = FQE_model_pre + str(i) + "iteration_" + policy_file_name
+                        FQE_ep_name = FQE_model_pre + str(i+1) + "iteration_" + policy_file_name
                         FQE_ep_name = FQE_ep_name[:-2]
                         FQE_save_path = os.path.join(FQE_directory, FQE_ep_name)
                         fqe.save(FQE_save_path)
