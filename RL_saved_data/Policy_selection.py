@@ -21,7 +21,7 @@ from d3rlpy.dataset import MDPDataset, Episode
 from scope_rl.dataset import SyntheticDataset
 from scope_rl.policy import GaussianHead
 from scope_rl.ope import OffPolicyEvaluation as OPE
-from top_k_cal import *
+# from top_k_cal import *
 from scope_rl.ope.continuous import DirectMethod as DM
 from scope_rl.policy import ContinuousEvalHead
 from d3rlpy.algos import DDPGConfig
@@ -50,20 +50,93 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 # dataset_d, env = get_d4rl('hopper-medium-v0')
 from d3rlpy.dataset import Episode
 class policy_select(ABC):
-    def __init__(self,device,data_list, whole_dataset,env,k,num_runs,FQE_saving_step_list,initial_state,normalization_factor):
+    def __init__(self,device,data_list,data_name_self, whole_dataset,train_episodes,test_episodes,test_data,replay_buffer, q_functions,env,k,num_runs,FQE_saving_step_list,
+                 gamma,initial_state,normalization_factor):
         self.device = device
         self.env = env
         self.data_saving_path = data_list
+        self.data_name = data_name_self
         self.k = k
         self.num_runs = num_runs
         self.FQE_saving_step_list = FQE_saving_step_list
         self.whole_dataset = whole_dataset
+        self.train_episodes = train_episodes
+        self.test_episodes = test_episodes
+        self.test_data = test_data
         self.initial_state = initial_state
         self.normalization_factor = normalization_factor
+        self.q_functions = q_functions
+        self.replay_buffer = replay_buffer
+        self.gamma = gamma
+        self.trajectory_num = len(self.test_episodes)
 
+    def remove_duplicates(lst):
+        seen = set()
+        result = []
+        for item in lst:
+            if item not in seen:
+                seen.add(item)
+                result.append(item)
+        return result
     @abstractmethod
-    def select_Q(self):
+    def select_Q(self,q_functions,q_name_functions,Q_sa,r_plus_vfsp):
         pass
+
+    def get_self_ranking(self):
+        saving_folder = "Policy_ranking_saving_place"
+        Q_saving_folder = self.data_name
+        self.data_saving_path.append(Q_saving_folder)
+        self.data_saving_path = remove_duplicates(self.data_saving_path)
+        Q_saving_path = os.path.join(saving_folder, Q_saving_folder)
+        if not os.path.exists(Q_saving_path):
+            os.makedirs(Q_saving_path)
+        policy_name_list, policy_list = self.load_policy(self.device)
+        Q_FQE, Q_name_list, FQE_step_Q_list = self.load_FQE(policy_name_list, self.FQE_saving_step_list, self.replay_buffer,
+                                                       self.device)  # 1d: how many policy #2d: how many step #3d: 4
+        FQE_lr_list = [1e-4, 2e-5]
+        FQE_hl_list = [[128, 256], [128, 1024]]
+        line_name_list = []
+        for i in range(len(self.FQE_saving_step_list)):
+            for j in range(len(FQE_lr_list)):
+                for k in range(len(FQE_hl_list)):
+                    line_name_list.append('FQE_' + str(FQE_lr_list[j]) + '_' + str(FQE_hl_list[k]) + '_' + str(
+                        self.FQE_saving_step_list[i]) + "step")
+        for i in range(len(Q_FQE)):
+            loss_list = []
+            save_folder_name = Q_name_list[i]
+            Q_result_saving_path = os.path.join(Q_saving_path, save_folder_name)
+            q_functions = []
+            q_name_functions = []
+            for j in range(len(Q_FQE[0])):
+                for h in range(len(Q_FQE[0][0])):
+                    q_functions.append(Q_FQE[i][j][h])
+                    q_name_functions.append(FQE_step_Q_list[i][j][h])
+            loss_function = []
+            q_sa = [np.zeros(data_size) for _ in q_functions]
+            r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]
+            ptr = 0
+            gamma = self.gamma
+            while ptr < self.trajectory_num:  # for everything in data size
+                length = test_data.get_iter_length(ptr)
+                state, action, next_state, reward, done = test_data.sample(ptr)
+                for j in range(len(q_functions)):
+                    actor = q_functions[j]
+                    critic = q_functions[j]
+                    q_sa[j][ptr:ptr + length] = critic.predict_value(state, action).flatten()[
+                                                     :length]
+                    vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1) * gamma)
+
+                    r_plus_vfsp[j][ptr:ptr + length] = vfsp.flatten()[:length]
+                    # print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
+                ptr += 1
+            loss_list.append(self.select_Q(q_functions,q_name_functions,q_sa,r_plus_vfsp))
+            less_index_list = rank_elements_lower_higher(loss_function)
+            index = np.argmin(less_index_list)
+            save_list = [q_name_functions[index]]
+            save_as_txt(Bvft_Q_result_saving_path, save_list)
+            save_as_pkl(Bvft_Q_result_saving_path, save_list)
+            delete_files_in_folder(Bvft_folder)
+
     def SixR_get_FQE_name(self,policy_name,repo_name):
         ranking_folder = "Policy_ranking_saving_place"
         if not os.path.exists(ranking_folder):
