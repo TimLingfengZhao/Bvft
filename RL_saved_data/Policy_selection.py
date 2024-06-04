@@ -675,8 +675,6 @@ class Bvft_zero(policy_select):
                                  trajectory_num=self.trajectory_num)
             # print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
-
-            group_list.append(record.group_counts[0])
             # for i in range(len(record.losses[0])):
             #     Bvft_final_resolution_loss[i].append(record.losses[0][i])
 
