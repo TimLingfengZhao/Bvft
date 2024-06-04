@@ -150,6 +150,7 @@ class policy_select(ABC):
         pass
 
     def get_self_ranking(self):
+        Bvft_folder = "Bvft_Records"
         saving_folder = "Policy_ranking_saving_place"
         Q_saving_folder = self.data_name
         self.data_saving_path.append(Q_saving_folder)
