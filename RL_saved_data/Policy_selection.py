@@ -154,7 +154,7 @@ class policy_select(ABC):
                 ptr += 1
             result = self.select_Q(q_functions, q_name_functions,policy_name_list[i], q_sa, r_plus_vfsp)
             for i in range(len(result)):
-                loss_lfunction.append(result[i])
+                loss_function.append(result[i])
             less_index_list = self.rank_elements_lower_higher(loss_function)
             index = np.argmin(less_index_list)
             save_list = [q_name_functions[index]]
