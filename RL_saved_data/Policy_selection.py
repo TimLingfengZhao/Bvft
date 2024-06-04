@@ -1085,7 +1085,7 @@ bvft_obj = Bvft_zero(device=device,data_list =data_saving_path,data_name_self = 
                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
-bvft.get_self_ranking()
+bvft_obj.get_self_ranking()
 bvft_obj.run()
 # bvft_obj.draw_figure_6R()
 
