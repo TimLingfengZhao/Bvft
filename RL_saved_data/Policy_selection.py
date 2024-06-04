@@ -671,7 +671,7 @@ class Bvft_zero(policy_select):
         for resolution in resolution_list:
             record = BvftRecord()
             bvft_instance = BVFT(q_functions, self.test_data, gamma, rmax, rmin, policy_name_listi, record,
-                                 "torch_actor_critic_cont", verbose=True, data_size=data_size,
+                                 "torch_actor_critic_cont", verbose=True, data_size=self.data_size,
                                  trajectory_num=self.trajectory_num)
             # print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
