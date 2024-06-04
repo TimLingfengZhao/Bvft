@@ -72,6 +72,35 @@ class policy_select(ABC):
         self.trajectory_num = len(self.test_episodes)
         self.data_size = self.get_data_size(test_episodes)
 
+    def save_as_pkl(self,file_path, list_to_save):
+        full_path = f"{file_path}.pkl"
+        with open(full_path, 'wb') as file:
+            pickle.dump(list_to_save, file)
+
+    def save_as_txt(self,file_path, list_to_save):
+        full_path = f"{file_path}.txt"
+        with open(full_path, 'w') as file:
+            for item in list_to_save:
+                file.write(f"{item}\n")
+
+    def save_dict_as_txt(self,file_path, dict_to_save):
+        full_path = f"{file_path}.txt"
+        with open(full_path, 'w') as file:
+            for key, value in dict_to_save.items():
+                file.write(f"{key}:{value}\n")
+
+    def load_dict_from_txt(self,file_path):
+        with open(file_path, 'r') as file:
+            return {line.split(':', 1)[0]: line.split(':', 1)[1].strip() for line in file}
+
+    def list_to_dict(self,name_list, reward_list):
+        return dict(zip(name_list, reward_list))
+
+    def load_from_pkl(self,file_path):
+        full_path = f"{file_path}.pkl"
+        with open(full_path, 'rb') as file:
+            data = pickle.load(file)
+        return data
 
     def remove_duplicates(self,lst):
         seen = set()
@@ -101,6 +130,21 @@ class policy_select(ABC):
         for rank, (original_index, _) in enumerate(sorted_pairs, start=1):
             ranks[original_index] = rank
         return ranks
+
+    def delete_files_in_folder(self,folder_path):
+        if not os.path.exists(folder_path):
+            print("The folder does not exist.")
+            return
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                    print(f"Deleted {file_path}")
+                elif os.path.isdir(file_path):
+                    print(f"Skipping directory {file_path}")
+            except Exception as e:
+                print(f'Failed to delete {file_path}. Reason: {e}')
     @abstractmethod
     def select_Q(self,q_functions,q_name_functions,policy_name_listi,Q_sa,r_plus_vfsp):
         pass
@@ -158,9 +202,9 @@ class policy_select(ABC):
             less_index_list = self.rank_elements_lower_higher(loss_function)
             index = np.argmin(less_index_list)
             save_list = [q_name_functions[index]]
-            save_as_txt(Q_result_saving_path, save_list)
-            save_as_pkl(Q_result_saving_path, save_list)
-            delete_files_in_folder(Bvft_folder)
+            self.save_as_txt(Q_result_saving_path, save_list)
+            self.save_as_pkl(Q_result_saving_path, save_list)
+            self.delete_files_in_folder(Bvft_folder)
 
     def SixR_get_FQE_name(self,policy_name,repo_name):
         ranking_folder = "Policy_ranking_saving_place"
