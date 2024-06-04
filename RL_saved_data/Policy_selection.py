@@ -100,7 +100,7 @@ class policy_select(ABC):
         saving_folder = "Policy_ranking_saving_place"
         Q_saving_folder = self.data_name
         self.data_saving_path.append(Q_saving_folder)
-        self.data_saving_path = remove_duplicates(self.data_saving_path)
+        self.data_saving_path = self.remove_duplicates(self.data_saving_path)
         Q_saving_path = os.path.join(saving_folder, Q_saving_folder)
         if not os.path.exists(Q_saving_path):
             os.makedirs(Q_saving_path)
@@ -211,7 +211,7 @@ class policy_select(ABC):
         means = []
         SE = []
         labels = []
-        self_data_saving_path = remove_duplicates(self.data_saving_path)
+        self_data_saving_path = self.remove_duplicates(self.data_saving_path)
         max_step = str(max(self.FQE_saving_step_list))
         for i in range(len(self_data_saving_path)):
             repo_name = self_data_saving_path[i]
@@ -447,8 +447,8 @@ class policy_select(ABC):
         device = self.device
         Ranking_list = []
         Policy_name_list = []
-        self.data_saving_path = remove_duplicates(self.data_saving_path)
-        data_address_lists = remove_duplicates(self.data_saving_path)
+        self.data_saving_path = self.remove_duplicates(self.data_saving_path)
+        data_address_lists = self.remove_duplicates(self.data_saving_path)
         print("data address lists : ",data_address_lists)
         for i in range(len(data_address_lists)):
             Ranking_list.append([])
