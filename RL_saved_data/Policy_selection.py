@@ -1070,6 +1070,7 @@ train_episodes = whole_dataset.episodes[0:2000]
 test_episodes = whole_dataset.episodes[2000:2276]
 buffer_one = FIFOBuffer(limit=500000)
 replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
+Bvft_batch_dim = 1000
 test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
 k = 3
 num_runs = 1000
