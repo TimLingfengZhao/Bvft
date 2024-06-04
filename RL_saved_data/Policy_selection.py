@@ -124,6 +124,7 @@ class policy_select(ABC):
                 return pickle.load(file)
 
         def summary(self):
+            pass
     def remove_duplicates(self,lst):
         seen = set()
         result = []
