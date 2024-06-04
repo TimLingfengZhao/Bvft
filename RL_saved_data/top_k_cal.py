@@ -421,8 +421,6 @@ def rank_elements(input_list):
         current_rank += 1
 
     return rank_list
-
-
 def plot_predictions(x_axis_names, predictions, line_names, saved_folder_path, saved_name, picture_name):
     if len(predictions) != len(line_names):
         raise ValueError("predictions length is different with line name's length")
