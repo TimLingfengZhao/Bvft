@@ -70,7 +70,7 @@ class policy_select(ABC):
         self.gamma = gamma
         self.trajectory_num = len(self.test_episodes)
 
-    def remove_duplicates(lst):
+    def remove_duplicates(self,lst):
         seen = set()
         result = []
         for item in lst:
