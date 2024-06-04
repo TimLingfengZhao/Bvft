@@ -70,6 +70,60 @@ class policy_select(ABC):
         self.gamma = gamma
         self.trajectory_num = len(self.test_episodes)
 
+    class BvftRecord:
+        def __init__(self):
+            self.resolutions = []
+            self.losses = []
+            self.loss_matrices = []
+            self.group_counts = []
+            self.avg_q = []
+            self.optimal_grouping_skyline = []
+            self.e_q_star_diff = []
+            self.bellman_residual = []
+            self.ranking = []
+
+        def record_resolution(self, resolution):
+            self.resolutions.append(resolution)
+
+        def record_ranking(self, ranking):
+            self.ranking = ranking
+
+        def record_losses(self, max_loss):
+            self.losses.append(max_loss)
+
+        def record_loss_matrix(self, matrix):
+            self.loss_matrices.append(matrix)
+
+        def record_group_count(self, count):
+            self.group_counts.append(count)
+
+        def record_avg_q(self, avg_q):
+            self.avg_q.append(avg_q)
+
+        def record_optimal_grouping_skyline(self, skyline):
+            self.optimal_grouping_skyline.append(skyline)
+
+        def record_e_q_star_diff(self, diff):
+            self.e_q_star_diff = diff
+
+        def record_bellman_residual(self, br):
+            self.bellman_residual = br
+
+        def save(self, directory="Bvft_Records", file_prefix="BvftRecord_"):
+            os.makedirs(directory, exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = os.path.join(directory, f"{file_prefix}.pkl")
+            with open(filename, "wb") as file:
+                pickle.dump(self, file)
+            print(f"Record saved to {filename}")
+            return filename
+
+        @staticmethod
+        def load(filepath):
+            with open(filepath, "rb") as file:
+                return pickle.load(file)
+
+        def summary(self):
     def remove_duplicates(self,lst):
         seen = set()
         result = []
