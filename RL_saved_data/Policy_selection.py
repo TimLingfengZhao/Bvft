@@ -70,6 +70,7 @@ class policy_select(ABC):
         self.replay_buffer = replay_buffer
         self.gamma = gamma
         self.trajectory_num = len(self.test_episodes)
+        self.data_size = self.get_data_size(test_episodes)
 
 
     def remove_duplicates(self,lst):
@@ -117,7 +118,7 @@ class policy_select(ABC):
                                                        self.device)  # 1d: how many policy #2d: how many step #3d: 4
         FQE_lr_list = [1e-4, 2e-5]
         FQE_hl_list = [[128, 256], [128, 1024]]
-        data_size = self.get_data_size(test_episodes)
+        data_size = self.data_size
         line_name_list = []
         for i in range(len(self.FQE_saving_step_list)):
             for j in range(len(FQE_lr_list)):
