@@ -79,6 +79,12 @@ class policy_select(ABC):
                 result.append(item)
         return result
 
+    def get_data_size(self,episodes):
+        size = 0
+        for ele in episodes:
+            size += len(ele.observations)
+        return size
+
     def rank_elements_larger_higher(self,lst):
         sorted_pairs = sorted(enumerate(lst), key=lambda x: x[1], reverse=True)
         ranks = [0] * len(lst)
@@ -109,6 +115,7 @@ class policy_select(ABC):
                                                        self.device)  # 1d: how many policy #2d: how many step #3d: 4
         FQE_lr_list = [1e-4, 2e-5]
         FQE_hl_list = [[128, 256], [128, 1024]]
+        data_size = self.get_data_size(test_episodes)
         line_name_list = []
         for i in range(len(self.FQE_saving_step_list)):
             for j in range(len(FQE_lr_list)):
