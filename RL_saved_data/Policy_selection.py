@@ -50,54 +50,7 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 # dataset_d, env = get_d4rl('hopper-medium-v0')
 from d3rlpy.dataset import Episode
 class policy_select(ABC):
-    class CustomDataLoader:
-        def __init__(self, dataset, batch_size=1024):
-            self.dataset = dataset
-            self.batch_size = batch_size
-            self.current = 0
 
-        def __iter__(self):
-            self.current = 0
-            np.random.shuffle(self.indices)
-            return self
-
-        def __next__(self):
-            if self.current >= len(self.dataset):
-                raise StopIteration
-            return self.sample(self.batch_size)
-
-        def __len__(self):
-            return len(self.dataset)
-
-        def get_iter_length(self, iteration_number):
-            return len(self.dataset.episodes[iteration_number].observations)
-
-        def get_state_shape(self):
-            first_state = self.dataset.observations[0]
-            return np.array(first_state).shape
-
-        def sample(self, iteration_number):
-            dones = []
-            states = self.dataset.episodes[iteration_number].observations
-            actions = self.dataset.episodes[iteration_number].actions
-            padded_next_states = self.dataset.episodes[iteration_number].observations[
-                                 1:len(self.dataset.episodes[iteration_number].observations)]
-            padded_next_states = np.append(padded_next_states,
-                                           [self.dataset.episodes[iteration_number].observations[-1]], axis=0)
-            rewards = self.dataset.episodes[iteration_number].rewards
-            done = self.dataset.episodes[iteration_number].terminated
-            for i in range(len(states)):
-                if (i == len(states) - 1):
-                    if done:
-                        dones.append([1])
-                    else:
-                        dones.append([0])
-                else:
-                    dones.append([0])
-            # print(dones)
-            # print(states)
-            # sys.exit()
-            return states, actions, padded_next_states, rewards, dones
     def __init__(self,device,data_list,data_name_self, whole_dataset,train_episodes,test_episodes,test_data,replay_buffer,env,k,num_runs,FQE_saving_step_list,
                  gamma,initial_state,normalization_factor):
         self.device = device
@@ -1068,6 +1021,49 @@ class Bvft_zero(policy_select):
 #             save_as_txt(Bvft_Q_result_saving_path, save_list)
 #             save_as_pkl(Bvft_Q_result_saving_path, save_list)
 #             delete_files_in_folder(Bvft_folder)
+
+class CustomDataLoader:
+    def __init__(self, dataset, batch_size=1024):
+        self.dataset = dataset
+        self.batch_size = batch_size
+        self.current = 0
+    def __iter__(self):
+        self.current = 0
+        np.random.shuffle(self.indices)
+        return self
+
+    def __next__(self):
+        if self.current >= len(self.dataset):
+            raise StopIteration
+        return self.sample(self.batch_size)
+    def __len__(self):
+        return len(self.dataset)
+
+    def get_iter_length(self,iteration_number):
+        return len(self.dataset.episodes[iteration_number].observations)
+    def get_state_shape(self):
+        first_state = self.dataset.observations[0]
+        return np.array(first_state).shape
+    def sample(self, iteration_number):
+        dones = []
+        states = self.dataset.episodes[iteration_number].observations
+        actions =  self.dataset.episodes[iteration_number].actions
+        padded_next_states =  self.dataset.episodes[iteration_number].observations[1:len(self.dataset.episodes[iteration_number].observations)]
+        padded_next_states = np.append(padded_next_states, [self.dataset.episodes[iteration_number].observations[-1]], axis=0)
+        rewards = self.dataset.episodes[iteration_number].rewards
+        done = self.dataset.episodes[iteration_number].terminated
+        for i in range(len(states)):
+            if(i == len(states)-1):
+                if done:
+                    dones.append([1])
+                else:
+                    dones.append([0])
+            else:
+                dones.append([0])
+        # print(dones)
+        # print(states)
+        # sys.exit()
+        return states, actions, padded_next_states, rewards, dones
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 train_episodes = whole_dataset.episodes[0:2000]
