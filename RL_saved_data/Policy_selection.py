@@ -786,13 +786,8 @@ class Bvft_poli(policy_select):
             #     Bvft_final_resolution_loss[i].append(record.losses[0][i])
 
             result_list.append(record.losses[0])
-            print("record losses : ",record.losses)
-            print("record losses : ",record.losses[0])
         min_loss_list = self.get_min_loss(result_list)
-        print("min loss list  : ", min_loss_list)
         less_index_list = self.rank_elements_lower_higher(min_loss_list)
-        print("sorted less index list : ",less_index_list)
-        sys.exit()
         return less_index_list
 class Bvft_zero(policy_select):
     def select_Q(self,q_functions,q_name_functions,policy_name_listi,Q_sa,r_plus_vfsp):
@@ -810,7 +805,10 @@ class Bvft_zero(policy_select):
             #     Bvft_final_resolution_loss[i].append(record.losses[0][i])
 
             result_list.append(record.losses[0])
+        print("result list : ",result_list)
         less_index_list = self.rank_elements_lower_higher(result_list)
+        print("less index list : ",less_index_list)
+        sys.exit()
         return less_index_list
 
 
