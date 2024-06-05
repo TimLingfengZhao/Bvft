@@ -567,8 +567,6 @@ class policy_select(ABC):
         #     line_name_list = self.load_from_pkl(plot_name_saving_path)
         # else:
         precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
-        print("precision mean list : ",precision_mean_list)
-        print("regret mean list : ",regret_mean_list)
         plot_mean_list = [precision_mean_list, regret_mean_list]
         plot_ci_list = [precision_ci_list, regret_ci_list]
 
@@ -803,7 +801,7 @@ class policy_select(ABC):
         return precision_mean_list,regret_mean_list,precision_ci_list,regret_ci_list,plot_name_list
 class Bvft_poli(policy_select):
     def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
-        resolution_list = [2, 3, 4, 8, 16, 100, 1e10]
+        resolution_list = [2, 3, 4, 8, 16, 22, 23, 25, 26, 28, 50]
         rmax, rmin = self.env.reward_range[0], self.env.reward_range[1]
         result_list = []
         Bvft_final_resolution_loss = []
