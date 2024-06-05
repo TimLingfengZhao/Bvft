@@ -93,7 +93,10 @@ class policy_select(ABC):
 
         Policy_ranking_saving_place = "Policy_ranking_saving_place"
         Policy_k_saving_place = "Policy_k_saving_place"
-        Res_plot_folder = "Bvft_res_plot_"+str(resolution_list)
+        policy_result = os.path.join(Policy_ranking_saving_place,Policy_k_saving_place)
+
+        policy_result_path  = "Bvft_res_plot_"+str(resolution_list)
+        Res_plot_folder = os.path.join(policy_result,policy_result_path)
         if not os.path.exists(Res_plot_folder):
             os.makedirs(Res_plot_folder)
         plot_name = "Figure_1R_" + save_folder_name  + ".png"
