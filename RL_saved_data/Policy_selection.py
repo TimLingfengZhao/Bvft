@@ -789,6 +789,7 @@ class Bvft_poli(policy_select):
             print("record losses : ",record.losses)
             print("record losses : ",record.losses[0])
         min_loss_list = self.get_min_loss(result_list)
+        print("min loss list  : ", min_loss_list)
         less_index_list = self.rank_elements_lower_higher(min_loss_list)
         print("sorted less index list : ",less_index_list)
         sys.exit()
