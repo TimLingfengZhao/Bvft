@@ -111,6 +111,77 @@ class policy_select(ABC):
                 result.append(item)
         return result
 
+    def draw_mse_graph(self,combinations, means, colors, standard_errors, labels, folder_path, FQE_step_list,
+                       filename="FQE_MSES.png", figure_name='Normalized MSE of FQE'):
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        group_width = 1.0
+        n_bars = len(labels)
+        bar_width = group_width / n_bars
+
+        indices = np.arange(1)
+
+        fig, ax = plt.subplots()
+
+        for i in range(n_bars):
+            bar_x_positions = indices - (group_width - bar_width) / 2 + i * bar_width
+
+            errors_below = standard_errors[i]
+            errors_above = standard_errors[i]
+
+            ax.bar(bar_x_positions, means[i], yerr=[[errors_below], [errors_above]],
+                   capsize=5, alpha=0.7, color=colors[i], label=labels[i], width=bar_width)
+
+        ax.set_ylabel('Normalized MSE')
+        ax.set_title(figure_name + "_" + str(FQE_step_list) + "_steps")
+
+        ax.set_xticks(indices)
+        ax.set_xticklabels(combinations)
+
+        ax.legend(loc='upper right')
+
+        plt.tight_layout()
+        plt.savefig(os.path.join(folder_path, filename))
+        plt.close()
+    def plot_subplots(self,data, save_path, y_axis_names, line_names, colors, ci):
+        num_subplots = len(data)
+        fig, axes = plt.subplots(num_subplots, figsize=(10, 5 * num_subplots), squeeze=False)
+        print(data)
+        print(ci)
+        for i, subplot_data in enumerate(data):
+
+            for j, line_data in enumerate(subplot_data):
+                # print("len line data : ", len(line_data))
+                x_values = list(range(1, len(line_data) + 1))
+
+                top = []
+                bot = []
+
+                for z in range(len(line_data)):
+                    top.append(line_data[z] + ci[i][j][z])
+                    bot.append(line_data[z] - ci[i][j][z])
+                axes[i, 0].plot(x_values, line_data, label=line_names[j], color=colors[j])
+
+                axes[i, 0].fill_between(x_values, bot, top, color=colors[j], alpha=0.2)
+
+            axes[i, 0].set_ylabel(y_axis_names[i])
+            axes[i, 0].legend()
+
+        plt.tight_layout()
+        saving_path = "regret_precision.png"
+        saving_path = os.path.join(save_path, saving_path)
+        plt.savefig(saving_path)
+        plt.close()
+    def generate_unique_colors(self,number_of_colors):
+
+        cmap = plt.get_cmap('tab20')
+
+        if number_of_colors <= 20:
+            colors = [cmap(i) for i in range(number_of_colors)]
+        else:
+            colors = [cmap(i) for i in np.linspace(0, 1, number_of_colors)]
+        return colors
     def get_data_size(self,episodes):
         size = 0
         for ele in episodes:
@@ -344,7 +415,7 @@ class policy_select(ABC):
         if self.normalization_factor == 1:
             figure_name = 'Normalized MSE of FQE groundtruth variance'
             filename = "Figure6R_groundtruth_variance_NMSE_graph" + "_" + str(self.FQE_saving_step_list)
-        draw_mse_graph(combinations=name_list, means=means, colors=colors, standard_errors=SE,
+        self.draw_mse_graph(combinations=name_list, means=means, colors=colors, standard_errors=SE,
                        labels=labels, folder_path=Figure_saving_path, FQE_step_list=self.FQE_saving_step_list,
                        filename=filename, figure_name=figure_name)
     def get_min_loss(self,loss_list):  # input 2d list, return 1d list
@@ -424,11 +495,11 @@ class policy_select(ABC):
         precision_path = os.path.join(Result_k_save_path, k_precision_name)
         # if os.path.exists(precision_path):
         #     print("load saved data")
-        #     precision_mean_list = load_from_pkl(k_precision_mean_saving_path)
-        #     regret_mean_list = load_from_pkl(k_regret_mean_saving_path)
-        #     precision_ci_list = load_from_pkl(k_precision_ci_saving_path)
-        #     regret_ci_list = load_from_pkl(k_regret_ci_saving_path)
-        #     line_name_list = load_from_pkl(plot_name_saving_path)
+        #     precision_mean_list = self.load_from_pkl(k_precision_mean_saving_path)
+        #     regret_mean_list = self.load_from_pkl(k_regret_mean_saving_path)
+        #     precision_ci_list = self.load_from_pkl(k_precision_ci_saving_path)
+        #     regret_ci_list = self.load_from_pkl(k_regret_ci_saving_path)
+        #     line_name_list = self.load_from_pkl(plot_name_saving_path)
         # else:
         precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
         print("precision mean list : ",precision_mean_list)
@@ -440,12 +511,12 @@ class policy_select(ABC):
         if not os.path.exists(plot_folder):
             os.makedirs(plot_folder)
         y_axis_names = ["k precision", "k regret"]
-        colors = generate_unique_colors(len(plot_mean_list[0]))
+        colors = self.generate_unique_colors(len(plot_mean_list[0]))
         line_name = ["hopper-medium-expert-v0", "hopper-medium-expert-v0"]
         print("line name list : ", line_name_list)
         # print("plot mean list : ",plot_mean_list)
         # print("ci lsit : ",plot_ci_list)
-        plot_subplots(data=plot_mean_list, save_path=plot_folder, y_axis_names=y_axis_names,
+        self.plot_subplots(data=plot_mean_list, save_path=plot_folder, y_axis_names=y_axis_names,
                       line_names=line_name_list, colors=colors, ci=plot_ci_list)
         print("plot finished")
     def load_policy(self,device):
