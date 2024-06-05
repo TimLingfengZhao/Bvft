@@ -145,6 +145,67 @@ class policy_select(ABC):
                     print(f"Skipping directory {file_path}")
             except Exception as e:
                 print(f'Failed to delete {file_path}. Reason: {e}')
+
+    def calculate_top_k_normalized_regret(self,ranking_list, policy_name_list, env, k=2):
+        print("calcualte top k normalized regret")
+        policy_performance_list = load_policy_performance(policy_name_list, env)
+
+        ground_truth_value = max(policy_performance_list)
+        worth_value = min(policy_performance_list)
+        if ((ground_truth_value - worth_value) == 0):
+            print("the maximum is equal to worth value, error!!!!")
+            return 99999
+        k_regret_list = []
+        for j in range(1, k + 1):
+            gap_list = []
+            for i in range(len(ranking_list)):
+                print("ranking list : ", ranking_list)
+                print("ranking list i : ", ranking_list[i])
+                print(j)
+                print(k)
+                if (ranking_list[i] <= j):
+                    print("k :", j - 1)
+                    print("ranking : ", ranking_list[i])
+                    print("performance list : ", policy_performance_list)
+                    value = policy_performance_list[i]
+                    print("if performance not empty : ", policy_performance_list[i])
+                    norm = (ground_truth_value - value) / (ground_truth_value - worth_value)
+                    gap_list.append(norm)
+            k_regret_list.append(min(gap_list))
+        return k_regret_list
+    def calculate_statistics(self,data_list):
+        mean = np.mean(data_list)
+        std_dev = np.std(data_list, ddof=1)
+        sem = std_dev / np.sqrt(len(data_list))
+        ci = 2 * sem
+        return mean, ci
+    def calculate_top_k_normalized_regret(self,ranking_list, policy_name_list, env, k=2):
+        print("calcualte top k normalized regret")
+        policy_performance_list = load_policy_performance(policy_name_list, env)
+
+        ground_truth_value = max(policy_performance_list)
+        worth_value = min(policy_performance_list)
+        if ((ground_truth_value - worth_value) == 0):
+            print("the maximum is equal to worth value, error!!!!")
+            return 99999
+        k_regret_list = []
+        for j in range(1, k + 1):
+            gap_list = []
+            for i in range(len(ranking_list)):
+                print("ranking list : ", ranking_list)
+                print("ranking list i : ", ranking_list[i])
+                print(j)
+                print(k)
+                if (ranking_list[i] <= j):
+                    print("k :", j - 1)
+                    print("ranking : ", ranking_list[i])
+                    print("performance list : ", policy_performance_list)
+                    value = policy_performance_list[i]
+                    print("if performance not empty : ", policy_performance_list[i])
+                    norm = (ground_truth_value - value) / (ground_truth_value - worth_value)
+                    gap_list.append(norm)
+            k_regret_list.append(min(gap_list))
+        return k_regret_list
     @abstractmethod
     def select_Q(self,q_functions,q_name_functions,policy_name_listi,Q_sa,r_plus_vfsp):
         pass
@@ -509,7 +570,6 @@ class policy_select(ABC):
             Ranking_list.append([])
         for runs in range(num_runs):
             policy_name_list, policy_list = self.pick_policy(15,device)
-            print("policy name list : ",policy_name_list)
             for data_address_index in range(len(data_address_lists)):
                 # print("ranking : ",self.get_ranking(data_address_lists[data_address_index],policy_name_list,FQE_saving_step_list))
                 # sys.exit()
@@ -532,8 +592,8 @@ class policy_select(ABC):
             Regret_list.append([])
         for i in range(num_runs):
             for num_index in range(len(Ranking_list)):
-                Precision_list[num_index].append(calculate_top_k_precision(initial_state,env,Policy_name_list[i],Ranking_list[num_index][i],k))
-                Regret_list[num_index].append(calculate_top_k_normalized_regret(Ranking_list[num_index][i],Policy_name_list[i],env,k))
+                Precision_list[num_index].append(self.calculate_top_k_precision(initial_state,env,Policy_name_list[i],Ranking_list[num_index][i],k))
+                Regret_list[num_index].append(self.calculate_top_k_normalized_regret(Ranking_list[num_index][i],Policy_name_list[i],env,k))
         print("precision list : ",Precision_list)
         print("regret list  :",Regret_list)
 
