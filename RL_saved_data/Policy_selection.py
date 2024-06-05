@@ -1249,12 +1249,14 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 train_episodes = whole_dataset.episodes[0:2000]
 test_episodes = whole_dataset.episodes[2000:2276]
+print(len(test_episodes))
+sys.exit()
 buffer_one = FIFOBuffer(limit=500000)
 replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
 Bvft_batch_dim = 1000
 test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
 k = 5
-num_runs = 1000
+num_runs = 300
 FQE_saving_step_list = [2000000]
 initial_state = 12345
 # data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_abs"]
