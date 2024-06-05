@@ -72,6 +72,35 @@ class policy_select(ABC):
         self.trajectory_num = len(self.test_episodes)
         self.data_size = self.get_data_size(test_episodes)
 
+    def normalized_mean_square_error_with_error_bar(self,ctual, predicted, NMSE_normalization_factor):
+
+        if len(actual) != len(predicted):
+            raise ValueError("The length of actual and predicted values must be the same.")
+
+        squared_errors = [(a - p) ** 2 for a, p in zip(actual, predicted)]
+
+        mse = sum(squared_errors) / len(actual)
+
+        mean_actual = sum(actual) / len(actual)
+        mean_predicted = sum(predicted) / len(predicted)
+        range_squared = (max(actual) - min(actual)) ** 2
+        if (NMSE_normalization_factor == 1):
+            range_squared = sum((x - mean_actual) ** 2 for x in actual) / len(actual)
+        # range_squared = mean_actual * mean_predicted
+        if range_squared == 0:
+            raise ValueError("The range of actual values is zero. NMSE cannot be calculated.")
+
+        nmse = mse / range_squared
+
+        mean_squared_errors = mse
+        variance_squared_errors = sum((se - mean_squared_errors) ** 2 for se in squared_errors) / (
+                    len(squared_errors) - 1)
+
+        sd_mse = variance_squared_errors / len(squared_errors)
+
+        se_mse = sd_mse ** 0.5
+        se_mse = se_mse / range_squared
+        return nmse, se_mse
     def save_as_pkl(self,file_path, list_to_save):
         full_path = f"{file_path}.pkl"
         with open(full_path, 'wb') as file:
@@ -272,6 +301,13 @@ class policy_select(ABC):
         ci = 2 * sem
         return mean, ci
 
+    def extract_substrings(self,s):
+        parts = s.split('_')
+
+        if len(parts) < 4:
+            return None, None
+
+        return parts[1], parts[2]
     @abstractmethod
     def select_Q(self,q_functions,q_name_functions,policy_name_listi,Q_sa,r_plus_vfsp):
         pass
@@ -361,7 +397,7 @@ class policy_select(ABC):
 
         policy_total_model = 'policy_returned_total'
         policy_total_path = os.path.join(policy_returned_result_folder, policy_total_model)
-        policy_total_dictionary = load_from_pkl(policy_total_path)
+        policy_total_dictionary = self.load_from_pkl(policy_total_path)
 
         true_list = []
         prediction_list = []
@@ -371,7 +407,7 @@ class policy_select(ABC):
 
             FQE_model_name = self.SixR_get_FQE_name(policy_name,repo_name)
 
-            FQE_learning_rate, FQE_hidden_layer = extract_substrings(FQE_model_name)
+            FQE_learning_rate, FQE_hidden_layer = self.extract_substrings(FQE_model_name)
 
             FQE_directory = 'FQE_' + str(FQE_learning_rate) + '_' + str(FQE_hidden_layer)
             FQE_folder = os.path.join(FQE_returned_folder, FQE_directory)
@@ -381,11 +417,11 @@ class policy_select(ABC):
             FQE_total_result_folder = "FQE_returned_total"
             FQE_total_path = os.path.join(FQE_folder, FQE_total_result_folder)
 
-            FQE_total_dictionary = load_from_pkl(FQE_total_path)
+            FQE_total_dictionary = self.load_from_pkl(FQE_total_path)
 
             true_list.append(policy_total_dictionary[policy_name])
             prediction_list.append(FQE_total_dictionary[FQE_model_name])
-        NMSE, standard_error = normalized_mean_square_error_with_error_bar(true_list, prediction_list,
+        NMSE, standard_error = self.normalized_mean_square_error_with_error_bar(true_list, prediction_list,
                                                                            self.normalization_factor)
 
         return NMSE, standard_error
