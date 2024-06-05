@@ -540,7 +540,7 @@ class policy_select(ABC):
         performance_folder = "policy_returned_result"
         total_name = "policy_returned_total.txt"
         performance_total_path = os.path.join(performance_folder, total_name)
-        performance_dict = load_dict_from_txt(performance_total_path)
+        performance_dict = self.load_dict_from_txt(performance_total_path)
         device = "cuda:0" if torch.cuda.is_available() else "cpu"
         performance_list = []
         for policy_name in policy_name_list:
