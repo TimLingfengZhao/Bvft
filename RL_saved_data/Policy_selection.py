@@ -690,8 +690,8 @@ class policy_select(ABC):
             current_precision_ci_list = []
             current_regret_ci_list = []
             for j in range(k):
-                current_precision_mean, current_precision_ci = calculate_statistics(Precision_k_list[i][j])
-                current_regret_mean, current_regret_ci = calculate_statistics(Regret_k_list[i][j])
+                current_precision_mean, current_precision_ci = self.calculate_statistics(Precision_k_list[i][j])
+                current_regret_mean, current_regret_ci = self.calculate_statistics(Regret_k_list[i][j])
                 current_precision_mean_list.append(current_precision_mean)
                 current_precision_ci_list.append(current_precision_ci)
                 current_regret_mean_list.append(current_regret_mean)
@@ -722,17 +722,17 @@ class policy_select(ABC):
         k_regret_ci_saving_path = os.path.join(saving_path,regret_ci_name)
         plot_name_saving_path = os.path.join(saving_path,plot_name)
 
-        save_as_pkl(k_precision_mean_saving_path,precision_mean_list)
-        save_as_pkl(k_regret_mean_saving_path,regret_mean_list)
-        save_as_pkl(k_precision_ci_saving_path,precision_ci_list)
-        save_as_pkl(k_regret_ci_saving_path,regret_ci_list)
-        save_as_pkl(plot_name_saving_path,plot_name_list)
+        self.save_as_pkl(k_precision_mean_saving_path,precision_mean_list)
+        self.save_as_pkl(k_regret_mean_saving_path,regret_mean_list)
+        self.save_as_pkl(k_precision_ci_saving_path,precision_ci_list)
+        self.save_as_pkl(k_regret_ci_saving_path,regret_ci_list)
+        self.save_as_pkl(plot_name_saving_path,plot_name_list)
 
-        save_as_txt(k_precision_mean_saving_path,precision_mean_list)
-        save_as_txt(k_regret_mean_saving_path,regret_mean_list)
-        save_as_txt(k_precision_ci_saving_path,precision_ci_list)
-        save_as_txt(k_regret_ci_saving_path,regret_ci_list)
-        save_as_txt(plot_name_saving_path,plot_name_list)
+        self.save_as_txt(k_precision_mean_saving_path,precision_mean_list)
+        self.save_as_txt(k_regret_mean_saving_path,regret_mean_list)
+        self.save_as_txt(k_precision_ci_saving_path,precision_ci_list)
+        self.save_as_txt(k_regret_ci_saving_path,regret_ci_list)
+        self.save_as_txt(plot_name_saving_path,plot_name_list)
 
 
         return precision_mean_list,regret_mean_list,precision_ci_list,regret_ci_list,plot_name_list
