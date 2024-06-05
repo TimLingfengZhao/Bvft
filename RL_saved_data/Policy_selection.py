@@ -341,7 +341,7 @@ class policy_select(ABC):
         return parts[1], parts[2]
     "return the ranking list"
     @abstractmethod
-    def select_Q(self,q_functions,q_name_functions,policy_name_listi,Q_sa,r_plus_vfsp):
+    def select_Q(self,q_functions,q_name_functions,policy_name_listi,q_sa,r_plus_vfsp):
         pass
 
     def get_self_ranking(self):
@@ -802,7 +802,7 @@ class policy_select(ABC):
 
         return precision_mean_list,regret_mean_list,precision_ci_list,regret_ci_list,plot_name_list
 class Bvft_poli(policy_select):
-    def select_Q(self, q_functions, q_name_functions, policy_name_listi, Q_sa, r_plus_vfsp):
+    def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
         resolution_list = [2, 3, 4, 8, 16, 100, 1e10]
         rmax, rmin = self.env.reward_range[0], self.env.reward_range[1]
         result_list = []
@@ -851,7 +851,7 @@ class Bvft_poli(policy_select):
                                         save_folder_name, line_name_list, group_list)
         return less_index_list
 class Bvft_zero(policy_select):
-    def select_Q(self,q_functions,q_name_functions,policy_name_listi,Q_sa,r_plus_vfsp):
+    def select_Q(self,q_functions,q_name_functions,policy_name_listi,q_sa,r_plus_vfsp):
         resolution_list = np.array([0.00001])
         rmax, rmin = self.env.reward_range[0], self.env.reward_range[1]
         result_list = []
@@ -867,7 +867,58 @@ class Bvft_zero(policy_select):
         return less_index_list
 
 
-# class Bvft_FQE_zero(policy_select):
+class FQE_zero(policy_select):
+    def select_Q(self,q_functions,q_name_functions,policy_name_listi,q_sa,r_plus_vfsp):
+        loss = []
+        for i in range(len(q_functions)):
+            if i % 4 == 0:
+                loss.append(self.load_FQE_performance(q_name_functions[i]))
+            else:
+                loss.append(-9999)
+        result = self.rank_elements_larger_higher(loss)
+        return result
+
+class FQE_one(policy_select):
+    def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
+        loss = []
+        for i in range(len(q_functions)):
+            if i % 4 == 1:
+                loss.append(self.load_FQE_performance(q_name_functions[i]))
+            else:
+                loss.append(-9999)
+        result = self.rank_elements_larger_higher(loss)
+        return result
+
+class FQE_two(policy_select):
+    def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
+        loss = []
+        for i in range(len(q_functions)):
+            if i % 4 == 2:
+                loss.append(self.load_FQE_performance(q_name_functions[i]))
+            else:
+                loss.append(-9999)
+        result = self.rank_elements_larger_higher(loss)
+        return result
+
+class FQE_three(policy_select):
+    def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
+        loss = []
+        for i in range(len(q_functions)):
+            if i % 4 == 3:
+                loss.append(self.load_FQE_performance(q_name_functions[i]))
+            else:
+                loss.append(-9999)
+        result = self.rank_elements_larger_higher(loss)
+        return result
+class Bvft_abs(policy_select):
+    def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
+        loss_function = []
+        for i in range(len(q_functions)):
+            diff = q_sa[i]-r_plus_vfsp[i]
+            loss_function.append(np.abs(np.sum(diff)/len(diff)))
+        less_index_list = self.rank_elements_lower_higher(loss_function)
+        return less_index_list
+# class Bvft_abs(policy_select):
 #     def select_Q(self):
 #         device = self.device
 #         print("begin save best Q, current device : ", device)
@@ -887,9 +938,9 @@ class Bvft_zero(policy_select):
 #         data_size = get_data_size(test_episodes)
 #         print("data size : ", get_data_size(whole_dataset.episodes))
 #         test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
-#
+#         trajectory_num = len(test_episodes)
 #         Bvft_saving_folder = "Policy_ranking_saving_place"
-#         Bvft_Q_saving_folder = "Bvft_0.0001_256"
+#         Bvft_Q_saving_folder = "l1_norm"
 #         self.data_saving_path.append(Bvft_Q_saving_folder)
 #         self.data_saving_path = remove_duplicates(self.data_saving_path)
 #         Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
@@ -899,6 +950,7 @@ class Bvft_zero(policy_select):
 #
 #         Q_FQE, Q_name_list, FQE_step_Q_list = self.load_FQE(policy_name_list, self.FQE_saving_step_list, replay_buffer,
 #                                                        device)  # 1d: how many policy #2d: how many step #3d: 4
+#
 #         FQE_lr_list = [1e-4, 2e-5]
 #         FQE_hl_list = [[128, 256], [128, 1024]]
 #         resolution_list = np.array([0.1, 0.2, 0.5, 0.7, 1.0]) * 100
@@ -924,8 +976,45 @@ class Bvft_zero(policy_select):
 #                 for h in range(len(Q_FQE[0][0])):
 #                     q_functions.append(Q_FQE[i][j][h])
 #                     q_name_functions.append(FQE_step_Q_list[i][j][h])
-#             print(q_functions)
-#             save_list = [q_name_functions[0]]
+#             loss_function = []
+#             q_sa = [np.zeros(data_size) for _ in q_functions]
+#             r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]
+#             ptr = 0
+#             gamma = 0.99
+#             while ptr < trajectory_num:  # for everything in data size
+#                 length = test_data.get_iter_length(ptr)
+#                 state, action, next_state, reward, done = test_data.sample(ptr)
+#                 # print("state : ",state)
+#                 # print("reward : ", reward)
+#                 # print("next state : ",next_state)
+#                 for i in range(len(q_functions)):
+#                     actor = q_functions[i]
+#                     critic = q_functions[i]
+#                     # self.q_sa[i][ptr:ptr + length] = critic.predict_value(state, action).cpu().detach().numpy().flatten()[
+#                     #                                  :length]
+#                     q_sa[i][ptr:ptr + length] = critic.predict_value(state, action).flatten()[
+#                                                      :length]
+#                     # print("self qa : ",self.q_sa[i][ptr:ptr + 20])
+#                     # print("done : ",done)
+#                     # print("reward : ",reward)
+#                     # print("type state : ",type(state))
+#                     # print("type next state : ",type(next_state))
+#                     # print("action : ",actor.predict(next_state))
+#                     # print("predicted qa value : ",critic.predict_value(next_state, actor.predict(next_state)))
+#
+#                     vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1) * gamma)
+#
+#
+#                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
+#                     r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
+#                     # print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
+#                 ptr += 1
+#             for i in range(len(q_functions)):
+#                 diff = q_sa[i]-r_plus_vfsp[i]
+#                 loss_function.append(np.abs(np.sum(diff)/len(diff)))
+#             less_index_list = rank_elements_lower_higher(loss_function)
+#             index = np.argmin(less_index_list)
+#             save_list = [q_name_functions[index]]
 #             save_as_txt(Bvft_Q_result_saving_path, save_list)
 #             save_as_pkl(Bvft_Q_result_saving_path, save_list)
 #             delete_files_in_folder(Bvft_folder)
@@ -1114,106 +1203,7 @@ class Bvft_zero(policy_select):
 #             save_as_pkl(Bvft_Q_result_saving_path, save_list)
 #             delete_files_in_folder(Bvft_folder)
 #
-# class Bvft_abs(policy_select):
-#     def select_Q(self):
-#         device = self.device
-#         print("begin save best Q, current device : ", device)
-#         whole_dataset = self.whole_dataset
-#         env = self.env
-#         train_episodes = whole_dataset.episodes[0:2000]
-#         test_episodes = whole_dataset.episodes[2000:2276]
-#         Bvft_batch_dim = get_mean_length(test_episodes)
-#         trajectory_num = len(test_episodes)
-#         print("mean length : ", Bvft_batch_dim)
-#         buffer_one = FIFOBuffer(limit=500000)
-#         replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
-#         buffer = FIFOBuffer(limit=1500000)
-#         replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
-#         gamma = 0.99
-#         rmax, rmin = env.reward_range[0], env.reward_range[1]
-#         data_size = get_data_size(test_episodes)
-#         print("data size : ", get_data_size(whole_dataset.episodes))
-#         test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
-#         trajectory_num = len(test_episodes)
-#         Bvft_saving_folder = "Policy_ranking_saving_place"
-#         Bvft_Q_saving_folder = "l1_norm"
-#         self.data_saving_path.append(Bvft_Q_saving_folder)
-#         self.data_saving_path = remove_duplicates(self.data_saving_path)
-#         Bvft_Q_saving_path = os.path.join(Bvft_saving_folder, Bvft_Q_saving_folder)
-#         if not os.path.exists(Bvft_Q_saving_path):
-#             os.makedirs(Bvft_Q_saving_path)
-#         policy_name_list, policy_list = self.load_policy(device)
-#
-#         Q_FQE, Q_name_list, FQE_step_Q_list = self.load_FQE(policy_name_list, self.FQE_saving_step_list, replay_buffer,
-#                                                        device)  # 1d: how many policy #2d: how many step #3d: 4
-#
-#         FQE_lr_list = [1e-4, 2e-5]
-#         FQE_hl_list = [[128, 256], [128, 1024]]
-#         resolution_list = np.array([0.1, 0.2, 0.5, 0.7, 1.0]) * 100
-#         # print("input resolution list for Bvft : ", resolution_list)
-#         Bvft_folder = "FQE_"
-#         if not os.path.exists(Bvft_folder):
-#             os.makedirs(Bvft_folder)
-#
-#         line_name_list = []
-#         for i in range(len(FQE_saving_step_list)):
-#             for j in range(len(FQE_lr_list)):
-#                 for k in range(len(FQE_hl_list)):
-#                     line_name_list.append('FQE_' + str(FQE_lr_list[j]) + '_' + str(FQE_hl_list[k]) + '_' + str(
-#                         FQE_saving_step_list[i]) + "step")
-#         for i in range(len(Q_FQE)):
-#             save_folder_name = Q_name_list[i]
-#             # Bvft_resolution_loss_policy_saving_path = os.path.join(Bvft_resolution_losses_saving_path, save_folder_name)
-#             Bvft_Q_result_saving_path = os.path.join(Bvft_Q_saving_path, save_folder_name)
-#
-#             q_functions = []
-#             q_name_functions = []
-#             for j in range(len(Q_FQE[0])):
-#                 for h in range(len(Q_FQE[0][0])):
-#                     q_functions.append(Q_FQE[i][j][h])
-#                     q_name_functions.append(FQE_step_Q_list[i][j][h])
-#             loss_function = []
-#             q_sa = [np.zeros(data_size) for _ in q_functions]
-#             r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]
-#             ptr = 0
-#             gamma = 0.99
-#             while ptr < trajectory_num:  # for everything in data size
-#                 length = test_data.get_iter_length(ptr)
-#                 state, action, next_state, reward, done = test_data.sample(ptr)
-#                 # print("state : ",state)
-#                 # print("reward : ", reward)
-#                 # print("next state : ",next_state)
-#                 for i in range(len(q_functions)):
-#                     actor = q_functions[i]
-#                     critic = q_functions[i]
-#                     # self.q_sa[i][ptr:ptr + length] = critic.predict_value(state, action).cpu().detach().numpy().flatten()[
-#                     #                                  :length]
-#                     q_sa[i][ptr:ptr + length] = critic.predict_value(state, action).flatten()[
-#                                                      :length]
-#                     # print("self qa : ",self.q_sa[i][ptr:ptr + 20])
-#                     # print("done : ",done)
-#                     # print("reward : ",reward)
-#                     # print("type state : ",type(state))
-#                     # print("type next state : ",type(next_state))
-#                     # print("action : ",actor.predict(next_state))
-#                     # print("predicted qa value : ",critic.predict_value(next_state, actor.predict(next_state)))
-#
-#                     vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1) * gamma)
-#
-#
-#                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
-#                     r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
-#                     # print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
-#                 ptr += 1
-#             for i in range(len(q_functions)):
-#                 diff = q_sa[i]-r_plus_vfsp[i]
-#                 loss_function.append(np.abs(np.sum(diff)/len(diff)))
-#             less_index_list = rank_elements_lower_higher(loss_function)
-#             index = np.argmin(less_index_list)
-#             save_list = [q_name_functions[index]]
-#             save_as_txt(Bvft_Q_result_saving_path, save_list)
-#             save_as_pkl(Bvft_Q_result_saving_path, save_list)
-#             delete_files_in_folder(Bvft_folder)
+
 
 class CustomDataLoader:
     def __init__(self, dataset, batch_size=1024):
@@ -1265,12 +1255,12 @@ buffer_one = FIFOBuffer(limit=500000)
 replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
 Bvft_batch_dim = 1000
 test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
-k = 3
+k = 5
 num_runs = 1000
 FQE_saving_step_list = [2000000]
 initial_state = 12345
 # data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_abs"]
-data_saving_path = ["Bvft_ranking","Bvft_res_0"]
+data_saving_path = ["Bvft_ranking","Bvft_res_0","FQE_0.0001_256","FQE0.0001_1024","FQE_0.00002_256","FQE_0.00002_1024","l1_norm"]
 normalization_factor = 0
 # data_saving_path = ["Bvft_ranking"]
 gamma = 0.99
@@ -1282,9 +1272,34 @@ bvft_obj = Bvft_zero(device=device,data_list =data_saving_path,data_name_self = 
                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+FQE_zero = FQE_zero(device=device,data_list =data_saving_path,data_name_self = "FQE_0.0001_256",whole_dataset= whole_dataset,train_episodes=train_episodes,
+                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+FQE_one = FQE_one(device=device,data_list =data_saving_path,data_name_self = "FQE_0.0001_1024",whole_dataset= whole_dataset,train_episodes=train_episodes,
+                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+FQE_two = FQE_two(device=device,data_list =data_saving_path,data_name_self = "FQE_0.00002_256",whole_dataset= whole_dataset,train_episodes=train_episodes,
+                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+FQE_three = FQE_three(device=device,data_list =data_saving_path,data_name_self = "FQE_0.00002_1024",whole_dataset= whole_dataset,train_episodes=train_episodes,
+                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+l1_norm = Bvft_ans(device=device,data_list =data_saving_path,data_name_self = "l1_norm",whole_dataset= whole_dataset,train_episodes=train_episodes,
+                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
 bvft_poli.get_self_ranking()
 bvft_obj.get_self_ranking()
-bvft_obj.draw_figure_6R()
-bvft_obj.run()
+FQE_zero.get_self_ranking()
+FQE_one.get_self_ranking()
+FQE_two.get_self_ranking()
+FQE_three.get_self_ranking()
+l1_norm.get_self_ranking()
+l1_norm.draw_figure_6R()
+l1_norm.run()
 # bvft_obj.draw_figure_6R()
 
