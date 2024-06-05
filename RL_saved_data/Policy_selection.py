@@ -804,6 +804,9 @@ class Bvft_poli(policy_select):
         rmax, rmin = self.env.reward_range[0], self.env.reward_range[1]
         result_list = []
         Bvft_final_resolution_loss = []
+        for i in range(len(FQE_saving_step_list) * 4):
+            current_list = []
+            Bvft_final_resolution_loss.append(current_list)
         group_list = []
         for resolution in resolution_list:
             record = BvftRecord()
@@ -854,11 +857,7 @@ class Bvft_zero(policy_select):
             bvft_instance = BVFT(q_functions, self.test_data, gamma, rmax, rmin, policy_name_listi, record,
                                  "torch_actor_critic_cont", verbose=True, data_size=self.data_size,
                                  trajectory_num=self.trajectory_num)
-            # print("resolution : ",resolution)
             bvft_instance.run(resolution=resolution)
-            # for i in range(len(record.losses[0])):
-            #     Bvft_final_resolution_loss[i].append(record.losses[0][i])
-
             result_list.append(record.losses[0])
         list_to_rank = result_list[0]
         less_index_list = self.rank_elements_lower_higher(list_to_rank)
