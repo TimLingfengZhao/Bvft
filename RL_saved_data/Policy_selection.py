@@ -1215,14 +1215,19 @@ num_runs = 1000
 FQE_saving_step_list = [2000000]
 initial_state = 12345
 # data_saving_path = ["Bvft_ranking","Bvft_res_0","Bvft_abs"]
-data_saving_path = ["Bvft_res_0"]
+data_saving_path = ["Bvft_ranking","Bvft_res_0"]
 normalization_factor = 0
 # data_saving_path = ["Bvft_ranking"]
 gamma = 0.99
+bvft_poli = Bvft_poli(device=device,data_list =data_saving_path,data_name_self = "Bvft_ranking",whole_dataset= whole_dataset,train_episodes=train_episodes,
+                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
 bvft_obj = Bvft_zero(device=device,data_list =data_saving_path,data_name_self = "Bvft_res_0",whole_dataset= whole_dataset,train_episodes=train_episodes,
                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+
 bvft_obj.get_self_ranking()
 bvft_obj.draw_figure_6R()
 bvft_obj.run()
