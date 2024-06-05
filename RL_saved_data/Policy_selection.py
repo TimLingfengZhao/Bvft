@@ -1288,7 +1288,7 @@ FQE_three = FQE_three(device=device,data_list =data_saving_path,data_name_self =
                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
-l1_norm = Bvft_ans(device=device,data_list =data_saving_path,data_name_self = "l1_norm",whole_dataset= whole_dataset,train_episodes=train_episodes,
+l1_norm = Bvft_abs(device=device,data_list =data_saving_path,data_name_self = "l1_norm",whole_dataset= whole_dataset,train_episodes=train_episodes,
                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
