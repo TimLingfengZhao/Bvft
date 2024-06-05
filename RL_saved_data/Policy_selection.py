@@ -1265,6 +1265,7 @@ bvft_obj = Bvft_zero(device=device,data_list =data_saving_path,data_name_self = 
                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
 bvft_obj.get_self_ranking()
+bvft_obj.draw_figure_6R()
 bvft_obj.run()
 # bvft_obj.draw_figure_6R()
 
