@@ -72,7 +72,7 @@ class policy_select(ABC):
         self.trajectory_num = len(self.test_episodes)
         self.data_size = self.get_data_size(test_episodes)
 
-    def normalized_mean_square_error_with_error_bar(self,ctual, predicted, NMSE_normalization_factor):
+    def normalized_mean_square_error_with_error_bar(self,actual, predicted, NMSE_normalization_factor):
 
         if len(actual) != len(predicted):
             raise ValueError("The length of actual and predicted values must be the same.")
