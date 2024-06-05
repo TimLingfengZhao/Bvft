@@ -801,7 +801,8 @@ class policy_select(ABC):
         return precision_mean_list,regret_mean_list,precision_ci_list,regret_ci_list,plot_name_list
 class Bvft_poli(policy_select):
     def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
-        resolution_list = [2, 3, 4, 8, 16, 22, 23, 25, 26, 28, 50]
+        # resolution_list = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+        resolution_list = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14, 15, 16,17, 18, 19, 20, 21,22,23]
         rmax, rmin = self.env.reward_range[0], self.env.reward_range[1]
         result_list = []
         Bvft_final_resolution_loss = []
@@ -1249,8 +1250,6 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
 train_episodes = whole_dataset.episodes[0:2000]
 test_episodes = whole_dataset.episodes[2000:2276]
-print(len(test_episodes))
-sys.exit()
 buffer_one = FIFOBuffer(limit=500000)
 replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
 Bvft_batch_dim = 1000
