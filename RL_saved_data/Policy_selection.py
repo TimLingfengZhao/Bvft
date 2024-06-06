@@ -925,6 +925,8 @@ class arg_i_max_j(policy_select):
             loss_list = []
             for j in range(len(q_functions)):
                 inner_value = 0
+                print(len(q_sa))
+                print(len(q_sa[0]))
                 loss = np.abs(np.sum(q_sa[j]*(q_sa[i]-r_plus_vfsp[i]),axis=1))
                 print("loss : ",loss)
                 loss_list.append(loss)
