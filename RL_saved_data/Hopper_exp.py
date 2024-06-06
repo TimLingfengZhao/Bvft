@@ -53,5 +53,7 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 from d3rlpy.dataset import Episode
 
 import gymnasium
-env = gymnasium.make("Hopper-v4")
-print(env.unwrapped.model.opt)  # change this
+# env = gymnasium.make("Hopper-v4")
+# print(env.unwrapped.model.opt)  # change this
+whole_dataset, env = get_d4rl('hopper-expert-v4')
+print(len(whole_dataset))
