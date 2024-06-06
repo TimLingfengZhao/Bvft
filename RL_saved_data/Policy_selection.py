@@ -558,15 +558,15 @@ class policy_select(ABC):
         k_regret_ci_saving_path = os.path.join(Result_k_save_path, regret_ci_name)
         plot_name_saving_path = os.path.join(Result_k_save_path, plot_name)
         precision_path = os.path.join(Result_k_save_path, k_precision_name)
-        # if os.path.exists(precision_path):
-        #     print("load saved data")
-        #     precision_mean_list = self.load_from_pkl(k_precision_mean_saving_path)
-        #     regret_mean_list = self.load_from_pkl(k_regret_mean_saving_path)
-        #     precision_ci_list = self.load_from_pkl(k_precision_ci_saving_path)
-        #     regret_ci_list = self.load_from_pkl(k_regret_ci_saving_path)
-        #     line_name_list = self.load_from_pkl(plot_name_saving_path)
-        # else:
-        precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
+        if os.path.exists(precision_path):
+            print("load saved data")
+            precision_mean_list = self.load_from_pkl(k_precision_mean_saving_path)
+            regret_mean_list = self.load_from_pkl(k_regret_mean_saving_path)
+            precision_ci_list = self.load_from_pkl(k_precision_ci_saving_path)
+            regret_ci_list = self.load_from_pkl(k_regret_ci_saving_path)
+            line_name_list = self.load_from_pkl(plot_name_saving_path)
+        else:
+            precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(self.data_saving_path,self.data_saving_path,self.FQE_saving_step_list,self.initial_state,self.k,self.num_runs)
         plot_mean_list = [precision_mean_list, regret_mean_list]
         plot_ci_list = [precision_ci_list, regret_ci_list]
 
@@ -1026,15 +1026,16 @@ arg_i_max_j = arg_i_max_j(device=device,data_list =data_saving_path,data_name_se
                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+
+# bvft_poli.get_self_ranking()
+# bvft_obj.get_self_ranking()
+# FQE_zero.get_self_ranking()
+# FQE_one.get_self_ranking()
+# FQE_two.get_self_ranking()
+# FQE_three.get_self_ranking()
+# l1_norm.get_self_ranking()
 arg_i_max_j.get_self_ranking()
-bvft_poli.get_self_ranking()
-bvft_obj.get_self_ranking()
-FQE_zero.get_self_ranking()
-FQE_one.get_self_ranking()
-FQE_two.get_self_ranking()
-FQE_three.get_self_ranking()
-l1_norm.get_self_ranking()
-l1_norm.draw_figure_6R()
-l1_norm.run()
+arg_i_max_j.draw_figure_6R()
+arg_i_max_j.run()
 # bvft_obj.draw_figure_6R()
 
