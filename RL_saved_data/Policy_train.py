@@ -85,7 +85,7 @@ random_state = 12345
 FQE_episode_step = 10000
 FQE_learning_rate = 1e-4
 FQE_hidden_layer = [128,1024]
-FQE_total_step = 500000
+FQE_total_step = 2000000
 FQE_number_epoch = FQE_total_step / FQE_episode_step
 
 policy_hidden_size = [64, 1024]

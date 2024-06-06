@@ -968,20 +968,17 @@ class CustomDataLoader:
                     dones.append([0])
             else:
                 dones.append([0])
-        # print(dones)
-        # print(states)
-        # sys.exit()
         return states, actions, padded_next_states, rewards, dones
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-# whole_dataset, env = get_d4rl('hopper-medium-v2')
-#
-# train_episodes = whole_dataset.episodes[0:1500]
-# test_episodes = whole_dataset.episodes[1500:2186]
-whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
-print("len : ",len(whole_dataset.episodes))
-train_episodes = whole_dataset.episodes[0:2000]
-test_episodes = whole_dataset.episodes[2000:2277]
-buffer_one = FIFOBuffer(limit=1000000)
+whole_dataset, env = get_d4rl('hopper-medium-v2')
+
+train_episodes = whole_dataset.episodes[0:1500]
+test_episodes = whole_dataset.episodes[1500:2186]
+# whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
+# print("len : ",len(whole_dataset.episodes))
+# train_episodes = whole_dataset.episodes[0:2000]
+# test_episodes = whole_dataset.episodes[2000:2277]
+# buffer_one = FIFOBuffer(limit=1000000)
 replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
 Bvft_batch_dim = 1000
 test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
