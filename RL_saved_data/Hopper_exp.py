@@ -60,7 +60,7 @@ print(len(whole_dataset.episodes))
 count = 0
 whole_episode = whole_dataset.episodes
 print(len(whole_dataset.episodes[0]))
-
+print(len(whole_dataset.episodes[0].observations))
 for i in range(len(whole_episode)):
     count += len(whole_episode[i].observations)
 print(count)
