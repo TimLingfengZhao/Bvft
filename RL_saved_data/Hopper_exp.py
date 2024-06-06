@@ -53,5 +53,5 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 from d3rlpy.dataset import Episode
 
 import gymnasium
-env = gymnasium.make("Hopper-v5")
+env = gymnasium.make("Hopper-v4")
 print(env.unwrapped.model.opt.gravity)  # change this
