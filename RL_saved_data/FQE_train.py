@@ -218,7 +218,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run specific FQE function based on learning rate and combination.")
     parser.add_argument("FQE", choices=["FQE_1", "FQE_2", "FQE_3", "FQE_4"], help="Identifier of the function to run")
     parser.add_argument("--FQE_total_step", type=int, default=2000000, help="Total number of steps for FQE training")
-    parser.add_argument("--FQE_episode_step", type=int, default=400000, help="Number of steps in one episode for FQE training")
+    parser.add_argument("--FQE_episode_step", type=int, default=80000, help="Number of steps in one episode for FQE training")
     parser.add_argument("--num_interval", type=int, default=5,
                         help="how many episode to save file")
     args = parser.parse_args()
