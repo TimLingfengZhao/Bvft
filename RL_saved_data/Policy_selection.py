@@ -1026,7 +1026,7 @@ arg_i_max_j = arg_i_max_j(device=device,data_list =data_saving_path,data_name_se
                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
-arg_i_max_j.select_Q()
+arg_i_max_j.get_self_ranking()
 bvft_poli.get_self_ranking()
 bvft_obj.get_self_ranking()
 FQE_zero.get_self_ranking()
