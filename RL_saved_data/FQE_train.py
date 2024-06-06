@@ -88,10 +88,10 @@ def read_list(list,path):
 
 def run_FQE(FQE_learning_rate,FQE_hidden_layer,FQE_total_step, FQE_episode_step,num_interval):
     FQE_number_epoch = FQE_total_step / FQE_episode_step
-    whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
+    whole_dataset, env = get_d4rl('hopper-medium-v2')
 
-    train_episodes = whole_dataset.episodes[0:2000]
-    test_episodes = whole_dataset.episodes[2000:2276]
+    train_episodes = whole_dataset.episodes[0:1500]
+    test_episodes = whole_dataset.episodes[1500:2186]
 
     buffer = FIFOBuffer(limit=1500000)
 

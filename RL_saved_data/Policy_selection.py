@@ -411,12 +411,12 @@ class policy_select(ABC):
         return self.load_from_pkl(policy_path)[0]
     def get_NMSE(self,repo_name):
         print("Plot FQE MSE")
+        whole_dataset = self.whole_dataset
+        env = self.env
+        train_episodes = self.train_episodes
+        test_episodes = self.test_episodes
+        replay_buffer = self.replay_buffer
 
-        whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
-        train_episodes = whole_dataset.episodes[0:2000]
-        test_episodes = whole_dataset.episodes[2000:2276]
-        buffer = FIFOBuffer(limit=1500000)
-        replay_buffer = ReplayBuffer(buffer=buffer, episodes=train_episodes)
 
         policy_returned_result_folder = "policy_returned_result"
         if not os.path.exists(policy_returned_result_folder):
@@ -1247,10 +1247,13 @@ class CustomDataLoader:
         # sys.exit()
         return states, actions, padded_next_states, rewards, dones
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
-train_episodes = whole_dataset.episodes[0:2000]
-test_episodes = whole_dataset.episodes[2000:2276]
-buffer_one = FIFOBuffer(limit=500000)
+whole_dataset, env = get_d4rl('hopper-medium-v2')
+
+train_episodes = whole_dataset.episodes[0:1500]
+test_episodes = whole_dataset.episodes[1500:2186]
+
+
+buffer_one = FIFOBuffer(limit=1000000)
 replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
 Bvft_batch_dim = 1000
 test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)

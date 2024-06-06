@@ -110,10 +110,10 @@ transition_picker = d3rlpy.dataset.BasicTransitionPicker()
 trajectory_slicer = d3rlpy.dataset.BasicTrajectorySlicer()
 writer_preprocessor = d3rlpy.dataset.BasicWriterPreprocess()
 
-whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
+whole_dataset, env = get_d4rl('hopper-medium-v2')
 
-train_episodes = whole_dataset.episodes[0:2000]
-test_episodes = whole_dataset.episodes[2000:2276]
+train_episodes = whole_dataset.episodes[0:1500]
+test_episodes = whole_dataset.episodes[1500:2186]
 
 buffer = FIFOBuffer(limit=1500000)
 
