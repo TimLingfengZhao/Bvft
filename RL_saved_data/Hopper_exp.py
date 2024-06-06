@@ -57,3 +57,10 @@ import gymnasium
 # print(env.unwrapped.model.opt)  # change this
 whole_dataset, env = get_d4rl('hopper-medium-v2')
 print(len(whole_dataset.episodes))
+count = 0
+whole_episode = whole_dataset.episodes
+print(len(whole_dataset.episodes[0]))
+print(whole_episode[0][0])
+for ele in whole_dataset.episodes:
+    count += len(ele)
+print(count)
