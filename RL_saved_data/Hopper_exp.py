@@ -55,5 +55,5 @@ from d3rlpy.dataset import Episode
 import gymnasium
 # env = gymnasium.make("Hopper-v4")
 # print(env.unwrapped.model.opt)  # change this
-whole_dataset, env = get_d4rl('hopper-expert-v2')
+whole_dataset, env = get_d4rl('hopper-medium-v2')
 print(len(whole_dataset.episodes))
