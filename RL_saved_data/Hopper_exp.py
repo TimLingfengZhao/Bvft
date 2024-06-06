@@ -54,4 +54,4 @@ from d3rlpy.dataset import Episode
 
 import gymnasium
 env = gymnasium.make("Hopper-v4")
-print(env.unwrapped.model.opt.gravity)  # change this
+print(env.unwrapped.model.opt)  # change this
