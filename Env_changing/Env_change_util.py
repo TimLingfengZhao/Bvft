@@ -65,7 +65,6 @@ import torch
 import pandas as pd
 from datetime import datetime
 import time
-from BvftUtil import *
 from d3rlpy.dataset import MDPDataset, Episode
 from scope_rl.dataset import SyntheticDataset
 from scope_rl.policy import GaussianHead
