@@ -546,10 +546,10 @@ class policy_select(ABC):
         if not os.path.exists(Result_k_save_folder):
             os.makedirs(Result_k_save_folder)
         Result_k_save_path = os.path.join(Result_k_save_folder,"k_statistic")
-        k_precision_name = str(k) + "_mean_precision_" + str(num_runs)
-        k_regret_name = str(k) + "_mean_regret" + str(num_runs)
-        precision_ci_name = str(k) + "_CI_precision" + str(num_runs)
-        regret_ci_name = str(k) + "_CI_regret" + str(num_runs)
+        k_precision_name = str(self.k) + "_mean_precision_" + str(self.num_runs)
+        k_regret_name = str(self.k) + "_mean_regret" + str(self.num_runs)
+        precision_ci_name = str(self.k) + "_CI_precision" + str(self.num_runs)
+        regret_ci_name = str(self.k) + "_CI_regret" + str(self.num_runs)
         plot_name = "plots"
 
         k_precision_mean_saving_path = os.path.join(Result_k_save_path, k_precision_name)
