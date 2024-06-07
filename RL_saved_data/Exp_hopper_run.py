@@ -1,4 +1,5 @@
 from Policy_selection import *
+from Self_defined_method import *
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 # whole_dataset, env = get_d4rl('hopper-medium-v2')
 #
