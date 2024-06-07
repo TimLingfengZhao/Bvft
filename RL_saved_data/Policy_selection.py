@@ -991,39 +991,62 @@ data_saving_path = ["Bvft_ranking","Bvft_res_0","FQE_0.0001_256","FQE_0.0001_102
 normalization_factor = 0
 # data_saving_path = ["Bvft_ranking"]
 gamma = 0.99
-bvft_poli = Bvft_poli(device=device,data_list =data_saving_path,data_name_self = "Bvft_ranking",whole_dataset= whole_dataset,train_episodes=train_episodes,
-                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
-                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
-                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
-bvft_obj = Bvft_zero(device=device,data_list =data_saving_path,data_name_self = "Bvft_res_0",whole_dataset= whole_dataset,train_episodes=train_episodes,
-                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
-                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
-                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
-FQE_zero = FQE_zero(device=device,data_list =data_saving_path,data_name_self = "FQE_0.0001_256",whole_dataset= whole_dataset,train_episodes=train_episodes,
-                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
-                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
-                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
-FQE_one = FQE_one(device=device,data_list =data_saving_path,data_name_self = "FQE_0.0001_1024",whole_dataset= whole_dataset,train_episodes=train_episodes,
-                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
-                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
-                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
-FQE_two = FQE_two(device=device,data_list =data_saving_path,data_name_self = "FQE_0.00002_256",whole_dataset= whole_dataset,train_episodes=train_episodes,
-                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
-                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
-                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
-FQE_three = FQE_three(device=device,data_list =data_saving_path,data_name_self = "FQE_0.00002_1024",whole_dataset= whole_dataset,train_episodes=train_episodes,
-                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
-                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
-                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
-l1_norm = Bvft_abs(device=device,data_list =data_saving_path,data_name_self = "l1_norm",whole_dataset= whole_dataset,train_episodes=train_episodes,
-                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
-                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
-                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
-arg_i_max_j = arg_i_max_j(device=device,data_list =data_saving_path,data_name_self = "arg_i_max_j",whole_dataset= whole_dataset,train_episodes=train_episodes,
-                     test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
-                     num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
-                 gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
-
+common_params = {
+    "device": device,
+    "data_list": data_saving_path,
+    "whole_dataset": whole_dataset,
+    "train_episodes": train_episodes,
+    "test_episodes": test_episodes,
+    "test_data": test_data,
+    "replay_buffer": replay_buffer_test,
+    "env": env,
+    "k": k,
+    "num_runs": num_runs,
+    "FQE_saving_step_list": FQE_saving_step_list,
+    "gamma": gamma,
+    "initial_state": initial_state,
+    "normalization_factor": normalization_factor
+}
+bvft_poli = Bvft_poli(data_name_self="Bvft_ranking", **common_params)
+bvft_obj = Bvft_zero(data_name_self="Bvft_res_0", **common_params)
+FQE_zero = FQE_zero(data_name_self="FQE_0.0001_256", **common_params)
+FQE_one = FQE_one(data_name_self="FQE_0.0001_1024", **common_params)
+FQE_two = FQE_two(data_name_self="FQE_0.00002_256", **common_params)
+FQE_three = FQE_three(data_name_self="FQE_0.00002_1024", **common_params)
+l1_norm = Bvft_abs(data_name_self="l1_norm", **common_params)
+arg_i_max_j = arg_i_max_j(data_name_self="arg_i_max_j", **common_params)
+# bvft_poli = Bvft_poli(device=device,data_list =data_saving_path,data_name_self = "Bvft_ranking",whole_dataset= whole_dataset,train_episodes=train_episodes,
+#                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+#                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+#                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+# bvft_obj = Bvft_zero(device=device,data_list =data_saving_path,data_name_self = "Bvft_res_0",whole_dataset= whole_dataset,train_episodes=train_episodes,
+#                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+#                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+#                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+# FQE_zero = FQE_zero(device=device,data_list =data_saving_path,data_name_self = "FQE_0.0001_256",whole_dataset= whole_dataset,train_episodes=train_episodes,
+#                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+#                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+#                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+# FQE_one = FQE_one(device=device,data_list =data_saving_path,data_name_self = "FQE_0.0001_1024",whole_dataset= whole_dataset,train_episodes=train_episodes,
+#                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+#                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+#                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+# FQE_two = FQE_two(device=device,data_list =data_saving_path,data_name_self = "FQE_0.00002_256",whole_dataset= whole_dataset,train_episodes=train_episodes,
+#                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+#                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+#                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+# FQE_three = FQE_three(device=device,data_list =data_saving_path,data_name_self = "FQE_0.00002_1024",whole_dataset= whole_dataset,train_episodes=train_episodes,
+#                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+#                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+#                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+# l1_norm = Bvft_abs(device=device,data_list =data_saving_path,data_name_self = "l1_norm",whole_dataset= whole_dataset,train_episodes=train_episodes,
+#                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+#                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+#                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
+# arg_i_max_j = arg_i_max_j(device=device,data_list =data_saving_path,data_name_self = "arg_i_max_j",whole_dataset= whole_dataset,train_episodes=train_episodes,
+#                      test_episodes=test_episodes,test_data=test_data,replay_buffer=replay_buffer_test,env=env,k=k,
+#                      num_runs=num_runs,FQE_saving_step_list=FQE_saving_step_list,
+#                  gamma=gamma,initial_state=initial_state,normalization_factor=normalization_factor)
 # bvft_poli.get_self_ranking()
 # bvft_obj.get_self_ranking()
 # FQE_zero.get_self_ranking()
