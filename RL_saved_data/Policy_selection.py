@@ -430,7 +430,7 @@ class policy_select(ABC):
 
         true_list = []
         prediction_list = []
-        max_step = max(FQE_saving_step_list)
+        max_step = max(self.FQE_saving_step_list)
         for policy_file_name in os.listdir("policy_trained"):
             policy_name = policy_file_name[:-3]
 
