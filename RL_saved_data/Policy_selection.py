@@ -380,8 +380,8 @@ class policy_select(ABC):
             ptr = 0
             gamma = self.gamma
             while ptr < self.trajectory_num:  # for everything in data size
-                length = test_data.get_iter_length(ptr)
-                state, action, next_state, reward, done = test_data.sample(ptr)
+                length = self.test_data.get_iter_length(ptr)
+                state, action, next_state, reward, done = self.test_data.sample(ptr)
                 for j in range(len(q_functions)):
                     actor = q_functions[j]
                     critic = q_functions[j]
