@@ -175,8 +175,7 @@ class Hopper_edi(ABC):
                 self.create_folder(policy_saving_path)
                 self.create_folder(policy_checkpoints_path)
                 num_epoch = int(self.policy_total_step / self.policy_episode_step)
-                buffer = FIFOBuffer(limit=1000000)
-                replay_buffer = ReplayBuffer(buffer=buffer, env=current_env)
+                buffer = d3rlpy.dataset.create_fifo_replay_buffer(limit=1000000, env=current_env)
                 explorer = d3rlpy.algos.ConstantEpsilonGreedy(0.3)
                 checkpoint_list = []
                 for algorithm_name in self.algorithm_name_list:
