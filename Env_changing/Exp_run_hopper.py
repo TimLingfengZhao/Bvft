@@ -17,6 +17,10 @@ parameter_list =[[np.array([0.0,0.0,-4.9]),
                   np.array([0.0, 0.0, 10.0])]
                  ]
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
+policy_parameter_map = {"policy_total_step":300000,
+                 "policy_episode_step":10000,
+                        "policy_saving_number" : 5,"policy_learning_rate":0.0001,"policy_hidden_layer":[64,256],
+                        "algorithm_name_list":["DDPG","SAC"]}
 # parameter_name_list = ["gravity","magnetic","wind"]
 # hopper_exp = Hopper_edi(device=device,parameter_list=parameter_list,
 #                         parameter_name_list=parameter_name_list,env_name="Hopper-v4")
