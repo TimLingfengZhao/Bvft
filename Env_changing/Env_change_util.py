@@ -179,8 +179,8 @@ class Hopper_edi(ABC):
                 explorer = d3rlpy.algos.ConstantEpsilonGreedy(0.3)
                 checkpoint_list = []
                 for algorithm_name in self.algorithm_name_list:
-                    checkpoint_path = os.path.join(Policy_checkpoints_folder,f"{algorithm_name}_checkpoints.d3")
-                    checkpoint_list_path = os.path.join(Policy_checkpoints_folder, f"{algorithm_name}_checkpoints")
+                    checkpoint_path = os.path.join(policy_checkpoints_path,f"{algorithm_name}_checkpoints.d3")
+                    checkpoint_list_path = os.path.join(policy_checkpoints_path, f"{algorithm_name}_checkpoints")
                     policy_model_name = f"{algorithm_name}_{str(self.policy_total_step)}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
                     policy_path = os.path.join(policy_saving_path, policy_model_name)
                     if(self.whether_policy_checkpoint_exists(checkpoint_path)):
