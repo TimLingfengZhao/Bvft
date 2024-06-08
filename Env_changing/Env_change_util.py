@@ -120,7 +120,7 @@ class Hopper_edi(ABC):
         Policy_saving_folder = os.path.join(Policy_operation_folder,"Policy_trained")
         if not os.path.exists(Policy_saving_folder):
             os.makedirs(Policy_saving_folder)
-        Policy_checkpoints_folder = os.path.join(Policy_operation_folder,Policy_checkpoints)
+        Policy_checkpoints_folder = os.path.join(Policy_operation_folder,"Policy_checkpoints")
         if not os.path.exists(Policy_checkpoints_folder):
             os.makedirs(Policy_checkpoints_folder)
         for parameters in  self.parameter_list:
