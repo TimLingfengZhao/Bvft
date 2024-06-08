@@ -189,6 +189,7 @@ class Hopper_edi(ABC):
                         print(f"enter self checkpoints {checkpoint_path} with epoch {str(checkpoint_list[-1])}")
                         for epoch in range(checkpoint_list[-1] + 1, int(num_epoch)):
                             policy.fit_online(env=current_env,
+                                            buffer=buffer,
                                             explorer=explorer,
                                             n_steps=self.policy_episode_step,
                                             eval_env=current_env,
