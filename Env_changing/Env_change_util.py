@@ -152,7 +152,7 @@ class Hopper_edi(ABC):
         return data
 
     def whether_policy_checkpoint_exists(self,checkpoint_path):
-        if not os.path.exists(checkpoint_path+".d3"):
+        if not os.path.exists(checkpoint_path):
             return False
         return True
     def train_policy(self):

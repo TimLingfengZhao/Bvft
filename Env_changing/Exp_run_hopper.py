@@ -3,9 +3,9 @@ from Env_change_util import *
 # env = gymnasium.make("Hopper-v4")
 # print(env.unwrapped.model.opt)  # change this
 env = gymnasium.make("Hopper-v4")
-print(env.unwrapped.model.opt)
-env.unwrapped.model.opt.gravity = np.array([0.0,0.0,-1002])
-print(env.unwrapped.model.opt)
+# print(env.unwrapped.model.opt)
+# env.unwrapped.model.opt.gravity = np.array([0.0,0.0,-1002])
+# print(env.unwrapped.model.opt)
 parameter_list =[[np.array([0.0,0.0,-4.9]),
                   np.array([0.0,0.0,20.0]),
                   np.array([0.0,0.0,2.0])],
