@@ -187,7 +187,7 @@ class Hopper_edi(ABC):
                         policy = d3rlpy.load_learnable(checkpoint_path, device=self.device)
                         checkpoint_list = self.load_from_pkl(checkpoint_list_path)
                         print(f"enter self checkpoints {checkpoint_path} with epoch {str(checkpoint_list[-1])}")
-                        for epoch in range(check_point_list[-1] + 1, int(num_epoch)):
+                        for epoch in range(checkpoint_list[-1] + 1, int(num_epoch)):
                             policy.fit_online(env=current_env,
                                             explorer=explorer,
                                             n_steps=self.policy_episode_step,
