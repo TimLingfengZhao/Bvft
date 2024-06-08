@@ -24,7 +24,6 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 policy_hidden_list = [64, 256]
 policy_rate = 0.0001
 ddpg = DDPGConfig(
-    learning_rate = 0.0001,
     actor_encoder_factory=d3rlpy.models.VectorEncoderFactory(hidden_units=policy_hidden_list),
     critic_encoder_factory=d3rlpy.models.VectorEncoderFactory(hidden_units=policy_hidden_list),
     actor_learning_rate=policy_rate,
