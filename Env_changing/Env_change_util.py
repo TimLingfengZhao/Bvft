@@ -108,12 +108,29 @@ class Hopper_edi(ABC):
 
         if self.env_name == "Hopper-v4":
             # gravity magnetic wind
-            for parameters in parameter_list :
+            for parameters in self.parameter_list :
                 current_env = gymnasium.make("Hopper-v4")
                 current_env.unwrapped.model.opt.gravity = parameters[0]
                 current_env.unwrapped.model.opt.magnetic = parameters[1]
                 current_env.unwrapped.model.opt.wind = parameters[2]
-                print(current_env.unwrapped.model.opt)
+                # print(current_env.unwrapped.model.opt)
+                self.env_list.append(current_env)
+    def train_policy(self):
+        Policy_operation_folder = "Policy_operation"
+        Policy_saving_folder = os.path.join(Policy_operation_folder,"Policy_trained")
+        if not os.path.exists(Policy_saving_folder):
+            os.makedirs(Policy_saving_folder)
+        Policy_checkpoints_folder = os.path.join(Policy_operation_folder,Policy_checkpoints)
+        if not os.path.exists(Policy_checkpoints_folder):
+            os.makedirs(Policy_checkpoints_folder)
+        for parameters in  self.parameter_list:
+            gravity = parameters[0].tolist()
+            magnetic = parameters[1].tolist()
+            wind = parameters[2].tolist()
+            Policy_folder_name_ddpg = f"{self.env_name}_ddpg_{gravity}_{magnetic}_{wind}"
+            print(Policy_folder_name_ddpg)
+
+
 
 
 
