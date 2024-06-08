@@ -112,7 +112,7 @@ class Hopper_edi(ABC):
         self.policy_learning_rate = policy_training_parameter_map["policy_learning_rate"]
         self.policy_hidden_layer = policy_training_parameter_map["policy_hidden_layer"]
         self.algorithm_name_list = policy_training_parameter_map["algorithm_name_list"]
-        for i in len(self.parameter_list) :
+        for i in range(len(self.parameter_list)):
             current_env = gymnasium.make(self.env_name)
             for param_name, param_value in zip(self.parameter_name_list, self.parameter_list[i]):
                 setattr(current_env.unwrapped.model.opt, param_name, param_value)
@@ -162,7 +162,7 @@ class Hopper_edi(ABC):
         Policy_checkpoints_folder = os.path.join(Policy_operation_folder,"Policy_checkpoints")
         self.create_folder(Policy_checkpoints_folder)
         while(True):
-            for i in len(self.parameter_list):
+            for i in range(len(self.parameter_list)):
                 current_env = self.env_list[i]
                 policy_folder_name = f"{self.env_name}"
                 for j in range(len(self.parameter_list[i])):
