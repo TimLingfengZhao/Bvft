@@ -25,6 +25,7 @@ from scope_rl.ope import OffPolicyEvaluation as OPE
 from scope_rl.ope.continuous import DirectMethod as DM
 from scope_rl.policy import ContinuousEvalHead
 from d3rlpy.algos import DDPGConfig
+from d3rlpy.algos import SACConfig
 from d3rlpy.dataset import create_fifo_replay_buffer
 from d3rlpy.dataset import MDPDataset
 from d3rlpy.algos import CQLConfig
@@ -98,7 +99,8 @@ from d3rlpy.dataset import Episode
 import gymnasium
 class Hopper_edi(ABC):
 
-    def __init__(self,device,parameter_list,parameter_name_list,algorithm_name_list = ["DDPG","SAC"],
+    def __init__(self,device,parameter_list,parameter_name_list,algorithm_name_list = ["DDPG","SAC"],policy_total_step=300000,
+                 policy_episode_step=10000, policy_saving_number = 5,policy_learning_rate=0.0001,policy_hidden_layer=[64,256],
                  env_name = "Hopper-v4"):
         self.device = device
         self.env_name = env_name
@@ -106,7 +108,9 @@ class Hopper_edi(ABC):
         self.parameter_name_list = parameter_name_list
         self.env_list = []
         self.algorithm_name_list = algorithm_name_list
-
+        self.policy_total_step = policy_total_step
+        self.policy_episode_step = policy_episode_step,
+        self.policy_saving_number = policy_saving_number
         for parameters in self.parameter_list :
             current_env = gymnasium.make(self.env_name)
             for param_name, param_value in zip(self.parameter_name_list, parameters):
@@ -122,20 +126,21 @@ class Hopper_edi(ABC):
         self.create_folder(Policy_saving_folder)
         Policy_checkpoints_folder = os.path.join(Policy_operation_folder,"Policy_checkpoints")
         self.create_folder(Policy_checkpoints_folder)
-        if not os.path.exists(Policy_checkpoints_folder):
-            os.makedirs(Policy_checkpoints_folder)
-        for parameters in self.parameter_list:
-            policy_folder_name = f"{self.env_name}"
-            for i in range(len(parameters)):
-                param_name = self.parameter_name_list[i]
-                param_value = parameters[i].tolist()
-                policy_folder_name += f"_{param_name}_{str(param_value)}"
-            policy_saving_path = os.path.join(Policy_saving_folder,policy_folder_name)
-            policy_checkpoints_path = os.path.join(Policy_checkpoints_folder,policy_folder_name)
-            self.create_folder(policy_saving_path)
-            self.create_folder(policy_checkpoints_path)
-            print(policy_saving_path)
-            # for algorithm_name in self.algorithm_name_list:
+        while(True):
+            for env in self.env_list:
+                for parameters in self.parameter_list:
+                    policy_folder_name = f"{self.env_name}"
+                    for i in range(len(parameters)):
+                        param_name = self.parameter_name_list[i]
+                        param_value = parameters[i].tolist()
+                        policy_folder_name += f"_{param_name}_{str(param_value)}"
+                    print(f"start training {policy_folder_name} with algorithm {str(self.algorithm_name_list)}")
+                    policy_saving_path = os.path.join(Policy_saving_folder, policy_folder_name)
+                    policy_checkpoints_path = os.path.join(Policy_checkpoints_folder, policy_folder_name)
+                    self.create_folder(policy_saving_path)
+                    self.create_folder(policy_checkpoints_path)
+                    for algorithm_name in self.algorithm_name_list:
+
 
 
 
