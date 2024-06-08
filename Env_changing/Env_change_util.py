@@ -111,10 +111,7 @@ class Hopper_edi(ABC):
             current_env = gymnasium.make(self.env_name)
             for param_name, param_value in zip(self.parameter_name_list, parameters):
                 setattr(current_env.unwrapped.model.opt, param_name, param_value)
-            # current_env.unwrapped.model.opt.gravity = parameters[0]
-            # current_env.unwrapped.model.opt.magnetic = parameters[1]
-            # current_env.unwrapped.model.opt.wind = parameters[2]
-            print(current_env.unwrapped.model.opt)
+            # print(current_env.unwrapped.model.opt)
             self.env_list.append(current_env)
     def train_policy(self):
         Policy_operation_folder = "Policy_operation"
@@ -125,12 +122,15 @@ class Hopper_edi(ABC):
         if not os.path.exists(Policy_checkpoints_folder):
             os.makedirs(Policy_checkpoints_folder)
         for parameters in self.parameter_list:
+            policy_folder_name_ddpg = f"{self.env_name}_ddpg"
+            policy_folder_name_sac = f"{self.env_name}_sac"
             for i in range(len(parameters)):
-                gravity = parameters[0].tolist()
-                magnetic = parameters[1].tolist()
-                wind = parameters[2].tolist()
-                Policy_folder_name_ddpg = f"{self.env_name}_ddpg_g_{gravity}_m_{magnetic}_w_{wind}"
-                print(Policy_folder_name_ddpg)
+                param_name = parameter_names[i]
+                param_value = parameters[i].tolist()
+                policy_folder_name_ddpg += f"_{param_name}_{str(param_value)}"
+                policy_folder_name_sac += f"_{param_name}_{str(param_value)}"
+            print(policy_folder_name_ddpg)
+            print(policy_folder_name_sac)
 
 
 
