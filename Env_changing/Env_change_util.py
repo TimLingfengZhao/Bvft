@@ -127,7 +127,7 @@ class Hopper_edi(ABC):
             gravity = parameters[0].tolist()
             magnetic = parameters[1].tolist()
             wind = parameters[2].tolist()
-            Policy_folder_name_ddpg = f"{self.env_name}_ddpg_{gravity}_{magnetic}_{wind}"
+            Policy_folder_name_ddpg = f"{self.env_name}_ddpg_g_{gravity}_m_{magnetic}_w_{wind}"
             print(Policy_folder_name_ddpg)
 
 
