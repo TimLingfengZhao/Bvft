@@ -109,7 +109,7 @@ class Hopper_edi(ABC):
 
         for parameters in self.parameter_list :
             current_env = gymnasium.make(self.env_name)
-            for param_name, param_value in zip(parameter_names, parameters):
+            for param_name, param_value in zip(self.parameter_name_list, parameters):
                 setattr(current_env.unwrapped.model.opt, param_name, param_value)
             # current_env.unwrapped.model.opt.gravity = parameters[0]
             # current_env.unwrapped.model.opt.magnetic = parameters[1]
