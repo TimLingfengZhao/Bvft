@@ -17,5 +17,6 @@ parameter_list =[[np.array([0.0,0.0,-4.9]),
                   np.array([0.0, 0.0, 10.0])]
                  ]
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
+parameter_name_list = ["gravity","magnetic","wind"]
 hopper_exp = Hopper_edi(device=device,parameter_list=parameter_list,env_name="Hopper-v4")
-hopper_exp.train_policy()
+# hopper_exp.train_policy()

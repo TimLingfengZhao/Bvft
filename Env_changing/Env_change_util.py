@@ -100,21 +100,22 @@ from d3rlpy.dataset import Episode
 import gymnasium
 class Hopper_edi(ABC):
 
-    def __init__(self,device,parameter_list,env_name = "Hopper-v4"):
+    def __init__(self,device,parameter_list,parameter_name_list,env_name = "Hopper-v4"):
         self.device = device
         self.env_name = env_name
         self.parameter_list = parameter_list
+        self.parameter_name_list = parameter_name_list
         self.env_list = []
 
-        if self.env_name == "Hopper-v4":
-            # gravity magnetic wind
-            for parameters in self.parameter_list :
-                current_env = gymnasium.make("Hopper-v4")
-                current_env.unwrapped.model.opt.gravity = parameters[0]
-                current_env.unwrapped.model.opt.magnetic = parameters[1]
-                current_env.unwrapped.model.opt.wind = parameters[2]
-                # print(current_env.unwrapped.model.opt)
-                self.env_list.append(current_env)
+        for parameters in self.parameter_list :
+            current_env = gymnasium.make(self.env_name)
+            for param_name, param_value in zip(parameter_names, parameters):
+                setattr(current_env.unwrapped.model.opt, param_name, param_value)
+            # current_env.unwrapped.model.opt.gravity = parameters[0]
+            # current_env.unwrapped.model.opt.magnetic = parameters[1]
+            # current_env.unwrapped.model.opt.wind = parameters[2]
+            print(current_env.unwrapped.model.opt)
+            self.env_list.append(current_env)
     def train_policy(self):
         Policy_operation_folder = "Policy_operation"
         Policy_saving_folder = os.path.join(Policy_operation_folder,"Policy_trained")
@@ -123,12 +124,13 @@ class Hopper_edi(ABC):
         Policy_checkpoints_folder = os.path.join(Policy_operation_folder,"Policy_checkpoints")
         if not os.path.exists(Policy_checkpoints_folder):
             os.makedirs(Policy_checkpoints_folder)
-        for parameters in  self.parameter_list:
-            gravity = parameters[0].tolist()
-            magnetic = parameters[1].tolist()
-            wind = parameters[2].tolist()
-            Policy_folder_name_ddpg = f"{self.env_name}_ddpg_g_{gravity}_m_{magnetic}_w_{wind}"
-            print(Policy_folder_name_ddpg)
+        for parameters in self.parameter_list:
+            for i in range(len(parameters)):
+                gravity = parameters[0].tolist()
+                magnetic = parameters[1].tolist()
+                wind = parameters[2].tolist()
+                Policy_folder_name_ddpg = f"{self.env_name}_ddpg_g_{gravity}_m_{magnetic}_w_{wind}"
+                print(Policy_folder_name_ddpg)
 
 
 
