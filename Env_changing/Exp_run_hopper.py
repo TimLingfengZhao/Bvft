@@ -31,11 +31,12 @@ ddpg = DDPGConfig(
 ).create(device=device)
 buffer = d3rlpy.dataset.create_fifo_replay_buffer(limit=1000000, env=env)
 explorer = d3rlpy.algos.ConstantEpsilonGreedy(0.3)
-ddpg.fit_online(env,buffer,
-                buffer,
-                explorer,
+ddpg.fit_online(env=env,
+                buffer = buffer,
+                explorer=explorer,
                 n_steps = 300000,
                 eval_env = env,
                 n_steps_per_epoch=1000,
                 update_start_step=1000,
+                with_timestamp=False,
                 )
