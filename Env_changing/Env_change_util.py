@@ -125,7 +125,7 @@ class Hopper_edi(ABC):
             policy_folder_name_ddpg = f"{self.env_name}_ddpg"
             policy_folder_name_sac = f"{self.env_name}_sac"
             for i in range(len(parameters)):
-                param_name = parameter_names[i]
+                param_name = self.parameter_name_list[i]
                 param_value = parameters[i].tolist()
                 policy_folder_name_ddpg += f"_{param_name}_{str(param_value)}"
                 policy_folder_name_sac += f"_{param_name}_{str(param_value)}"
