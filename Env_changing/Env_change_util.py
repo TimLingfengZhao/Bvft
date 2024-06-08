@@ -139,7 +139,8 @@ class Hopper_edi(ABC):
                     policy_checkpoints_path = os.path.join(Policy_checkpoints_folder, policy_folder_name)
                     self.create_folder(policy_saving_path)
                     self.create_folder(policy_checkpoints_path)
-                    for algorithm_name in self.algorithm_name_list:
+                    # for algorithm_name in self.algorithm_name_list:
+
 
 
 
