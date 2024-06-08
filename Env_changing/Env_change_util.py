@@ -97,12 +97,24 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 # random state
 # dataset_d, env = get_d4rl('hopper-medium-v0')
 from d3rlpy.dataset import Episode
-class Env_change(ABC):
+class Hopper_edi(ABC):
 
-    def __init__(self,device,parameter_list,original_env):
+    def __init__(self,device,parameter_list,env_name = "Hopper-v4"):
         self.device = device
-        self.original_env = original_env
+        self.env_name = env_name
         self.parameter_list = parameter_list
+        self.env_list = []
+
+        if self.env_name == "Hopper-v4":
+            # gravity magnetic wind
+            for parameters in parameter_list :
+                current_env = gymnasium.make("Hopper-v4")
+                current_env.unwrapped.model.opt.gravity = parameters[0]
+                current_env.unwrapped.model.opt.magnetic = parameters[1]
+                current_env.unwrapped.model.opt.wind = parameters[2]
+                print(current_env.unwrapped.model.opt)
+
+
 
 
 
