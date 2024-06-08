@@ -184,9 +184,9 @@ class Hopper_edi(ABC):
                     policy_model_name = f"{algorithm_name}_{str(self.policy_total_step)}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
                     policy_path = os.path.join(policy_saving_path, policy_model_name)
                     if(self.whether_policy_checkpoint_exists(checkpoint_path)):
-                        print(f"enter self checkpoints {checkpoint_path}")
                         policy = d3rlpy.load_learnable(checkpoint_path, device=self.device)
                         checkpoint_list = self.load_from_pkl(checkpoint_list_path)
+                        print(f"enter self checkpoints {checkpoint_path} with epoch {str(checkpoint_list[-1])}")
                         for epoch in range(check_point_list[-1] + 1, int(num_epoch)):
                             policy.fit_online(env=current_env,
                                             explorer=explorer,
