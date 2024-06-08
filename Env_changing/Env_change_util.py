@@ -97,6 +97,7 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 # random state
 # dataset_d, env = get_d4rl('hopper-medium-v0')
 from d3rlpy.dataset import Episode
+import gymnasium
 class Hopper_edi(ABC):
 
     def __init__(self,device,parameter_list,env_name = "Hopper-v4"):
