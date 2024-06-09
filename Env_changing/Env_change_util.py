@@ -184,7 +184,7 @@ class Hopper_edi(ABC):
                     checkpoint_list_path = os.path.join(policy_checkpoints_path, f"{algorithm_name}_checkpoints")
                     policy_model_name = f"{algorithm_name}_{str(self.policy_total_step)}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
                     policy_path = os.path.join(policy_saving_path, policy_model_name)
-                    if(not self.whether_file_exists(policy_path)):
+                    if(not self.whether_file_exists(policy_path[:-3]+"_"+str(self.policy_episode_step)+"step.d3")):
                         print(f"{policy_path} not exists")
                         if (self.whether_file_exists(checkpoint_path)):
                             policy = d3rlpy.load_learnable(checkpoint_path, device=self.device)
