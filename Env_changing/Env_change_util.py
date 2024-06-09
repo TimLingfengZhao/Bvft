@@ -233,3 +233,5 @@ class Hopper_edi(ABC):
                         if os.path.exists(checkpoint_path):
                             os.remove(checkpoint_path)
                         print(f"end training {policy_folder_name} with algorithm {str(self.algorithm_name_list)}")
+            print("sleep now")
+            time.sleep(600)
