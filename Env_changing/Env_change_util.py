@@ -186,7 +186,7 @@ class Hopper_edi(ABC):
             rewards.append(reward)
             dones.append(done)
             next_steps.append(state)
-            if((t != max_time_step-1) and done == True):
+            if((t != max_time_step-1) and done == False):
                 observations.append(state)
 
             obs = state
