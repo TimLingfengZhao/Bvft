@@ -211,7 +211,7 @@ class Hopper_edi(ABC):
     def generate_offline_data(self,trajectory_numbers,max_time_step,algorithm_name):
         self.print_environment_parameters()
         true_env_number = int(input("Please enter the environment parameter number you choose: "))
-        unique_numbers = generate_unique_numbers(trajectory_numbers, 1, 12345)
+        unique_numbers = self.generate_unique_numbers(trajectory_numbers, 1, 12345)
         final_data = []
         for i in range(trajectory_numbers):
             one_episode_data = self.generate_one_trajectory(true_env_number,max_time_step,algorithm_name,unique_numbers[i])
