@@ -158,19 +158,31 @@ class Hopper_edi(ABC):
         return True
     def generate_one_trajectory(self,env,max_time_step):
         obs = env.reset()
-        episode_data = []
 
+        observations = []
+        rewards = []
+        dones = []
+        next_steps = []
+        episode_data = {}
+        observations.append(obs)
         for t in range(max_time_step):
             action = env.action_space.sample()
 
-            new_obs, reward, done, info = env.step(action)
-            episode_data.append((obs, action, reward, new_obs, done))
+            next_step, reward, done, _ = env.step(action)
+            rewards.append(reward)
+            dones.append(done)
+
+            if(t != max_time_step-1):
+                observations.append(next_step)
 
             obs = new_obs
 
             if done:
                 break
-
+        episode_data["state"] = observations
+        episode_data["rewards"] = rewards
+        episode_data["done"] = dones
+        episode_data["next_state"] = next_steps
         return episode_data
 
     def generate_offline_data(self,trajectory_numbers,max_time_step):
