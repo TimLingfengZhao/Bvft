@@ -156,10 +156,34 @@ class Hopper_edi(ABC):
         if not os.path.exists(checkpoint_path):
             return False
         return True
-    def generate_offline_data(self,trajectory_numbers):
+    def generate_one_trajectory(self,env,max_time_step):
+        obs = env.reset()
+        episode_data = []
+
+        for t in range(max_timesteps):
+            action = env.action_space.sample()
+
+            new_obs, reward, done, info = env.step(action)
+            episode_data.append((obs, action, reward, new_obs, done))
+
+            obs = new_obs
+
+            if done:
+                break
+
+        return episode_data
+
+    def generate_offline_data(self,trajectory_numbers,max_time_step):
         self.print_environment_parameters()
         true_env_number = input("Please enter the environment parameter number you choose: ")
-        print(true_env_number)
+        env = self.env_list[true_env_number]
+        final_data = []
+        for i in range(trajectory_numbers):
+            one_episode_data = self.generate_one_trajectory(env,max_time_step)
+            final_data.append(one_episode_data)
+        print(final_data)
+
+
     def print_environment_parameters(self):
         print(f"{self.parameter_name_list} parameters of environments in current class :")
         for key, value in self.para_map.items():
