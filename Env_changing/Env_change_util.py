@@ -182,10 +182,7 @@ class Hopper_edi(ABC):
 
             action = policy.predict(np.array([obs]))
 
-            ui = env.step(action[0])
-            state = ui[0]
-            reward = ui[1]
-            done = ui[2]
+            state, reward, done, truncated, info = env.step(action)
             rewards.append(reward)
             dones.append(done)
             next_steps.append(state)
@@ -194,7 +191,7 @@ class Hopper_edi(ABC):
 
             obs = state
 
-            if done :
+            if done or truncated:
                 break
 
         episode_data["state"] = observations
@@ -215,7 +212,6 @@ class Hopper_edi(ABC):
         for i in range(trajectory_numbers):
             one_episode_data = self.generate_one_trajectory(true_env_number,max_time_step,algorithm_name)
             final_data.append(one_episode_data)
-        print(final_data)
 
 
     def print_environment_parameters(self):
