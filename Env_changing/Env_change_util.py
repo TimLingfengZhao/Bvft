@@ -198,10 +198,6 @@ class Hopper_edi(ABC):
         episode_data["rewards"] = rewards
         episode_data["done"] = dones
         episode_data["next_state"] = next_steps
-        print(len(observations))
-        print(len(rewards))
-        print(len(rewards))
-        print(len(next_steps))
         return episode_data
 
     def generate_offline_data(self,trajectory_numbers,max_time_step,algorithm_name):
@@ -212,7 +208,7 @@ class Hopper_edi(ABC):
         for i in range(trajectory_numbers):
             one_episode_data = self.generate_one_trajectory(true_env_number,max_time_step,algorithm_name)
             final_data.append(one_episode_data)
-
+        print(final_data)
 
     def print_environment_parameters(self):
         print(f"{self.parameter_name_list} parameters of environments in current class :")
