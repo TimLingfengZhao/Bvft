@@ -194,7 +194,7 @@ class Hopper_edi(ABC):
 
             obs = state
 
-            if done or truncated:
+            if done :
                 break
 
         episode_data["state"] = observations
