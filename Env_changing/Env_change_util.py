@@ -166,7 +166,7 @@ class Hopper_edi(ABC):
             param_value = self.parameter_list[env_number][j].tolist()
             policy_folder_name += f"_{param_name}_{str(param_value)}"
         policy_saving_path = os.path.join(Policy_saving_folder, policy_folder_name)
-        policy_model_name = f"{algorithm_name}_{str(self.policy_total_step)}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
+        policy_model_name = f"{algorithm_name}_{str(self.policy_total_step)}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}_{self.policy_total_step}step.d3"
         policy_path = os.path.join(policy_saving_path, policy_model_name)
         policy = d3rlpy.load_learnable(policy_path, device=self.device)
         env = self.env_list[env_number]
