@@ -168,7 +168,7 @@ class Hopper_edi(ABC):
         for t in range(max_time_step):
             action = env.action_space.sample()
 
-            next_step, reward, done, _ = env.step(action)
+            next_step, reward, done= env.step(action)
             rewards.append(reward)
             dones.append(done)
 
