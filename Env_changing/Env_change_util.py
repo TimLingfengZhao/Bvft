@@ -175,7 +175,7 @@ class Hopper_edi(ABC):
 
     def generate_offline_data(self,trajectory_numbers,max_time_step):
         self.print_environment_parameters()
-        true_env_number = input("Please enter the environment parameter number you choose: ")
+        true_env_number = int(input("Please enter the environment parameter number you choose: "))
         env = self.env_list[true_env_number]
         final_data = []
         for i in range(trajectory_numbers):
