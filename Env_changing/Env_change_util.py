@@ -177,7 +177,6 @@ class Hopper_edi(ABC):
         policy_path = os.path.join(policy_saving_path, policy_model_name)
         policy = d3rlpy.load_learnable(policy_path, device=self.device)
         env = self.env_list[env_number]
-        print("env para : ",env.unwrapped.model.opt)
         obs,info = env.reset(seed=unique_seed)
 
         observations = []
