@@ -118,6 +118,7 @@ class Hopper_edi(ABC):
                 setattr(current_env.unwrapped.model.opt, param_name, param_value)
             # print(current_env.unwrapped.model.opt)
             self.env_list.append(current_env)
+        self.para_map = {index: item for index, item in enumerate(self.parameter_list)}
     def create_folder(self,folder_path):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -155,6 +156,13 @@ class Hopper_edi(ABC):
         if not os.path.exists(checkpoint_path):
             return False
         return True
+    def generate_offline_data(self,trajectory_numbers):
+        print("List of environment parameters : ",self.para_map)
+        true_env_number = input("Please enter the environment parameter number you choose")
+        print(true_env_number)
+
+    def self_parameters(self):
+        print(self.para_map)
 
     def train_policy(self):
         Policy_operation_folder = "Policy_operation"
@@ -235,3 +243,4 @@ class Hopper_edi(ABC):
                         print(f"end training {policy_folder_name} with algorithm {str(self.algorithm_name_list)}")
             print("sleep now")
             time.sleep(600)
+
