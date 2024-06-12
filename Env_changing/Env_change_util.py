@@ -173,7 +173,7 @@ class Hopper_edi(ABC):
             dones.append(done)
 
             if(t != max_time_step-1):
-                observations.append(next_step)
+                next_steps.append(next_step)
 
             obs = new_obs
 
@@ -183,6 +183,10 @@ class Hopper_edi(ABC):
         episode_data["rewards"] = rewards
         episode_data["done"] = dones
         episode_data["next_state"] = next_steps
+        print(len(observations))
+        print(len(rewards))
+        print(len(rewards))
+        print(len(next_steps))
         return episode_data
 
     def generate_offline_data(self,trajectory_numbers,max_time_step):
