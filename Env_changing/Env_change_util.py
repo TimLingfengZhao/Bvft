@@ -160,7 +160,7 @@ class Hopper_edi(ABC):
         obs = env.reset()
         episode_data = []
 
-        for t in range(max_timesteps):
+        for t in range(max_time_step):
             action = env.action_space.sample()
 
             new_obs, reward, done, info = env.step(action)
