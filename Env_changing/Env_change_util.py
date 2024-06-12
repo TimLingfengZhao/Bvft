@@ -182,7 +182,7 @@ class Hopper_edi(ABC):
 
             action = policy.predict(np.array([obs]))
 
-            state, reward, done, truncated, info = env.step(action)
+            state, reward, done, truncated, info = env.step(action[0])
             rewards.append(reward)
             dones.append(done)
             next_steps.append(state)
