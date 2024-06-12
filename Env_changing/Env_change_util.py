@@ -156,8 +156,21 @@ class Hopper_edi(ABC):
         if not os.path.exists(checkpoint_path):
             return False
         return True
-    def generate_one_trajectory(self,env,max_time_step):
-        obs = env.reset()
+    def generate_one_trajectory(self,env_number,max_time_step,algorithm_name):
+        Policy_operation_folder = "Policy_operation"
+        Policy_saving_folder = os.path.join(Policy_operation_folder,"Policy_trained")
+        self.create_folder(Policy_saving_folder)
+        policy_folder_name = f"{self.env_name}"
+        for j in range(len(self.parameter_list[env_number])):
+            param_name = self.parameter_name_list[j]
+            param_value = self.parameter_list[env_number][j].tolist()
+            policy_folder_name += f"_{param_name}_{str(param_value)}"
+        policy_saving_path = os.path.join(Policy_saving_folder, policy_folder_name)
+        policy_model_name = f"{algorithm_name}_{str(self.policy_total_step)}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
+        policy_path = os.path.join(policy_saving_path, policy_model_name)
+        policy = d3rlpy.load_learnable(policy_path, device=self.device)
+        env = self.env_list[env_number]
+        obs = env.reset(seed=12345)
 
         observations = []
         rewards = []
@@ -166,19 +179,24 @@ class Hopper_edi(ABC):
         episode_data = {}
         observations.append(obs)
         for t in range(max_time_step):
-            action = env.action_space.sample()
+            observations.append(obs)
+            action = policy.predict(np.array([obs]))
 
-            next_step, reward, done= env.step(action)
+            ui = env.step(action[0])
+            state = ui[0]
+            reward = ui[1]
+            done = ui[2]
             rewards.append(reward)
             dones.append(done)
 
             if(t != max_time_step-1):
-                next_steps.append(next_step)
+                next_steps.append(state)
 
-            obs = new_obs
+            obs = state
 
-            if done:
+            if done or truncated:
                 break
+
         episode_data["state"] = observations
         episode_data["rewards"] = rewards
         episode_data["done"] = dones
@@ -189,13 +207,13 @@ class Hopper_edi(ABC):
         print(len(next_steps))
         return episode_data
 
-    def generate_offline_data(self,trajectory_numbers,max_time_step):
+    def generate_offline_data(self,trajectory_numbers,max_time_step,algorithm_name):
         self.print_environment_parameters()
         true_env_number = int(input("Please enter the environment parameter number you choose: "))
-        env = self.env_list[true_env_number]
+
         final_data = []
         for i in range(trajectory_numbers):
-            one_episode_data = self.generate_one_trajectory(env,max_time_step)
+            one_episode_data = self.generate_one_trajectory(true_env_number,max_time_step,algorithm_name)
             final_data.append(one_episode_data)
         print(final_data)
 

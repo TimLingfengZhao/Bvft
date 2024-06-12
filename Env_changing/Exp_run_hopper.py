@@ -30,4 +30,4 @@ hopper_exp = Hopper_edi(device=device,parameter_list=parameter_list,
                         env_name="Hopper-v4")
 # hopper_exp.train_policy()
 hopper_exp.print_environment_parameters()
-hopper_exp.generate_offline_data(2,200)
+hopper_exp.generate_offline_data(2,200,"DDPG")
