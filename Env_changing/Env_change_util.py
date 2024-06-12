@@ -161,7 +161,7 @@ class Hopper_edi(ABC):
         true_env_number = input("Please enter the environment parameter number you choose")
         print(true_env_number)
 
-    def self_parameters(self):
+    def get_self_parameters(self):
         print(self.para_map)
 
     def train_policy(self):
