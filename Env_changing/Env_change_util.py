@@ -208,7 +208,7 @@ class Hopper_edi(ABC):
         for i in range(trajectory_numbers):
             one_episode_data = self.generate_one_trajectory(true_env_number,max_time_step,algorithm_name)
             final_data.append(one_episode_data)
-            for key, value in self.one_episode_data.items():
+            for key, value in one_episode_data.items():
                 print(f"{key}: {value}")
 
 
