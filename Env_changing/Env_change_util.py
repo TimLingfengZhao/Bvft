@@ -157,12 +157,14 @@ class Hopper_edi(ABC):
             return False
         return True
     def generate_offline_data(self,trajectory_numbers):
-        print("List of environment parameters : ",self.para_map)
+        print("parameter of environments in current class : ")
+        for key, value in self.para_map:
+            print(f"{key}: {value}")
         true_env_number = input("Please enter the environment parameter number you choose")
         print(true_env_number)
-
-    def get_self_parameters(self):
-        print(self.para_map)
+    def print_environment_parameters(self):
+        for key, value in self.para_map:
+            print(f"{key}: {value}")
 
     def train_policy(self):
         Policy_operation_folder = "Policy_operation"
