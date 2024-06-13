@@ -221,7 +221,7 @@ class Hopper_edi(ABC):
         data_folder_name = f"{algorithm_name}_{self.env_name}"
         for j in range(len(self.parameter_list[true_env_number])):
             param_name = self.parameter_name_list[j]
-            param_value = self.parameter_list[env_number][j].tolist()
+            param_value = self.parameter_list[true_env_number][j].tolist()
             data_folder_name += f"_{param_name}_{str(param_value)}"
         data_folder_name += f"_{max_time_step}_maxStep_{trajectory_numbers}_trajectory"
         data_path = os.path.join(Offine_data_folder,data_folder_name)
