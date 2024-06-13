@@ -207,7 +207,7 @@ class Hopper_edi(ABC):
         episode_data["done"] = dones
         episode_data["next_state"] = next_steps
         return episode_data
-    def load_offline_data(selfself,trajectory_numbers,max_time_step,algorithm_name):
+    def load_offline_data(self,trajectory_numbers,max_time_step,algorithm_name):
         self.print_environment_parameters()
         true_env_number = int(input("Please enter the environment parameter number you choose: "))
 
