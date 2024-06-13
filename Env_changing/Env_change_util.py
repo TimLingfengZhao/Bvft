@@ -97,9 +97,45 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 # dataset_d, env = get_d4rl('hopper-medium-v0')
 from d3rlpy.dataset import Episode
 import gymnasium
+class CustomDataLoader:
+    def __init__(self, dataset):
+        self.dataset = dataset
+        self.current = 0
+
+    def get_iter_length(self,iteration_number):
+        return len(self.dataset.episodes[iteration_number].observations)
+    def get_state_shape(self):
+        first_state = self.dataset.observations[0]
+        return np.array(first_state).shape
+    def sample(self, iteration_number):
+        dones =self.dataset[iteration_number]["done"]
+        states = self.dataset[iteration_number]["state"]
+        actions =  self.dataset[iteration_number]["action"]
+        padded_next_states =  self.dataset[iteration_number]["next_state"]
+        rewards = self.dataset[iteration_number]["rewards"]
+        return states, actions, padded_next_states, rewards, dones
+
+
+
+
+
+def delete_files_in_folder(folder_path):
+    if not os.path.exists(folder_path):
+        print("The folder does not exist.")
+        return
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+                print(f"Deleted {file_path}")
+            elif os.path.isdir(file_path):
+                print(f"Skipping directory {file_path}")
+        except Exception as e:
+            print(f'Failed to delete {file_path}. Reason: {e}')
 class Hopper_edi(ABC):
 
-    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,
+    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,gamma=0.99,trajectory_num=2000,exp_env_num = 2,
                  env_name = "Hopper-v4"):
         self.device = device
         self.env_name = env_name
@@ -113,6 +149,10 @@ class Hopper_edi(ABC):
         self.policy_hidden_layer = policy_training_parameter_map["policy_hidden_layer"]
         self.algorithm_name_list = policy_training_parameter_map["algorithm_name_list"]
         self.data = []
+        self.gamma = gamma
+        self.trajectory_num = trajectory_num
+        self.exp_env_num = exp_env_num
+        self.true_list_index = 0
         for i in range(len(self.parameter_list)):
             current_env = gymnasium.make(self.env_name)
             for param_name, param_value in zip(self.parameter_name_list, self.parameter_list[i]):
@@ -120,6 +160,7 @@ class Hopper_edi(ABC):
             # print(current_env.unwrapped.model.opt)
             self.env_list.append(current_env)
         self.para_map = {index: item for index, item in enumerate(self.parameter_list)}
+
     def create_folder(self,folder_path):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
@@ -164,6 +205,11 @@ class Hopper_edi(ABC):
 
         unique_numbers = random.sample(range(range_start, range_end + 1), n)
         return unique_numbers
+
+    @abstractmethod
+    def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
+        pass
+
     def generate_one_trajectory(self,env_number,max_time_step,algorithm_name,unique_seed):
         Policy_operation_folder = "Policy_operation"
         Policy_saving_folder = os.path.join(Policy_operation_folder,"Policy_trained")
@@ -182,6 +228,7 @@ class Hopper_edi(ABC):
 
         observations = []
         rewards = []
+        actions = []
         dones = []
         next_steps = []
         episode_data = {}
@@ -189,8 +236,8 @@ class Hopper_edi(ABC):
         for t in range(max_time_step):
 
             action = policy.predict(np.array([obs]))
-
             state, reward, done, truncated, info = env.step(action[0])
+            actions.append(action)
             rewards.append(reward)
             dones.append(done)
             next_steps.append(state)
@@ -201,13 +248,14 @@ class Hopper_edi(ABC):
 
             if done or truncated:
                 break
-
+        episode_data["action"] = actions
         episode_data["state"] = observations
         episode_data["rewards"] = rewards
         episode_data["done"] = dones
         episode_data["next_state"] = next_steps
         return episode_data
-    def load_offline_data(self,trajectory_numbers,max_time_step,algorithm_name):
+    def load_offline_data(self,max_time_step,algorithm_name,true_list_index):
+        self.true_list_index = true_list_index
         self.print_environment_parameters()
         true_env_number = int(input("Please enter the environment parameter number you choose: "))
 
@@ -218,17 +266,17 @@ class Hopper_edi(ABC):
             param_name = self.parameter_name_list[j]
             param_value = self.parameter_list[true_env_number][j].tolist()
             data_folder_name += f"_{param_name}_{str(param_value)}"
-        data_folder_name += f"_{max_time_step}_maxStep_{trajectory_numbers}_trajectory"
+        data_folder_name += f"_{max_time_step}_maxStep_{self.trajectory_num}_trajectory_{self.true_list_index}"
         data_path = os.path.join(Offine_data_folder, data_folder_name)
         self.data = self.load_from_pkl(data_path)
-        print(self.data)
 
-    def generate_offline_data(self,trajectory_numbers,max_time_step,algorithm_name):
+    def generate_offline_data(self,max_time_step,algorithm_name):
         self.print_environment_parameters()
         true_env_number = int(input("Please enter the environment parameter number you choose: "))
-        unique_numbers = self.generate_unique_numbers(trajectory_numbers, 1, 12345)
+        self.true_list_index = true_env_number
+        unique_numbers = self.generate_unique_numbers(self.trajectory_num, 1, 12345)
         final_data = []
-        for i in range(trajectory_numbers):
+        for i in range(self.trajectory_num):
             one_episode_data = self.generate_one_trajectory(true_env_number,max_time_step,algorithm_name,unique_numbers[i])
             final_data.append(one_episode_data)
 
@@ -239,10 +287,11 @@ class Hopper_edi(ABC):
             param_name = self.parameter_name_list[j]
             param_value = self.parameter_list[true_env_number][j].tolist()
             data_folder_name += f"_{param_name}_{str(param_value)}"
-        data_folder_name += f"_{max_time_step}_maxStep_{trajectory_numbers}_trajectory"
+        data_folder_name += f"_{max_time_step}_maxStep_{self.trajectory_num}_trajectory_{self.true_list_index}"
         data_path = os.path.join(Offine_data_folder,data_folder_name)
-        self.save_as_pkl(data_path,final_data)
-        self.data = final_data
+        self.data = CustomDataLoader(final_data)
+        self.save_as_pkl(data_path,self.data)
+
 
 
 
