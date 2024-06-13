@@ -152,7 +152,7 @@ class Hopper_edi(ABC):
         self.gamma = gamma
         self.trajectory_num = trajectory_num
         self.exp_env_num = exp_env_num
-        self.true_list_index = 0
+        self.true_env_num = 0
         for i in range(len(self.parameter_list)):
             current_env = gymnasium.make(self.env_name)
             for param_name, param_value in zip(self.parameter_name_list, self.parameter_list[i]):
@@ -254,11 +254,10 @@ class Hopper_edi(ABC):
         episode_data["done"] = dones
         episode_data["next_state"] = next_steps
         return episode_data
-    def load_offline_data(self,max_time_step,algorithm_name,true_list_index):
-        self.true_list_index = true_list_index
+    def load_offline_data(self,max_time_step,algorithm_name,true_env_num):
         self.print_environment_parameters()
         true_env_number = int(input("Please enter the environment parameter number you choose: "))
-
+        self.true_env_num = true_env_number
         Offine_data_folder = "Offline_data"
         self.create_folder(Offine_data_folder)
         data_folder_name = f"{algorithm_name}_{self.env_name}"
@@ -266,14 +265,14 @@ class Hopper_edi(ABC):
             param_name = self.parameter_name_list[j]
             param_value = self.parameter_list[true_env_number][j].tolist()
             data_folder_name += f"_{param_name}_{str(param_value)}"
-        data_folder_name += f"_{max_time_step}_maxStep_{self.trajectory_num}_trajectory_{self.true_list_index}"
+        data_folder_name += f"_{max_time_step}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
         data_path = os.path.join(Offine_data_folder, data_folder_name)
         self.data = self.load_from_pkl(data_path)
 
     def generate_offline_data(self,max_time_step,algorithm_name):
         self.print_environment_parameters()
         true_env_number = int(input("Please enter the environment parameter number you choose: "))
-        self.true_list_index = true_env_number
+        self.true_env_num = true_env_number
         unique_numbers = self.generate_unique_numbers(self.trajectory_num, 1, 12345)
         final_data = []
         for i in range(self.trajectory_num):
@@ -287,7 +286,7 @@ class Hopper_edi(ABC):
             param_name = self.parameter_name_list[j]
             param_value = self.parameter_list[true_env_number][j].tolist()
             data_folder_name += f"_{param_name}_{str(param_value)}"
-        data_folder_name += f"_{max_time_step}_maxStep_{self.trajectory_num}_trajectory_{self.true_list_index}"
+        data_folder_name += f"_{max_time_step}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
         data_path = os.path.join(Offine_data_folder,data_folder_name)
         self.data = CustomDataLoader(final_data)
         self.save_as_pkl(data_path,self.data)
