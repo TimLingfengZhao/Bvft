@@ -216,6 +216,20 @@ class Hopper_edi(ABC):
             one_episode_data = self.generate_one_trajectory(true_env_number,max_time_step,algorithm_name,unique_numbers[i])
             final_data.append(one_episode_data)
 
+        Offine_data_folder = "Offline_data"
+        self.create_folder(Offine_data_folder)
+        data_folder_name = f"{algorithm_name}_{self.env_name}"
+        for j in range(len(self.parameter_list[env_number])):
+            param_name = self.parameter_name_list[j]
+            param_value = self.parameter_list[env_number][j].tolist()
+            data_folder_name += f"_{param_name}_{str(param_value)}"
+        data_folder_name += f"_{max_time_step}_maxStep_{trajectory_numbers}_trajectory"
+        data_path = os.path.join(Offine_data_folder,data_folder_name)
+        self.save_as_pkl(data_path,final_data)
+
+
+
+
 
     def print_environment_parameters(self):
         print(f"{self.parameter_name_list} parameters of environments in current class :")
