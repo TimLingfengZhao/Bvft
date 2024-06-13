@@ -112,6 +112,7 @@ class Hopper_edi(ABC):
         self.policy_learning_rate = policy_training_parameter_map["policy_learning_rate"]
         self.policy_hidden_layer = policy_training_parameter_map["policy_hidden_layer"]
         self.algorithm_name_list = policy_training_parameter_map["algorithm_name_list"]
+        self.data = []
         for i in range(len(self.parameter_list)):
             current_env = gymnasium.make(self.env_name)
             for param_name, param_value in zip(self.parameter_name_list, self.parameter_list[i]):
@@ -206,6 +207,21 @@ class Hopper_edi(ABC):
         episode_data["done"] = dones
         episode_data["next_state"] = next_steps
         return episode_data
+    def load_offline_data(selfself,trajectory_numbers,max_time_step,algorithm_name):
+        self.print_environment_parameters()
+        true_env_number = int(input("Please enter the environment parameter number you choose: "))
+
+        Offine_data_folder = "Offline_data"
+        self.create_folder(Offine_data_folder)
+        data_folder_name = f"{algorithm_name}_{self.env_name}"
+        for j in range(len(self.parameter_list[true_env_number])):
+            param_name = self.parameter_name_list[j]
+            param_value = self.parameter_list[true_env_number][j].tolist()
+            data_folder_name += f"_{param_name}_{str(param_value)}"
+        data_folder_name += f"_{max_time_step}_maxStep_{trajectory_numbers}_trajectory"
+        data_path = os.path.join(Offine_data_folder, data_folder_name)
+        self.data = self.load_from_pkl(data_path)
+        print(self.data)
 
     def generate_offline_data(self,trajectory_numbers,max_time_step,algorithm_name):
         self.print_environment_parameters()
@@ -226,6 +242,7 @@ class Hopper_edi(ABC):
         data_folder_name += f"_{max_time_step}_maxStep_{trajectory_numbers}_trajectory"
         data_path = os.path.join(Offine_data_folder,data_folder_name)
         self.save_as_pkl(data_path,final_data)
+        self.data = final_data
 
 
 
