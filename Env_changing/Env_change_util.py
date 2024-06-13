@@ -219,7 +219,7 @@ class Hopper_edi(ABC):
         Offine_data_folder = "Offline_data"
         self.create_folder(Offine_data_folder)
         data_folder_name = f"{algorithm_name}_{self.env_name}"
-        for j in range(len(self.parameter_list[env_number])):
+        for j in range(len(self.parameter_list[true_env_number])):
             param_name = self.parameter_name_list[j]
             param_value = self.parameter_list[env_number][j].tolist()
             data_folder_name += f"_{param_name}_{str(param_value)}"
