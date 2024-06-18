@@ -249,13 +249,12 @@ class Hopper_edi(ABC):
         dones = []
         next_steps = []
         episode_data = {}
-        print("obs : ",obs)
         observations.append(obs)
-        print("obs : ",obs)
+        print("initial obs : ",obs)
         for t in range(max_time_step):
 
             action = policy.predict(np.array([obs]))
-            print("predicted actions : ",actions)
+            print("action after prediction : ",action)
             state, reward, done, truncated, info = env.step(action[0])
             actions.append(action[0])
             rewards.append(reward)
