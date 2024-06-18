@@ -423,6 +423,7 @@ class Hopper_edi(ABC):
                 # print("len actions : ",len(actions))
                 observation =states[i]
                 action = actions[i]
+                env.reset()
                 env.state= observation
                 print("observations : ",observation)
                 print("action : ",action)
