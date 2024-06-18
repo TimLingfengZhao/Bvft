@@ -399,8 +399,8 @@ class Hopper_edi(ABC):
             # print("sleep now")
             # time.sleep(600)
     def get_qa(self,policy_number,environment_number,state,action):
-        current_env = self.env_list[environment_number]
-        current_policy = self.policy_list[policy_number]
+        env = self.env_list[environment_number]
+        policy = self.policy_list[policy_number]
         result_list = []
         for i in range(len(state)):
             total_rewards = 0
