@@ -116,7 +116,6 @@ class CustomDataLoader:
         print("states : ",states)
         print("actions : ",actions)
         print("rewards : ",rewards)
-        sys.exit()
         return states, actions, padded_next_states, rewards, dones
 
 
@@ -268,11 +267,6 @@ class Hopper_edi(ABC):
 
             if done or truncated:
                 break
-        print("actions : ",actions)
-        print("observations : ",observations)
-        print("rewards : ",rewards)
-        print("dones : ",dones)
-        sys.exit()
         episode_data["action"] = actions
         episode_data["state"] = observations
         episode_data["rewards"] = rewards
