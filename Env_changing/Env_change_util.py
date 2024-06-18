@@ -442,8 +442,8 @@ class Hopper_edi(ABC):
                     print("len q sa : ", len(self.q_sa))
                     print(reward)
                     self.q_sa[(i+1)*(j+1)-1][ptr:ptr + length] = self.get_qa(j,i,state,action)
-                    vfsp = (reward.squeeze(-1) + self.get_qa(j,i,next_state, policy_list[j].predict(next_state)) * (
-                            1 - np.array(done)).squeeze(-1) * gamma)
+                    vfsp = (reward + self.get_qa(j,i,next_state, policy_list[j].predict(next_state)) * (
+                            1 - np.array(done)) * gamma)
 
                     self.r_plus_vfsp[(i+1)*(j+1)-1][ptr:ptr + length] = vfsp.flatten()[:length]
             ptr += 1
