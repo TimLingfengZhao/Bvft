@@ -443,7 +443,7 @@ class Hopper_edi(ABC):
             ptr += 1
         print("self q_sa : ",self.q_sa)
         print("length self q sa : ",len(self.q_sa))
-        print("update nosfasw what i was y] sasdf no vpn !!!")
+        print("update nosfasw what i wsaea as y] sasdf no vpn !!!")
 
 
     def run(self,true_data_list):
