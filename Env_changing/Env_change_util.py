@@ -415,6 +415,7 @@ class Hopper_edi(ABC):
                 state = ui[0]
                 reward = ui[1]
                 done = ui[2]
+                print("done : ",done)
                 while ((not done) and (num_step < self.max_timestep)):
                     action = policy.predict(np.array([state]))
                     print("action in while : ",action)
