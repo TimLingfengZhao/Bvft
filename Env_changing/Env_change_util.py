@@ -444,7 +444,7 @@ class Hopper_edi(ABC):
             ptr += 1
         print("self q_sa : ",self.q_sa)
         print("length self q sa : ",len(self.q_sa))
-        print("update fk v asdfapn !!!")
+        print("update fk v asdf sfapn !!!")
 
 
     def run(self,true_data_list):
