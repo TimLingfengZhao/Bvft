@@ -398,21 +398,19 @@ class Hopper_edi(ABC):
                     print("load policy : ",str(policy_path))
             # print("sleep now")
             # time.sleep(600)
-    def get_qa(self,policy_number,environment_number,state,action):
-        print(action)
+    def get_qa(self,policy_number,environment_number,states,actions):
         env = self.env_list[environment_number]
         policy = self.policy_list[policy_number]
         result_list = []
-        for i in range(len(state)):
+        for i in range(len(states)):
             total_rewards = 0
             for j in range(300):
                 num_step = 0
                 discount_factor = 1
-                observation =state[i]
-                action = action[i]
-                dudu  =action[0]
-                print("action : ",np.array(dudu))
-                ui = env.step(np.array(dudu))
+                observation =states[i]
+                action = actions[i]
+                print("ui action : ",action[0])
+                ui = env.step(action[0])
                 state = ui[0]
                 reward = ui[1]
                 total_rewards += reward
