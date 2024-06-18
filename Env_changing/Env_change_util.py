@@ -410,8 +410,8 @@ class Hopper_edi(ABC):
             for j in range(300):
                 num_step = 0
                 discount_factor = 1
-                print("len states : ",len(states))
-                print("len actions : ",len(actions))
+                # print("len states : ",len(states))
+                # print("len actions : ",len(actions))
                 observation =states[i]
                 action = actions[i]
                 ui = env.step(action[0])
@@ -446,7 +446,8 @@ class Hopper_edi(ABC):
                     print("actions : ",[self.policy_list[j].predict(next_state)])
                     print("len next state : ",len(next_state))
                     print("len actions : ",len(action))
-                    vfsp = (reward + self.get_qa(j,i,next_state, [self.policy_list[j].predict(next_state)]) * (
+                    print("next actions : ",self.policy_list[j].predict(next_state))
+                    vfsp = (reward + self.get_qa(j,i,next_state, self.policy_list[j].predict(next_state)) * (
                             1 - np.array(done)) * gamma)
 
                     self.r_plus_vfsp[(i+1)*(j+1)-1][ptr:ptr + length] = vfsp.flatten()[:length]
