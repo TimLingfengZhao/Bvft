@@ -108,11 +108,11 @@ class CustomDataLoader:
         first_state = self.dataset.observations[0]
         return np.array(first_state).shape
     def sample(self, iteration_number):
-        dones =self.dataset[iteration_number]["done"]
-        states = self.dataset[iteration_number]["state"]
-        actions =  self.dataset[iteration_number]["action"]
-        padded_next_states =  self.dataset[iteration_number]["next_state"]
-        rewards = self.dataset[iteration_number]["rewards"]
+        dones =np.array(self.dataset[iteration_number]["done"])
+        states = np.array(self.dataset[iteration_number]["state"])
+        actions =  np.array(self.dataset[iteration_number]["action"])
+        padded_next_states =  np.array(self.dataset[iteration_number]["next_state"])
+        rewards =np.array( self.dataset[iteration_number]["rewards"])
         return states, actions, padded_next_states, rewards, dones
 
 
