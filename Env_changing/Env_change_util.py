@@ -303,7 +303,7 @@ class Hopper_edi(ABC):
         data_path = os.path.join(Offine_data_folder,data_folder_name)
         self.data = CustomDataLoader(final_data)
         self.save_as_pkl(data_path,self.data)
-        print("update nosfasw what i was y]")
+
 
 
 
@@ -443,6 +443,7 @@ class Hopper_edi(ABC):
             ptr += 1
         print("self q_sa : ",self.q_sa)
         print("length self q sa : ",len(self.q_sa))
+        print("update nosfasw what i was y] sasdf no vpn !!!")
 
 
     def run(self,true_data_list):
