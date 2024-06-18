@@ -439,9 +439,11 @@ class Hopper_edi(ABC):
             for i in range(len(self.env_list)):
                 for j in range(len(self.policy_list)):
 
-                    print("len q sa : ", len(self.q_sa))
-                    print(reward)
+
                     self.q_sa[(i+1)*(j+1)-1][ptr:ptr + length] = self.get_qa(j,i,state,action)
+                    print("actions : ",[self.policy_list[j].predict(next_state)])
+                    print("len next state : ",len(next_state))
+                    print("len actions : ",len(action))
                     vfsp = (reward + self.get_qa(j,i,next_state, [self.policy_list[j].predict(next_state)]) * (
                             1 - np.array(done)) * gamma)
 
