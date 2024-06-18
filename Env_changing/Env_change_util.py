@@ -428,7 +428,7 @@ class Hopper_edi(ABC):
                 print("obser nions : ",observation)
                 env.observation= observation
                 print("state : ", env.render())
-                print("env 2 utate :",env.spec)
+                print("env 2utate :",env.spec)
                 sys.exit()
                 print("obser4 nions : ",observation)
                 print("action : ",action)
