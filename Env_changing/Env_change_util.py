@@ -158,7 +158,7 @@ class Hopper_edi(ABC):
         self.gamma = gamma
         self.trajectory_num = trajectory_num
         self.q_sa = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
-        print("self q sa : ", q_sa)
+        print("self q sa : ", self.q_sa)
         sys.exit()
         self.r_plus_vfsp = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
         self.true_env_num = 0
