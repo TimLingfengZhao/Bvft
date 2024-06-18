@@ -113,10 +113,7 @@ class CustomDataLoader:
         actions =  np.array(self.dataset[iteration_number]["action"])
         padded_next_states =  np.array(self.dataset[iteration_number]["next_state"])
         rewards =np.array( self.dataset[iteration_number]["rewards"])
-        print("states : ",states)
-        print("actions : ",actions)
-        print("rewsads : ",rewards)
-        sys.exit()
+
         return states, actions, padded_next_states, rewards, dones
 
 
@@ -420,6 +417,8 @@ class Hopper_edi(ABC):
                 # print("len actions : ",len(actions))
                 observation =states[i]
                 action = actions[i]
+                print("observations : ",observation)
+                print("action : ",action)
                 ui = env.step(action[0])
                 state = ui[0]
                 reward = ui[1]
@@ -427,10 +426,12 @@ class Hopper_edi(ABC):
                 done = ui[2]
                 while ((not done) and (num_step < self.max_timestep)):
                     action = policy.predict(np.array([state]))
+                    print("predicted actioin : ",action)
                     ui = env.step(action[0])
                     state = ui[0]
                     reward = ui[1]
                     done = ui[2]
+                    print("state after step : ",state)
                     total_rewards += reward * discount_factor
                     discount_factor *= self.gamma
                     num_step += 1
