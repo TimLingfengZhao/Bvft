@@ -426,7 +426,7 @@ class Hopper_edi(ABC):
                 env.reset()
                 print("env state :",env.state)
                 env.state= observation
-                print("env state :",env.state)
+                print("env 2 state :",env.state)
                 sys.exit()
                 print("observations : ",observation)
                 print("action : ",action)
