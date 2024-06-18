@@ -249,7 +249,7 @@ class Hopper_edi(ABC):
         next_steps = []
         episode_data = {}
         observations.append(obs)
-        print("initial obs : ",obs)
+        # print("initial obs : ",obs)
         for t in range(max_time_step):
 
             action = policy.predict(np.array([obs]))
@@ -263,7 +263,7 @@ class Hopper_edi(ABC):
                 observations.append(state)
 
             obs = state
-            print("state in env step : ",state)
+            # print("state in env step : ",state)
 
             if done or truncated:
                 break
@@ -448,10 +448,10 @@ class Hopper_edi(ABC):
 
 
                     self.q_sa[(i+1)*(j+1)-1][ptr:ptr + length] = self.get_qa(j,i,state,action)
-                    print("actions : ",[self.policy_list[j].predict(next_state)])
-                    print("len next state : ",len(next_state))
-                    print("len actions : ",len(action))
-                    print("next actions : ",self.policy_list[j].predict(next_state))
+                    # print("actions : ",[self.policy_list[j].predict(next_state)])
+                    # print("len next state : ",len(next_state))
+                    # print("len actions : ",len(action))
+                    # print("next actions : ",self.policy_list[j].predict(next_state))
                     vfsp = (reward + self.get_qa(j,i,next_state, self.policy_list[j].predict(next_state)) * (
                             1 - np.array(done)) * gamma)
 
