@@ -113,6 +113,7 @@ class CustomDataLoader:
         actions =  np.array(self.dataset[iteration_number]["action"])
         padded_next_states =  np.array(self.dataset[iteration_number]["next_state"])
         rewards =np.array( self.dataset[iteration_number]["rewards"])
+        print("actions : ",actionso)
         print("rewards : ",rewards)
         sys.exit()
         return states, actions, padded_next_states, rewards, dones
