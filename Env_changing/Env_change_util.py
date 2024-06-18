@@ -429,8 +429,8 @@ class Hopper_edi(ABC):
         ptr = 0
         gamma = self.gamma
         while ptr < self.trajectory_num:  # for everything in data size
-            length = self.test_data.get_iter_length(ptr)
-            state, action, next_state, reward, done = self.test_data.sample(ptr)
+            length = self.data.get_iter_length(ptr)
+            state, action, next_state, reward, done = self.data.sample(ptr)
             for i in range(len(self.env_list)):
                 for j in range(len(self.policy_list)):
                     self.q_sa[(i+1)*(j+1)-1][ptr:ptr + length] = self.get_qa(j,i,state,action)
