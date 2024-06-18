@@ -417,7 +417,7 @@ class Hopper_edi(ABC):
                 # print("len actions : ",len(actions))
                 observation =states[i]
                 action = actions[i]
-                print(env.unwrapped.model)
+                print(env.unwrapped.model。opt)
                 env.unwrapped.set_state(observation)
                 print("observations : ",observation)
                 print("action : ",action)
