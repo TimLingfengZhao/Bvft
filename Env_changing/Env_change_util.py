@@ -115,7 +115,7 @@ class CustomDataLoader:
         rewards =np.array( self.dataset[iteration_number]["rewards"])
         print("states : ",states)
         print("actions : ",actions)
-        print("rewsards : ",rewards)
+        print("rewsads : ",rewards)
         sys.exit()
         return states, actions, padded_next_states, rewards, dones
 
