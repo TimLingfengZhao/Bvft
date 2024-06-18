@@ -419,7 +419,7 @@ class Hopper_edi(ABC):
                 action = actions[i]
                 print("observations : ",observation)
                 print("action : ",action)
-                ui = env.step(action[0])
+                ui = env.step(action)
                 state = ui[0]
                 reward = ui[1]
                 total_rewards += reward
