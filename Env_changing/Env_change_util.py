@@ -168,8 +168,6 @@ class Hopper_edi(ABC):
             self.env_list.append(current_env)
         self.para_map = {index: item for index, item in enumerate(self.parameter_list)}
 
-        self.q_sa = [np.zeros(data_size) for _ in q_functions]  # q_functions corresponding 0
-        self.r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]  # initialization 0
 
 
 
