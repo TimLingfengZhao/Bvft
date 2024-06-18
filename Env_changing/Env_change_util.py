@@ -157,11 +157,6 @@ class Hopper_edi(ABC):
         self.data = []
         self.gamma = gamma
         self.trajectory_num = trajectory_num
-        self.q_sa = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
-        print("len env list : ",len(self.env_list))
-        print("self q sa : ", self.q_sa)
-        sys.exit()
-        self.r_plus_vfsp = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
         self.true_env_num = 0
         for i in range(len(self.parameter_list)):
             current_env = gymnasium.make(self.env_name)
@@ -170,7 +165,11 @@ class Hopper_edi(ABC):
             # print(current_env.unwrapped.model.opt)
             self.env_list.append(current_env)
         self.para_map = {index: item for index, item in enumerate(self.parameter_list)}
-
+        self.q_sa = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
+        # print("len env list : ",len(self.env_list))
+        # print("self q sa : ", self.q_sa)
+        # sys.exit()
+        self.r_plus_vfsp = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
 
 
 
