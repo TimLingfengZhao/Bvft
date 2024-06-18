@@ -263,7 +263,7 @@ class Hopper_edi(ABC):
             if((t != max_time_step-1) and done == False):
                 observations.append(state)
 
-            obs = state[0]
+            obs = state
             print("state in env step : ",state)
 
             if done or truncated:
