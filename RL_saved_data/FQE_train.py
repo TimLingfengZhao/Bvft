@@ -168,7 +168,7 @@ def run_FQE(FQE_learning_rate,FQE_hidden_layer,FQE_total_step, FQE_episode_step,
                             check_point_list.append(epoch)
                             save_list(check_point_list, FQE_checkpoint_list_path)
                             if ((epoch + 1) % num_interval == 0):
-                                FQE_ep_name = FQE_model_pre + str((epoch + 1) * FQE_episode_step) + policy_file_name
+                                FQE_ep_name = FQE_model_pre + str((epoch + 1) * FQE_episode_step)+ "step_" + policy_file_name
                                 FQE_ep_name = FQE_ep_name[:-2] + "pt"
                                 FQE_save_path = os.path.join(FQE_directory, FQE_ep_name)
                                 fqe.save_model(FQE_save_path)
