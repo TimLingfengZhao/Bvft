@@ -424,7 +424,10 @@ class Hopper_edi(ABC):
                 observation =states[i]
                 action = actions[i]
                 env.reset()
+                print("env state :",env.state)
                 env.state= observation
+                print("env state :",env.state)
+                sys.exit()
                 print("observations : ",observation)
                 print("action : ",action)
                 ui = env.step(action)
