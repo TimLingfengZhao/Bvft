@@ -424,10 +424,10 @@ class Hopper_edi(ABC):
                 observation =states[i]
                 action = actions[i]
                 env.reset()
-                print("state : ",env.info)
+                print("state : ",env.getattr())
                 print("obser nions : ",observation)
                 env.observation= observation
-                print("state : ", env.get_state())
+                print("state : ", env.getattr())
                 print("env 2 utate :",env.spec)
                 sys.exit()
                 print("obser4 nions : ",observation)
