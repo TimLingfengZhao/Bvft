@@ -407,7 +407,8 @@ class Hopper_edi(ABC):
             for j in range(300):
                 num_step = 0
                 discount_factor = 1
-                observation =state[i],action = action[i]
+                observation =state[i]
+                action = action[i]
                 ui = env.step(action[0])
                 state = ui[0]
                 reward = ui[1]
