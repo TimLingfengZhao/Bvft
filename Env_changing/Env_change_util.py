@@ -409,6 +409,7 @@ class Hopper_edi(ABC):
                 discount_factor = 1
                 observation =state[i]
                 action = action[i]
+                print("action : ",action)
                 ui = env.step(action)
                 state = ui[0]
                 reward = ui[1]
