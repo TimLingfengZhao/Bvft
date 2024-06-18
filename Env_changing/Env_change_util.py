@@ -399,6 +399,7 @@ class Hopper_edi(ABC):
             # print("sleep now")
             # time.sleep(600)
     def get_qa(self,policy_number,environment_number,state,action):
+        print(action)
         env = self.env_list[environment_number]
         policy = self.policy_list[policy_number]
         result_list = []
@@ -414,6 +415,7 @@ class Hopper_edi(ABC):
                 ui = env.step(np.array(dudu))
                 state = ui[0]
                 reward = ui[1]
+                total_rewards += reward
                 done = ui[2]
                 print("done : ",done)
                 while ((not done) and (num_step < self.max_timestep)):
