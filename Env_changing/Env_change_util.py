@@ -158,6 +158,8 @@ class Hopper_edi(ABC):
         self.gamma = gamma
         self.trajectory_num = trajectory_num
         self.q_sa = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
+        print("self q sa : ", q_sa)
+        sys.exit()
         self.r_plus_vfsp = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
         self.true_env_num = 0
         for i in range(len(self.parameter_list)):
@@ -435,6 +437,7 @@ class Hopper_edi(ABC):
             state, action, next_state, reward, done = self.data.sample(ptr)
             for i in range(len(self.env_list)):
                 for j in range(len(self.policy_list)):
+
                     print("len q sa : ", len(self.q_sa))
                     self.q_sa[(i+1)*(j+1)-1][ptr:ptr + length] = self.get_qa(j,i,state,action)
                     vfsp = (reward.squeeze(-1) + self.get_qa(j,i,next_state, policy_list[j].predict(next_state)) * (
@@ -444,7 +447,7 @@ class Hopper_edi(ABC):
             ptr += 1
         print("self q_sa : ",self.q_sa)
         print("length self q sa : ",len(self.q_sa))
-        print("update fk v s!!!")
+
 
 
     def run(self,true_data_list):
