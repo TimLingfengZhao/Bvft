@@ -219,9 +219,9 @@ class Hopper_edi(ABC):
         return unique_numbers
 
 
-    @abstractmethod
-    def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
-        pass
+    # @abstractmethod
+    # def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
+    #     pass
 
     def generate_one_trajectory(self,env_number,max_time_step,algorithm_name,unique_seed):
         Policy_operation_folder = "Policy_operation"
