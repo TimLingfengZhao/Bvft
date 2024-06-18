@@ -34,4 +34,4 @@ hopper_exp = Hopper_edi(device=device,parameter_list=parameter_list,
                         env_name="Hopper-v4")
 
 # hopper_exp.generate_offline_data(2,200,"DDPG")
-hopper_exp.run()
+hopper_exp.run([0,1])
