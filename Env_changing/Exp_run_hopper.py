@@ -24,11 +24,14 @@ policy_parameter_map = {"policy_total_step":3000,
 
 
 
+
 parameter_name_list = ["gravity","magnetic","wind"]
+
+
+
 hopper_exp = Hopper_edi(device=device,parameter_list=parameter_list,
                         parameter_name_list=parameter_name_list,policy_training_parameter_map=policy_parameter_map,
                         env_name="Hopper-v4")
-# hopper_exp.train_policy()
-hopper_exp.print_environment_parameters()
+
 # hopper_exp.generate_offline_data(2,200,"DDPG")
-hopper_exp.load_offline_data(2,200,"DDPG")
+hopper_exp.run()

@@ -339,7 +339,6 @@ class policy_select(ABC):
             return None, None
 
         return parts[1], parts[2]
-    "return the ranking list"
     @abstractmethod
     def select_Q(self,q_functions,q_name_functions,policy_name_listi,q_sa,r_plus_vfsp):
         pass
@@ -390,7 +389,6 @@ class policy_select(ABC):
                     vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1) * gamma)
 
                     r_plus_vfsp[j][ptr:ptr + length] = vfsp.flatten()[:length]
-                    # print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
                 ptr += 1
             result = self.select_Q(q_functions, q_name_functions,policy_name_list[i], q_sa, r_plus_vfsp)
             index = np.argmin(result)

@@ -136,22 +136,29 @@ def delete_files_in_folder(folder_path):
 class Hopper_edi(ABC):
 
     def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,gamma=0.99,trajectory_num=2000,exp_env_num = 2,
+                 max_timestep = 1000, total_select_env_number=2,
                  env_name = "Hopper-v4"):
         self.device = device
+        self.q_functions = []
+        self.max_timestep = max_timestep
         self.env_name = env_name
         self.parameter_list = parameter_list
         self.parameter_name_list = parameter_name_list
+        self.unique_numbers = []
         self.env_list = []
+        self.total_select_env_number = total_select_env_number
         self.policy_total_step = policy_training_parameter_map["policy_total_step"]
         self.policy_episode_step = policy_training_parameter_map["policy_episode_step"]
         self.policy_saving_number = policy_training_parameter_map["policy_saving_number"]
         self.policy_learning_rate = policy_training_parameter_map["policy_learning_rate"]
         self.policy_hidden_layer = policy_training_parameter_map["policy_hidden_layer"]
         self.algorithm_name_list = policy_training_parameter_map["algorithm_name_list"]
+        self.policy_list = []
         self.data = []
         self.gamma = gamma
         self.trajectory_num = trajectory_num
-        self.exp_env_num = exp_env_num
+        self.q_sa = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
+        self.r_plus_vfsp = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
         self.true_env_num = 0
         for i in range(len(self.parameter_list)):
             current_env = gymnasium.make(self.env_name)
@@ -160,6 +167,11 @@ class Hopper_edi(ABC):
             # print(current_env.unwrapped.model.opt)
             self.env_list.append(current_env)
         self.para_map = {index: item for index, item in enumerate(self.parameter_list)}
+
+        self.q_sa = [np.zeros(data_size) for _ in q_functions]  # q_functions corresponding 0
+        self.r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]  # initialization 0
+
+
 
     def create_folder(self,folder_path):
         if not os.path.exists(folder_path):
@@ -205,6 +217,7 @@ class Hopper_edi(ABC):
 
         unique_numbers = random.sample(range(range_start, range_end + 1), n)
         return unique_numbers
+
 
     @abstractmethod
     def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
@@ -254,9 +267,8 @@ class Hopper_edi(ABC):
         episode_data["done"] = dones
         episode_data["next_state"] = next_steps
         return episode_data
-    def load_offline_data(self,max_time_step,algorithm_name,true_env_num):
+    def load_offline_data(self,max_time_step,algorithm_name,true_env_number):
         self.print_environment_parameters()
-        true_env_number = int(input("Please enter the environment parameter number you choose: "))
         self.true_env_num = true_env_number
         Offine_data_folder = "Offline_data"
         self.create_folder(Offine_data_folder)
@@ -267,13 +279,16 @@ class Hopper_edi(ABC):
             data_folder_name += f"_{param_name}_{str(param_value)}"
         data_folder_name += f"_{max_time_step}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
         data_path = os.path.join(Offine_data_folder, data_folder_name)
-        self.data = self.load_from_pkl(data_path)
+        if os.path.exists(data_path):
+            self.data = self.load_from_pkl(data_path)
+        else:
+            self.generate_offline_data(max_time_step,algorithm_name,true_env_number)
 
-    def generate_offline_data(self,max_time_step,algorithm_name):
+    def generate_offline_data(self,max_time_step,algorithm_name,true_env_number):
         self.print_environment_parameters()
-        true_env_number = int(input("Please enter the environment parameter number you choose: "))
         self.true_env_num = true_env_number
         unique_numbers = self.generate_unique_numbers(self.trajectory_num, 1, 12345)
+        self.unique_numbers = unique_numbers
         final_data = []
         for i in range(self.trajectory_num):
             one_episode_data = self.generate_one_trajectory(true_env_number,max_time_step,algorithm_name,unique_numbers[i])
@@ -290,9 +305,6 @@ class Hopper_edi(ABC):
         data_path = os.path.join(Offine_data_folder,data_folder_name)
         self.data = CustomDataLoader(final_data)
         self.save_as_pkl(data_path,self.data)
-
-
-
 
 
 
@@ -349,6 +361,7 @@ class Hopper_edi(ABC):
                                 if ((epoch + 1) % self.policy_saving_number == 0):
                                     policy.save(policy_path[:-3] + "_" + str(
                                         (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
+                                    self.policy_list.append(policy)
                         else:
                             self_class = getattr(d3rlpy.algos, algorithm_name + "Config")
                             policy = self_class(
@@ -373,11 +386,80 @@ class Hopper_edi(ABC):
                                 if ((epoch + 1) % self.policy_saving_number == 0):
                                     policy.save(policy_path[:-3] + "_" + str(
                                         (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
+                                    self.policy_list.append(policy)
                         if os.path.exists(checkpoint_list_path + ".pkl"):
                             os.remove(checkpoint_list_path + ".pkl")
                         if os.path.exists(checkpoint_path):
                             os.remove(checkpoint_path)
                         print(f"end training {policy_folder_name} with algorithm {str(self.algorithm_name_list)}")
+                    else:
+                        policy_path = policy_path[:-3]+"_"+str(self.policy_total_step)+"step.d3"
+                        policy = d3rlpy.load_learnable(policy_path, device=self.device)
+                        self.policy_list.append(policy)
+                        print("load policy : ",str(policy_path))
             print("sleep now")
             time.sleep(600)
+    def get_qa(self,policy_number,environment_number,state,action):
+        current_env = self.env_list[environment_number]
+        current_policy = self.policy_list[policy_number]
+        result_list = []
+        for i in range(len(state)):
+            total_rewards = 0
+            for j in range(num_run):
+                num_step = 0
+                discount_factor = 1
+                observation =state[i],action = action[i]
+                ui = env.step(action[0])
+                state = ui[0]
+                reward = ui[1]
+                done = ui[2]
+                while ((not done) and (num_step < self.max_timestep)):
+                    action = policy.predict(np.array([state]))
+                    ui = env.step(action[0])
+                    state = ui[0]
+                    reward = ui[1]
+                    done = ui[2]
+                    total_rewards += reward * discount_factor
+                    discount_factor *= self.gamma
+                    num_step += 1
+            total_rewards = total_rewards / num_run
+            result_list.append(total_rewards)
+        return result_list
+
+    def get_whole_qa(self):
+        ptr = 0
+        gamma = self.gamma
+        while ptr < self.trajectory_num:  # for everything in data size
+            length = self.test_data.get_iter_length(ptr)
+            state, action, next_state, reward, done = self.test_data.sample(ptr)
+            for i in range(len(self.env_list)):
+                for j in range(len(self.policy_list)):
+                    self.q_sa[(i+1)*(j+1)-1][ptr:ptr + length] = self.get_qa(j,i,state,action)
+                    vfsp = (reward.squeeze(-1) + self.get_qa(j,i,next_state, policy_list[j].predict(next_state)) * (
+                            1 - np.array(done)).squeeze(-1) * gamma)
+
+                    self.r_plus_vfsp[(i+1)*(j+1)-1][ptr:ptr + length] = vfsp.flatten()[:length]
+            ptr += 1
+        print("self q_sa : ",self.q_sa)
+        print("length self q sa : ",len(self.q_sa))
+
+
+    def run(self,true_data_list):
+        self.train_policy()
+        self.get_whole_qa()
+        para_li = []
+        for i in range(len(self.algorithm_name_list)):
+            for j in range(len(true_data_list)):
+                current_list = []
+                current_list.append(self.max_timestep)
+                current_list.append(self.algorithm_name_list[i])
+                current_list.append(true_data_list[j])
+                para_li.append(current_list)
+
+        for i in range(len(para_li)):
+            self.load_offline_data(para_li[0],para_li[1],para_li[2])
+
+
+
+
 
