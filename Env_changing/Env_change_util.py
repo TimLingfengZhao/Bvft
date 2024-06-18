@@ -283,8 +283,11 @@ class Hopper_edi(ABC):
             data_folder_name += f"_{param_name}_{str(param_value)}"
         data_folder_name += f"_{max_time_step}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
         data_path = os.path.join(Offine_data_folder, data_folder_name)
+        data_seeds_name = data_folder_name + "_seeds"
+        data_seeds_path = os.path.join(Offine_data_folder,data_seeds_name)
         if os.path.exists(data_path):
             self.data = self.load_from_pkl(data_path)
+            self.unique_numbers = self.load_from_pkl(data_seeds_path)
         else:
             self.generate_offline_data(max_time_step,algorithm_name,true_env_number)
 
@@ -307,8 +310,11 @@ class Hopper_edi(ABC):
             data_folder_name += f"_{param_name}_{str(param_value)}"
         data_folder_name += f"_{max_time_step}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
         data_path = os.path.join(Offine_data_folder,data_folder_name)
+        data_seeds_name = data_folder_name + "_seeds"
+        data_seeds_path = os.path.join(Offine_data_folder,data_seeds_name)
         self.data = CustomDataLoader(final_data)
         self.save_as_pkl(data_path,self.data)
+        self.save_as_pkl(data_seeds_path, self.unique_numbers)
 
 
 
@@ -417,8 +423,8 @@ class Hopper_edi(ABC):
                 # print("len actions : ",len(actions))
                 observation =states[i]
                 action = actions[i]
-                print(env.unwrapped.model.opt)
-                env.unwrapped.set_state(observation)
+                print(env.unwrapped.ObservationWrapper)
+                env.state= observation
                 print("observations : ",observation)
                 print("action : ",action)
                 ui = env.step(action)
