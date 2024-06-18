@@ -317,86 +317,86 @@ class Hopper_edi(ABC):
         self.create_folder(Policy_saving_folder)
         Policy_checkpoints_folder = os.path.join(Policy_operation_folder,"Policy_checkpoints")
         self.create_folder(Policy_checkpoints_folder)
-        while(True):
-            for i in range(len(self.parameter_list)):
-                current_env = self.env_list[i]
-                policy_folder_name = f"{self.env_name}"
-                for j in range(len(self.parameter_list[i])):
-                    param_name = self.parameter_name_list[j]
-                    param_value = self.parameter_list[i][j].tolist()
-                    policy_folder_name += f"_{param_name}_{str(param_value)}"
-                print(f"start training {policy_folder_name} with algorithm {str(self.algorithm_name_list)}")
-                policy_saving_path = os.path.join(Policy_saving_folder, policy_folder_name)
-                policy_checkpoints_path = os.path.join(Policy_checkpoints_folder, policy_folder_name)
-                self.create_folder(policy_saving_path)
-                self.create_folder(policy_checkpoints_path)
-                num_epoch = int(self.policy_total_step / self.policy_episode_step)
-                buffer = d3rlpy.dataset.create_fifo_replay_buffer(limit=1000000, env=current_env)
-                explorer = d3rlpy.algos.ConstantEpsilonGreedy(0.3)
-                checkpoint_list = []
-                for algorithm_name in self.algorithm_name_list:
-                    checkpoint_path = os.path.join(policy_checkpoints_path,f"{algorithm_name}_checkpoints.d3")
-                    checkpoint_list_path = os.path.join(policy_checkpoints_path, f"{algorithm_name}_checkpoints")
-                    policy_model_name = f"{algorithm_name}_{str(self.policy_total_step)}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
-                    policy_path = os.path.join(policy_saving_path, policy_model_name)
-                    if(not self.whether_file_exists(policy_path[:-3]+"_"+str(self.policy_total_step)+"step.d3")):
-                        print(f"{policy_path} not exists")
-                        if (self.whether_file_exists(checkpoint_path)):
-                            policy = d3rlpy.load_learnable(checkpoint_path, device=self.device)
-                            checkpoint_list = self.load_from_pkl(checkpoint_list_path)
-                            print(f"enter self checkpoints {checkpoint_path} with epoch {str(checkpoint_list[-1])}")
-                            for epoch in range(checkpoint_list[-1] + 1, int(num_epoch)):
-                                policy.fit_online(env=current_env,
-                                                  buffer=buffer,
-                                                  explorer=explorer,
-                                                  n_steps=self.policy_episode_step,
-                                                  eval_env=current_env,
-                                                  with_timestamp=False,
-                                                  )
-                                policy.save(checkpoint_path)
-                                checkpoint_list.append(epoch)
-                                self.save_as_pkl(checkpoint_list_path, checkpoint_list)
-                                if ((epoch + 1) % self.policy_saving_number == 0):
-                                    policy.save(policy_path[:-3] + "_" + str(
-                                        (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
-                                    self.policy_list.append(policy)
-                        else:
-                            self_class = getattr(d3rlpy.algos, algorithm_name + "Config")
-                            policy = self_class(
-                                actor_encoder_factory=d3rlpy.models.VectorEncoderFactory(
-                                    hidden_units=self.policy_hidden_layer),
-                                critic_encoder_factory=d3rlpy.models.VectorEncoderFactory(
-                                    hidden_units=self.policy_hidden_layer),
-                                actor_learning_rate=self.policy_learning_rate,
-                                critic_learning_rate=self.policy_learning_rate,
-                            ).create(device=self.device)
-                            for epoch in range(num_epoch):
-                                policy.fit_online(env=current_env,
-                                                  buffer=buffer,
-                                                  explorer=explorer,
-                                                  n_steps=self.policy_episode_step,
-                                                  eval_env=current_env,
-                                                  with_timestamp=False,
-                                                  )
-                                policy.save(checkpoint_path)
-                                checkpoint_list.append(epoch)
-                                self.save_as_pkl(checkpoint_list_path, checkpoint_list)
-                                if ((epoch + 1) % self.policy_saving_number == 0):
-                                    policy.save(policy_path[:-3] + "_" + str(
-                                        (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
-                                    self.policy_list.append(policy)
-                        if os.path.exists(checkpoint_list_path + ".pkl"):
-                            os.remove(checkpoint_list_path + ".pkl")
-                        if os.path.exists(checkpoint_path):
-                            os.remove(checkpoint_path)
-                        print(f"end training {policy_folder_name} with algorithm {str(self.algorithm_name_list)}")
+        # while(True):
+        for i in range(len(self.parameter_list)):
+            current_env = self.env_list[i]
+            policy_folder_name = f"{self.env_name}"
+            for j in range(len(self.parameter_list[i])):
+                param_name = self.parameter_name_list[j]
+                param_value = self.parameter_list[i][j].tolist()
+                policy_folder_name += f"_{param_name}_{str(param_value)}"
+            print(f"start training {policy_folder_name} with algorithm {str(self.algorithm_name_list)}")
+            policy_saving_path = os.path.join(Policy_saving_folder, policy_folder_name)
+            policy_checkpoints_path = os.path.join(Policy_checkpoints_folder, policy_folder_name)
+            self.create_folder(policy_saving_path)
+            self.create_folder(policy_checkpoints_path)
+            num_epoch = int(self.policy_total_step / self.policy_episode_step)
+            buffer = d3rlpy.dataset.create_fifo_replay_buffer(limit=1000000, env=current_env)
+            explorer = d3rlpy.algos.ConstantEpsilonGreedy(0.3)
+            checkpoint_list = []
+            for algorithm_name in self.algorithm_name_list:
+                checkpoint_path = os.path.join(policy_checkpoints_path,f"{algorithm_name}_checkpoints.d3")
+                checkpoint_list_path = os.path.join(policy_checkpoints_path, f"{algorithm_name}_checkpoints")
+                policy_model_name = f"{algorithm_name}_{str(self.policy_total_step)}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
+                policy_path = os.path.join(policy_saving_path, policy_model_name)
+                if(not self.whether_file_exists(policy_path[:-3]+"_"+str(self.policy_total_step)+"step.d3")):
+                    print(f"{policy_path} not exists")
+                    if (self.whether_file_exists(checkpoint_path)):
+                        policy = d3rlpy.load_learnable(checkpoint_path, device=self.device)
+                        checkpoint_list = self.load_from_pkl(checkpoint_list_path)
+                        print(f"enter self checkpoints {checkpoint_path} with epoch {str(checkpoint_list[-1])}")
+                        for epoch in range(checkpoint_list[-1] + 1, int(num_epoch)):
+                            policy.fit_online(env=current_env,
+                                              buffer=buffer,
+                                              explorer=explorer,
+                                              n_steps=self.policy_episode_step,
+                                              eval_env=current_env,
+                                              with_timestamp=False,
+                                              )
+                            policy.save(checkpoint_path)
+                            checkpoint_list.append(epoch)
+                            self.save_as_pkl(checkpoint_list_path, checkpoint_list)
+                            if ((epoch + 1) % self.policy_saving_number == 0):
+                                policy.save(policy_path[:-3] + "_" + str(
+                                    (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
+                                self.policy_list.append(policy)
                     else:
-                        policy_path = policy_path[:-3]+"_"+str(self.policy_total_step)+"step.d3"
-                        policy = d3rlpy.load_learnable(policy_path, device=self.device)
-                        self.policy_list.append(policy)
-                        print("load policy : ",str(policy_path))
-            print("sleep now")
-            time.sleep(600)
+                        self_class = getattr(d3rlpy.algos, algorithm_name + "Config")
+                        policy = self_class(
+                            actor_encoder_factory=d3rlpy.models.VectorEncoderFactory(
+                                hidden_units=self.policy_hidden_layer),
+                            critic_encoder_factory=d3rlpy.models.VectorEncoderFactory(
+                                hidden_units=self.policy_hidden_layer),
+                            actor_learning_rate=self.policy_learning_rate,
+                            critic_learning_rate=self.policy_learning_rate,
+                        ).create(device=self.device)
+                        for epoch in range(num_epoch):
+                            policy.fit_online(env=current_env,
+                                              buffer=buffer,
+                                              explorer=explorer,
+                                              n_steps=self.policy_episode_step,
+                                              eval_env=current_env,
+                                              with_timestamp=False,
+                                              )
+                            policy.save(checkpoint_path)
+                            checkpoint_list.append(epoch)
+                            self.save_as_pkl(checkpoint_list_path, checkpoint_list)
+                            if ((epoch + 1) % self.policy_saving_number == 0):
+                                policy.save(policy_path[:-3] + "_" + str(
+                                    (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
+                                self.policy_list.append(policy)
+                    if os.path.exists(checkpoint_list_path + ".pkl"):
+                        os.remove(checkpoint_list_path + ".pkl")
+                    if os.path.exists(checkpoint_path):
+                        os.remove(checkpoint_path)
+                    print(f"end training {policy_folder_name} with algorithm {str(self.algorithm_name_list)}")
+                else:
+                    policy_path = policy_path[:-3]+"_"+str(self.policy_total_step)+"step.d3"
+                    policy = d3rlpy.load_learnable(policy_path, device=self.device)
+                    self.policy_list.append(policy)
+                    print("load policy : ",str(policy_path))
+            # print("sleep now")
+            # time.sleep(600)
     def get_qa(self,policy_number,environment_number,state,action):
         current_env = self.env_list[environment_number]
         current_policy = self.policy_list[policy_number]
