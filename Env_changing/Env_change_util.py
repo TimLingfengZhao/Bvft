@@ -445,7 +445,6 @@ class Hopper_edi(ABC):
 
     def run(self,true_data_list):
         self.train_policy()
-        self.get_whole_qa()
         para_li = []
         for i in range(len(self.algorithm_name_list)):
             for j in range(len(true_data_list)):
@@ -457,6 +456,7 @@ class Hopper_edi(ABC):
 
         for i in range(len(para_li)):
             self.load_offline_data(para_li[0],para_li[1],para_li[2])
+            self.get_whole_qa()
 
 
 
