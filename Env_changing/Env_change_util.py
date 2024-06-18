@@ -113,6 +113,7 @@ class CustomDataLoader:
         actions =  np.array(self.dataset[iteration_number]["action"])
         padded_next_states =  np.array(self.dataset[iteration_number]["next_state"])
         rewards =np.array( self.dataset[iteration_number]["rewards"])
+        print("rewards : ",rewards)
         return states, actions, padded_next_states, rewards, dones
 
 
@@ -439,6 +440,7 @@ class Hopper_edi(ABC):
                 for j in range(len(self.policy_list)):
 
                     print("len q sa : ", len(self.q_sa))
+                    print(reward)
                     self.q_sa[(i+1)*(j+1)-1][ptr:ptr + length] = self.get_qa(j,i,state,action)
                     vfsp = (reward.squeeze(-1) + self.get_qa(j,i,next_state, policy_list[j].predict(next_state)) * (
                             1 - np.array(done)).squeeze(-1) * gamma)
