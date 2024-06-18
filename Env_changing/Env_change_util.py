@@ -254,6 +254,8 @@ class Hopper_edi(ABC):
 
             action = policy.predict(np.array([obs]))
             state, reward, done, truncated, info = env.step(action[0])
+            print("action in generate one trajectory: ",action)
+            sys.exit()
             actions.append(action)
             rewards.append(reward)
             dones.append(done)
