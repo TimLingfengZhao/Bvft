@@ -410,6 +410,8 @@ class Hopper_edi(ABC):
             for j in range(300):
                 num_step = 0
                 discount_factor = 1
+                print("len states : ",len(states))
+                print("len actions : ",len(actions))
                 observation =states[i]
                 action = actions[i]
                 ui = env.step(action[0])
