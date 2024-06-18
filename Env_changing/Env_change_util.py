@@ -252,21 +252,25 @@ class Hopper_edi(ABC):
         observations.append(obs)
         for t in range(max_time_step):
 
-            action = policy.predict(np.array([obs]))
+            action = policy.predict(np.array([obs]))[0]
             state, reward, done, truncated, info = env.step(action[0])
-            print("action in generate one trajectory: ",action)
-            sys.exit()
-            actions.append(action)
+            actions.append(action[0])
             rewards.append(reward)
             dones.append(done)
             next_steps.append(state)
             if((t != max_time_step-1) and done == False):
-                observations.append(state)
+                observations.append(state[0])
 
-            obs = state
+            obs = state[0]
+            print("state in env step : ",state)
 
             if done or truncated:
                 break
+        print("actions : ",actions)
+        print("observations : ",observations)
+        print("rewards : ",rewards)
+        print("dones : ",dones)
+        sys.exit()
         episode_data["action"] = actions
         episode_data["state"] = observations
         episode_data["rewards"] = rewards
