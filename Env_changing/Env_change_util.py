@@ -409,16 +409,13 @@ class Hopper_edi(ABC):
                 discount_factor = 1
                 observation =states[i]
                 action = actions[i]
-                print("ui action : ",action[0])
                 ui = env.step(action[0])
                 state = ui[0]
                 reward = ui[1]
                 total_rewards += reward
                 done = ui[2]
-                print("done : ",done)
                 while ((not done) and (num_step < self.max_timestep)):
                     action = policy.predict(np.array([state]))
-                    print("action in while : ",action)
                     ui = env.step(action[0])
                     state = ui[0]
                     reward = ui[1]
@@ -438,6 +435,7 @@ class Hopper_edi(ABC):
             state, action, next_state, reward, done = self.data.sample(ptr)
             for i in range(len(self.env_list)):
                 for j in range(len(self.policy_list)):
+                    print("len q sa : ", len(self.q_sa))
                     self.q_sa[(i+1)*(j+1)-1][ptr:ptr + length] = self.get_qa(j,i,state,action)
                     vfsp = (reward.squeeze(-1) + self.get_qa(j,i,next_state, policy_list[j].predict(next_state)) * (
                             1 - np.array(done)).squeeze(-1) * gamma)
