@@ -460,7 +460,7 @@ class Hopper_edi(ABC):
                     self.r_plus_vfsp[(i+1)*(j+1)-1][ptr:ptr + length] = vfsp.flatten()[:length]
             ptr += 1
         print("self q_sa : ",self.q_sa)
-        print("leqe sa : ",len(self.q_sa))
+        print("leqe  sa : ",len(self.q_sa))
 
 
 
