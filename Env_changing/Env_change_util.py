@@ -446,10 +446,10 @@ class Hopper_edi(ABC):
     def run(self,true_data_list):
         self.train_policy()
         for j in range(len(true_data_list)):
-            self.get_whole_qa()
             for i in range(len(self.algorithm_name_list)):
                 self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
                                        true_env_number=true_data_list[j])
+                self.get_whole_qa()
 
 
 
