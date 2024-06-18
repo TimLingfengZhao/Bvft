@@ -253,7 +253,7 @@ class Hopper_edi(ABC):
         for t in range(max_time_step):
 
             action = policy.predict(np.array([obs]))
-            print("action after prediction : ",action)
+            # print("action after prediction : ",action)
             state, reward, done, truncated, info = env.step(action[0])
             actions.append(action[0])
             rewards.append(reward)
