@@ -416,7 +416,7 @@ class Hopper_edi(ABC):
         result_list = []
         for i in range(len(states)):
             total_rewards = 0
-            for j in range(300):
+            for j in range(30):
                 num_step = 0
                 discount_factor = 1
                 # print("len states : ",len(states))
