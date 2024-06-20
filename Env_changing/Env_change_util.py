@@ -694,10 +694,10 @@ class Hopper_edi(ABC):
             result_list.append(total_rewards)
         return result_list
 
-    def get_whole_qa(self):
+    def get_whole_qa(self,algorithm_index):
         Offine_data_folder = "Offline_data"
         self.create_folder(Offine_data_folder)
-        data_folder_name = f"{self.algorithm_name_list[self.true_env_num]}_{self.env_name}"
+        data_folder_name = f"{self.algorithm_name_list[algorithm_index]}_{self.env_name}"
         for j in range(len(self.parameter_list[self.true_env_num])):
             param_name = self.parameter_name_list[j]
             param_value = self.parameter_list[self.true_env_num][j].tolist()
@@ -747,7 +747,7 @@ class Hopper_edi(ABC):
             for i in range(len(self.algorithm_name_list)):
                 self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
                                        true_env_number=true_data_list[j])
-                self.get_whole_qa()
+                self.get_whole_qa(i)
                 # ranking_list = self.SelectQ()
 
 
