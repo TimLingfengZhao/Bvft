@@ -169,11 +169,8 @@ class Hopper_edi(ABC):
             # print(current_env.unwrapped.model.opt)
             self.env_list.append(current_env)
         self.para_map = {index: item for index, item in enumerate(self.parameter_list)}
-        self.q_sa = [np.zeros(self.data.size) for _ in range(len(self.env_list)*2*len(self.env_list) )]
-        # print("len env list : ",len(self.env_list))
-        # print("self q sa : ", self.q_sa)
-        # sys.exit()
-        self.r_plus_vfsp = [np.zeros(self.data.size) for _ in range(len(self.env_list)*2*len(self.env_list) )]
+        self.q_sa = 0
+        self.r_plus_vfsp = 0
 
 
 
@@ -291,6 +288,8 @@ class Hopper_edi(ABC):
         if os.path.exists(data_path):
             self.data = self.load_from_pkl(data_path)
             self.unique_numbers = self.load_from_pkl(data_seeds_path)
+            self.q_sa = [np.zeros(self.data.size) for _ in range(len(self.env_list) * 2 * len(self.env_list))]
+            self.r_plus_vfsp = [np.zeros(self.data.size) for _ in range(len(self.env_list) * 2 * len(self.env_list))]
         else:
             self.generate_offline_data(max_time_step,algorithm_name,true_env_number)
 
@@ -316,6 +315,8 @@ class Hopper_edi(ABC):
         data_seeds_name = data_folder_name + "_seeds"
         data_seeds_path = os.path.join(Offine_data_folder,data_seeds_name)
         self.data = CustomDataLoader(final_data)
+        self.q_sa = [np.zeros(self.data.size) for _ in range(len(self.env_list)*2*len(self.env_list) )]
+        self.r_plus_vfsp = [np.zeros(self.data.size) for _ in range(len(self.env_list)*2*len(self.env_list) )]
         self.save_as_pkl(data_path,self.data)
         self.save_as_pkl(data_seeds_path, self.unique_numbers)
 
