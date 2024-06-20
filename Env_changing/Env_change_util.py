@@ -696,7 +696,6 @@ class Hopper_edi(ABC):
 
     def get_whole_qa(self):
         self.print_environment_parameters()
-        self.true_env_num = true_env_number
         Offine_data_folder = "Offline_data"
         self.create_folder(Offine_data_folder)
         data_folder_name = f"{algorithm_name}_{self.env_name}"
