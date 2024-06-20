@@ -750,7 +750,7 @@ class Hopper_edi(ABC):
                 self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
                                        true_env_number=true_data_list[j])
                 self.get_whole_qa()
-                ranking_list = self.SelectQ()
+                # ranking_list = self.SelectQ()
 
 
 

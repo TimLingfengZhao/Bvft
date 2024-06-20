@@ -12,20 +12,14 @@ wind = [np.array([10.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0]), np.array([0.0, 10
 
 parameter_list = [
     [gravity[1], magnetic[0], wind[0]],
-    [gravity[1], magnetic[1], wind[1]],
-    [gravity[1], magnetic[2], wind[2]],
     [gravity[2], magnetic[0], wind[0]],
-    [gravity[2], magnetic[1], wind[1]],
-    [gravity[2], magnetic[2], wind[2]],
-    [gravity[0], magnetic[0], wind[1]],
-    [gravity[0], magnetic[1], wind[2]],
     [gravity[0], magnetic[2], wind[0]]
 ]
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 policy_parameter_map = {"policy_total_step":300000,
                  "policy_episode_step":10000,
                         "policy_saving_number" : 30,"policy_learning_rate":0.0001,"policy_hidden_layer":[64,256],
-                        "algorithm_name_list":["DDPG","SAC"]}
+                        "algorithm_name_list":["DDPG"]}
 parameter_name_list = ["gravity","magnetic","wind"]
 
 common_params = {
@@ -39,4 +33,5 @@ hopper_exp = Bvft_(device=device,parameter_list=parameter_list,
                         env_name="Hopper-v4")
 
 # hopper_exp.generate_offline_data(10,"DDPG",2)
-hopper_exp.train_policy()
+# hopper_exp.train_policy()
+hopper_exp.run([0,1])
