@@ -137,6 +137,203 @@ def delete_files_in_folder(folder_path):
                 print(f"Skipping directory {file_path}")
         except Exception as e:
             print(f'Failed to delete {file_path}. Reason: {e}')
+class BvftRecord:
+    def __init__(self):
+        self.resolutions = []
+        self.losses = []
+        self.loss_matrices = []
+        self.group_counts = []
+        self.avg_q = []
+        self.optimal_grouping_skyline = []
+        self.e_q_star_diff = []
+        self.bellman_residual = []
+        self.ranking = []
+
+    def record_resolution(self, resolution):
+        self.resolutions.append(resolution)
+
+    def record_ranking(self,ranking):
+        self.ranking = ranking
+
+    def record_losses(self, max_loss):
+        self.losses.append(max_loss)
+
+    def record_loss_matrix(self, matrix):
+        self.loss_matrices.append(matrix)
+
+    def record_group_count(self, count):
+        self.group_counts.append(count)
+
+    def record_avg_q(self, avg_q):
+        self.avg_q.append(avg_q)
+
+    def record_optimal_grouping_skyline(self, skyline):
+        self.optimal_grouping_skyline.append(skyline)
+
+    def record_e_q_star_diff(self, diff):
+        self.e_q_star_diff = diff
+
+    def record_bellman_residual(self, br):
+        self.bellman_residual = br
+
+    def save(self, directory="Bvft_Records", file_prefix="BvftRecord_"):
+        os.makedirs(directory, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = os.path.join(directory, f"{file_prefix}.pkl")
+        with open(filename, "wb") as file:
+            pickle.dump(self, file)
+        print(f"Record saved to {filename}")
+        return filename
+
+    @staticmethod
+    def load(filepath):
+        with open(filepath, "rb") as file:
+            return pickle.load(file)
+    def summary(self):
+        pass
+class BVFT_(object):
+    def __init__(self, q_sa, r_plus_vfsp, data, gamma, rmax, rmin,file_name_pre, record: BvftRecord = BvftRecord(), q_type='torch_actor_critic_cont',
+                 verbose=False, bins=None, data_size=5000,trajectory_num=276):
+        self.data = data                                                        #Data D
+        self.gamma = gamma                                                      #gamma
+        self.res = 0                                                            #\epsilon k (discretization parameter set)
+        self.q_sa_discrete = []                                                 #discreate q function
+        self.q_to_data_map = []                                                 # to do
+        self.q_size = len(q_functions)                                          #how many (s,a) pairs (q function length)
+        self.verbose = verbose                                                  #if true, print log
+        if bins is None:
+            bins = [2,  4, 5,  7, 8,  10, 11, 12, 16, 19, 22,23]
+        self.bins = bins                                                        #used for discretizing Q-values
+        self.q_sa = q_sa                                                    #all trajectory q s a
+        self.r_plus_vfsp = r_plus_vfsp                                                 #reward
+        self.q_functions = q_functions                                          #all q functions
+        self.record = record
+        self.file_name = file_name_pre
+
+
+        if self.verbose:
+            print(F"Data size = {self.n}")
+        self.record.avg_q = [np.sum(qsa) for qsa in self.q_sa]
+        self.vmax = np.max(self.q_sa)
+        self.vmin = np.min(self.q_sa)
+
+
+    def discretize(self):                                       #discritization step
+        self.q_sa_discrete = []
+        self.q_to_data_map = []
+        bins = int((self.vmax - self.vmin) / self.res) + 1
+
+        for q in self.q_sa:
+            discretized_q = np.digitize(q, np.linspace(self.vmin, self.vmax, bins), right=True) #q belong to which interval
+            self.q_sa_discrete.append(discretized_q)
+            q_to_data_map = {}
+            for i, q_val in enumerate(discretized_q):
+                if q_val not in q_to_data_map:
+                    q_to_data_map[q_val] = i
+                else:
+                    if isinstance(q_to_data_map[q_val], int):
+                        q_to_data_map[q_val] = [q_to_data_map[q_val]]
+                    q_to_data_map[q_val].append(i)
+            self.q_to_data_map.append(q_to_data_map)                      #from q value to the position it in discretized_q
+
+    def get_groups(self, q1, q2):
+        q1_dic = self.q_to_data_map[q1]
+        q2_inds, q2_dic = self.q_sa_discrete[q2], self.q_to_data_map[q2] #dic: indices from q value in the map
+        groups = []
+        for key in q1_dic:
+            if isinstance(q1_dic[key], list):
+                q1_list = q1_dic[key]
+                set1 = set(q1_list)
+                for p1 in q1_list:
+                    if p1 in set1 and isinstance(q2_dic[q2_inds[p1]], list):
+                        set2 = set(q2_dic[q2_inds[p1]])
+                        intersect = set1.intersection(set2)              #intersection
+                        set1 = set1.difference(intersect)                #in set1 but not in intersection
+                        if len(intersect) > 1:
+                            groups.append(list(intersect))               #piecewise constant function
+        return groups
+
+    def compute_loss(self, q1, groups):                                 #
+        Tf = self.r_plus_vfsp[q1].copy()
+        for group in groups:
+            Tf[group] = np.mean(Tf[group])
+        diff = self.q_sa[q1] - Tf
+        return np.sqrt(np.mean(diff ** 2))  #square loss function
+
+    def get_bins(self, groups):
+        group_sizes = [len(g) for g in groups]                                  #group size
+        bin_ind = np.digitize(group_sizes, self.bins, right=True)               #categorize each group size to bins
+        percent_bins = np.zeros(len(self.bins) + 1)    #total group size
+        count_bins = np.zeros(len(self.bins) + 1)      #count of groups in each bin
+        for i in range(len(group_sizes)):
+            count_bins[bin_ind[i] + 1] += 1
+            percent_bins[bin_ind[i] + 1] += group_sizes[i]
+        percent_bins[0] = self.n - np.sum(percent_bins)
+        count_bins[0] = percent_bins[0]    #groups that do not fit into any of predefined bins
+        return percent_bins, count_bins
+
+    def run(self, resolution=1e-2):
+        self.res = resolution
+        if self.verbose:
+            print(F"Being discretizing outputs of Q functions on batch data with resolution = {resolution}")
+        self.discretize()
+        if self.verbose:
+            print("Starting pairwise comparison")
+        percent_histos = []
+        count_histos = []
+        group_count = []
+        loss_matrix = np.zeros((self.q_size, self.q_size))
+        for q1 in range(self.q_size):
+            for q2 in range(q1, self.q_size):
+                groups = self.get_groups(q1, q2)
+                # percent_bins, count_bins = self.get_bins(groups)
+                # percent_histos.append(percent_bins)
+                # count_histos.append(count_bins)
+                group_count.append(len(groups))
+
+                loss_matrix[q1, q2] = self.compute_loss(q1, groups)
+                # if self.verbose:
+                #     print("loss |Q{}; Q{}| = {}".format(q1, q2, loss_matrix[q1, q2]))
+
+                if q1 != q2:
+                    loss_matrix[q2, q1] = self.compute_loss(q2, groups)
+                    # if self.verbose:
+                    #     print("loss |Q{}; Q{}| = {}".format(q2, q1, loss_matrix[q2, q1]))
+
+        # average_percent_bins = np.mean(np.array(percent_histos), axis=0) / self.n
+        # average_count_bins = np.mean(np.array(count_histos), axis=0)
+        average_group_count = np.mean(group_count)
+        if self.verbose:
+            print(np.max(loss_matrix, axis=1))
+        self.record.resolutions.append(resolution)
+        self.record.losses.append(np.max(loss_matrix, axis=1))
+        self.record.loss_matrices.append(loss_matrix)
+        # self.record.percent_bin_histogram.append(average_percent_bins)
+        # self.record.count_bin_histogram.append(average_count_bins)
+        self.get_br_ranking()
+        self.record.group_counts.append(average_group_count)
+        if not os.path.exists("Bvft_Records"):
+            os.makedirs("Bvft_Records")
+        self.record.save(directory="Bvft_Records",file_prefix=self.file_name)
+
+
+    def compute_optimal_group_skyline(self):
+        groups = self.get_groups(self.q_size-1, self.q_size-1)
+        loss = [self.compute_loss(q, groups) for q in range(self.q_size)]
+        self.record.optimal_grouping_skyline.append(np.array(loss))
+
+    def compute_e_q_star_diff(self):
+        q_star = self.q_sa[-1]
+        e_q_star_diff = [np.sqrt(np.mean((q - q_star) ** 2)) for q in self.q_sa[:-1]] + [0.0]
+        self.record.e_q_star_diff = np.array(e_q_star_diff)
+
+
+    def get_br_ranking(self):
+        br = [np.sqrt(np.sum((self.q_sa[q] - self.r_plus_vfsp[q]) ** 2)) for q in range(self.q_size)]
+        br_rank = np.argsort(br)
+        self.record.bellman_residual = br
+        self.record.record_ranking(br_rank)
+        return br_rank
 class Hopper_edi(ABC):
 
     def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,gamma=0.99,trajectory_num=10,exp_env_num = 2,
@@ -169,8 +366,8 @@ class Hopper_edi(ABC):
             # print(current_env.unwrapped.model.opt)
             self.env_list.append(current_env)
         self.para_map = {index: item for index, item in enumerate(self.parameter_list)}
-        self.q_sa = 0
-        self.r_plus_vfsp = 0
+        self.q_sa = []
+        self.r_plus_vfsp = []
 
 
 
@@ -220,9 +417,9 @@ class Hopper_edi(ABC):
         return unique_numbers
 
 
-    # @abstractmethod
-    # def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
-    #     pass
+    @abstractmethod
+    def select_Q(self):
+        pass
 
     def generate_one_trajectory(self,env_number,max_time_step,algorithm_name,unique_seed):
         Policy_operation_folder = "Policy_operation"
@@ -415,6 +612,7 @@ class Hopper_edi(ABC):
             # print("sleep now")
             # time.sleep(600)
     def get_qa(self,policy_number,environment_number,states,actions):
+
         env = self.env_list[environment_number]
         policy = self.policy_list[policy_number]
         result_list = []
@@ -450,28 +648,51 @@ class Hopper_edi(ABC):
         return result_list
 
     def get_whole_qa(self):
-        ptr = 0
-        gamma = self.gamma
-        trajectory_length = 0
-        while ptr < self.trajectory_num:  # for everything in data size
-            length = self.data.get_iter_length(ptr)
-            state, action, next_state, reward, done = self.data.sample(ptr)
-            for i in range(len(self.env_list)):
-                for j in range(len(self.policy_list)):
+        self.print_environment_parameters()
+        self.true_env_num = true_env_number
+        Offine_data_folder = "Offline_data"
+        self.create_folder(Offine_data_folder)
+        data_folder_name = f"{algorithm_name}_{self.env_name}"
+        for j in range(len(self.parameter_list[true_env_number])):
+            param_name = self.parameter_name_list[j]
+            param_value = self.parameter_list[true_env_number][j].tolist()
+            data_folder_name += f"_{param_name}_{str(param_value)}"
+        data_folder_name += f"_{max_time_step}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
+        data_q_name = data_folder_name  + "_q"
+        data_q_path = os.path.join(Offine_data_folder,data_q_name)
+        data_r_name = data_folder_name  + "_r"
+        data_r_path = os.path.join(Offine_data_folder,data_r_name)
+        if(not self.whether_file_exists(data_q_path+".pkl")):
+            ptr = 0
+            gamma = self.gamma
+            trajectory_length = 0
+            while ptr < self.trajectory_num:  # for everything in data size
+                length = self.data.get_iter_length(ptr)
+                state, action, next_state, reward, done = self.data.sample(ptr)
+                for i in range(len(self.env_list)):
+                    for j in range(len(self.policy_list)):
+                        self.q_sa[(i + 1) * (j + 1) - 1][trajectory_length:trajectory_length + length] = self.get_qa(j,
+                                                                                                                     i,
+                                                                                                                     state,
+                                                                                                                     action)
+                        # print("actions : ",[self.policy_list[j].predict(next_state)])
+                        # print("len next state : ",len(next_state))o
+                        # print("len actions : ",len(action))i
+                        # print("next actions : ",self.policy_list[j].predict(next_state))
+                        vfsp = (reward + self.get_qa(j, i, next_state, self.policy_list[j].predict(next_state)) * (
+                                1 - np.array(done)) * gamma)
 
-                    self.q_sa[(i+1)*(j+1)-1][trajectory_length:trajectory_length + length] = self.get_qa(j,i,state,action)
-                    # print("actions : ",[self.policy_list[j].predict(next_state)])
-                    # print("len next state : ",len(next_state))o
-                    # print("len actions : ",len(action))i
-                    # print("next actions : ",self.policy_list[j].predict(next_state))
-                    vfsp = (reward + self.get_qa(j,i,next_state, self.policy_list[j].predict(next_state)) * (
-                            1 - np.array(done)) * gamma)
+                        self.r_plus_vfsp[(i + 1) * (j + 1) - 1][ptr:ptr + length] = vfsp.flatten()[:length]
+                trajectory_length += length
+                ptr += 1
+            print("self iq_sa : ", self.q_sa)
+            print("lesa : ", len(self.q_sa))
+            self.save_as_pkl(data_q_path,self.q_sa)
+            self.save_as_pkl(data_r_path,self.r_plus_vfsp)
+        else:
+            self.q_sa  = self.load_from_pkl(data_q_path)
+            self.r_plus_vfsp = self.load_from_pkl(data_r_path)
 
-                    self.r_plus_vfsp[(i+1)*(j+1)-1][ptr:ptr + length] = vfsp.flatten()[:length]
-            trajectory_length += length
-            ptr += 1
-        print("self iq_sa : ",self.q_sa)
-        print("lesa : ",len(self.q_sa))
 
 
 
@@ -482,6 +703,7 @@ class Hopper_edi(ABC):
                 self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
                                        true_env_number=true_data_list[j])
                 self.get_whole_qa()
+                ranking_list = self.SelectQ()
 
 
 
