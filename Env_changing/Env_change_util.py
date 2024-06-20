@@ -414,7 +414,7 @@ class Hopper_edi(ABC):
         env = self.env_list[environment_number]
         policy = self.policy_list[policy_number]
         result_list = []
-        print("states lengths : ",states)
+        print("states lengths : ",len(states))
         for i in range(len(states)):
             total_rewards = 0
             for j in range(1):
