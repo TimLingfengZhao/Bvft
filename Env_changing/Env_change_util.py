@@ -454,6 +454,7 @@ class Hopper_edi(ABC):
     def get_whole_qa(self):
         ptr = 0
         gamma = self.gamma
+        trajectory_length = 0
         while ptr < self.trajectory_num:  # for everything in data size
             length = self.data.get_iter_length(ptr)
             print("length : ",length)
@@ -462,7 +463,7 @@ class Hopper_edi(ABC):
                 for j in range(len(self.policy_list)):
 
                     print("get qa legnth : ",len(self.get_qa(j,i,state,action)))
-                    self.q_sa[(i+1)*(j+1)-1][ptr:ptr + length] = self.get_qa(j,i,state,action)
+                    self.q_sa[(i+1)*(j+1)-1][trajectory_length:trajectory_length + length] = self.get_qa(j,i,state,action)
                     # print("actions : ",[self.policy_list[j].predict(next_state)])
                     # print("len next state : ",len(next_state))
                     # print("len actions : ",len(action))
@@ -471,6 +472,7 @@ class Hopper_edi(ABC):
                             1 - np.array(done)) * gamma)
 
                     self.r_plus_vfsp[(i+1)*(j+1)-1][ptr:ptr + length] = vfsp.flatten()[:length]
+            trajectory_length += length
             ptr += 1
         print("self q_sa : ",self.q_sa)
         print("lesa : ",len(self.q_sa))
