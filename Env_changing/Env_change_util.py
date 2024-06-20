@@ -607,7 +607,7 @@ class Hopper_edi(ABC):
                     policy_path = policy_path[:-3]+"_"+str(self.policy_total_step)+"step.d3"
                     policy = d3rlpy.load_learnable(policy_path, device=self.device)
                     self.policy_list.append(policy)
-                    print("begn load policy : ",str(policy_path))
+                    print("beegn load policy : ",str(policy_path))
             # print("sleep now")
             # time.sleep(600)
     def get_qa(self,policy_number,environment_number,states,actions):
