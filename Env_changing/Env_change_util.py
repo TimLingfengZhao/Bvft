@@ -470,7 +470,7 @@ class Hopper_edi(ABC):
                     self.r_plus_vfsp[(i+1)*(j+1)-1][ptr:ptr + length] = vfsp.flatten()[:length]
             trajectory_length += length
             ptr += 1
-        print("self q_sa : ",self.q_sa)
+        print("self iq_sa : ",self.q_sa)
         print("lesa : ",len(self.q_sa))
 
 
