@@ -6,16 +6,21 @@ env = gymnasium.make("Hopper-v4")
 # print(env.unwrapped.model.opt)
 # env.unwrapped.model.opt.gravity = np.array([0.0,0.0,-1002])
 # print(env.unwrapped.model.opt)
-parameter_list =[[np.array([0.0,0.0,-4.9]),
-                  np.array([0.0,0.0,20.0]),
-                  np.array([0.0,0.0,2.0])],
-                 [np.array([0.0, 0.0, -15.1]),
-                  np.array([0.0, 0.0, 20.0]),
-                  np.array([0.0, 0.0, 2.0])],
-                    [np.array([0.0, 0.0, -15.1]),
-                  np.array([0.0, 0.0, 24.0]),
-                  np.array([0.0, 0.0, 10.0])]
-                 ]
+gravity = [np.array([0.0, 0.0, -9.8]), np.array([0.0, 0.0, -4.9]), np.array([0.0, 0.0, -15.1])]
+magnetic = [np.array([0.0, 0.0, 0.0]), np.array([0.0, 1.0, 0.0]), np.array([1.0, 0.0, 0.0])]
+wind = [np.array([10.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0]), np.array([0.0, 10.0, 0.0])]
+
+parameter_list = [
+    [gravity[1], magnetic[0], wind[0]],
+    [gravity[1], magnetic[1], wind[1]],
+    [gravity[1], magnetic[2], wind[2]],
+    [gravity[2], magnetic[0], wind[0]],
+    [gravity[2], magnetic[1], wind[1]],
+    [gravity[2], magnetic[2], wind[2]],
+    [gravity[0], magnetic[0], wind[1]],
+    [gravity[0], magnetic[1], wind[2]],
+    [gravity[0], magnetic[2], wind[0]]
+]
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
 policy_parameter_map = {"policy_total_step":3000,
                  "policy_episode_step":1000,
@@ -24,8 +29,8 @@ policy_parameter_map = {"policy_total_step":3000,
 parameter_name_list = ["gravity","magnetic","wind"]
 
 common_params = {
-    "gamma": 0.99, "trajectory_num" : 10, "exp_env_num" : 2,
-"max_timestep" : 100, "total_select_env_number" : 2,
+    "gamma": 0.99, "trajectory_num" : 200,
+"max_timestep" : 1000, "total_select_env_number" : 2,
 "env_name" : "Hopper-v4"
 }
 

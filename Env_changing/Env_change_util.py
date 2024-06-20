@@ -336,7 +336,7 @@ class BVFT_(object):
         return br_rank
 class Hopper_edi(ABC):
 
-    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,gamma=0.99,trajectory_num=10,exp_env_num = 2,
+    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,gamma=0.99,trajectory_num=10,
                  max_timestep = 100, total_select_env_number=2,
                  env_name = "Hopper-v4"):
         self.device = device
@@ -347,7 +347,6 @@ class Hopper_edi(ABC):
         self.parameter_name_list = parameter_name_list
         self.unique_numbers = []
         self.env_list = []
-        self.total_select_env_number = total_select_env_number
         self.policy_total_step = policy_training_parameter_map["policy_total_step"]
         self.policy_episode_step = policy_training_parameter_map["policy_episode_step"]
         self.policy_saving_number = policy_training_parameter_map["policy_saving_number"]
