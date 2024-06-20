@@ -423,7 +423,7 @@ class Hopper_edi(ABC):
             for j in range(1):
                 num_step = 0
                 discount_factor = 1
-                # print("len states : ",len(states))3
+                # print("len states : ",len(states))
                 # print("len actions : ",len(actions)
                 observation =states[i]
                 action = actions[i]
