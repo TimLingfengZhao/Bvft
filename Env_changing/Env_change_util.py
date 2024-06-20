@@ -441,7 +441,7 @@ class Hopper_edi(ABC):
                     state = ui[0]
                     reward = ui[1]
                     done = ui[2]
-                    # print("state=E fter e step : ",state)
+                    # print("state=E ftr e step : ",state)
                     total_rewards += reward * discount_factor
                     discount_factor *= self.gamma
                     num_step += 1
