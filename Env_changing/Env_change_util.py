@@ -136,8 +136,8 @@ def delete_files_in_folder(folder_path):
             print(f'Failed to delete {file_path}. Reason: {e}')
 class Hopper_edi(ABC):
 
-    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,gamma=0.99,trajectory_num=2000,exp_env_num = 2,
-                 max_timestep = 1000, total_select_env_number=2,
+    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,gamma=0.99,trajectory_num=10,exp_env_num = 2,
+                 max_timestep = 100, total_select_env_number=2,
                  env_name = "Hopper-v4"):
         self.device = device
         self.q_functions = []
@@ -414,6 +414,7 @@ class Hopper_edi(ABC):
         env = self.env_list[environment_number]
         policy = self.policy_list[policy_number]
         result_list = []
+        print("states lengths : ",states)
         for i in range(len(states)):
             total_rewards = 0
             for j in range(1):
@@ -441,8 +442,9 @@ class Hopper_edi(ABC):
                     total_rewards += reward * discount_factor
                     discount_factor *= self.gamma
                     num_step += 1
-            total_rewards = total_rewards / 1
+            total_rewards = total_rewards
             result_list.append(total_rewards)
+        print("result list length : ",len(result_list))
         return result_list
 
     def get_whole_qa(self):
@@ -450,6 +452,7 @@ class Hopper_edi(ABC):
         gamma = self.gamma
         while ptr < self.trajectory_num:  # for everything in data size
             length = self.data.get_iter_length(ptr)
+            print("length : ",length)
             state, action, next_state, reward, done = self.data.sample(ptr)
             for i in range(len(self.env_list)):
                 for j in range(len(self.policy_list)):
