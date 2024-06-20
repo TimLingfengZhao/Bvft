@@ -418,7 +418,6 @@ class Hopper_edi(ABC):
         env = self.env_list[environment_number]
         policy = self.policy_list[policy_number]
         result_list = []
-        print("states lengths : ",len(states))
         for i in range(len(states)):
             total_rewards = 0
             for j in range(1):
@@ -448,7 +447,6 @@ class Hopper_edi(ABC):
                     num_step += 1
             total_rewards = total_rewards
             result_list.append(total_rewards)
-        print("result list length : ",len(result_list))
         return result_list
 
     def get_whole_qa(self):
@@ -457,12 +455,10 @@ class Hopper_edi(ABC):
         trajectory_length = 0
         while ptr < self.trajectory_num:  # for everything in data size
             length = self.data.get_iter_length(ptr)
-            print("length : ",length)
             state, action, next_state, reward, done = self.data.sample(ptr)
             for i in range(len(self.env_list)):
                 for j in range(len(self.policy_list)):
 
-                    print("get qa legnth : ",len(self.get_qa(j,i,state,action)))
                     self.q_sa[(i+1)*(j+1)-1][trajectory_length:trajectory_length + length] = self.get_qa(j,i,state,action)
                     # print("actions : ",[self.policy_list[j].predict(next_state)])
                     # print("len next state : ",len(next_state))
