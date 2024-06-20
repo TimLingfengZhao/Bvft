@@ -695,13 +695,12 @@ class Hopper_edi(ABC):
         return result_list
 
     def get_whole_qa(self):
-        self.print_environment_parameters()
         Offine_data_folder = "Offline_data"
         self.create_folder(Offine_data_folder)
-        data_folder_name = f"{algorithm_name}_{self.env_name}"
-        for j in range(len(self.parameter_list[true_env_number])):
+        data_folder_name = f"{self.algorithm_name_list[self.true_env_num]}_{self.env_name}"
+        for j in range(len(self.parameter_list[self.true_env_number])):
             param_name = self.parameter_name_list[j]
-            param_value = self.parameter_list[true_env_number][j].tolist()
+            param_value = self.parameter_list[self.true_env_number][j].tolist()
             data_folder_name += f"_{param_name}_{str(param_value)}"
         data_folder_name += f"_{max_time_step}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
         data_q_name = data_folder_name  + "_q"
