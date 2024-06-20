@@ -101,6 +101,9 @@ class CustomDataLoader:
     def __init__(self, dataset):
         self.dataset = dataset
         self.current = 0
+        self.size = 0
+        for i in range(len(dataset)):
+            self.size += len(dataset[i]["action"])
 
     def get_iter_length(self,iteration_number):
         return len(self.dataset[iteration_number]["state"])
@@ -166,11 +169,11 @@ class Hopper_edi(ABC):
             # print(current_env.unwrapped.model.opt)
             self.env_list.append(current_env)
         self.para_map = {index: item for index, item in enumerate(self.parameter_list)}
-        self.q_sa = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
+        self.q_sa = [np.zeros(self.data.size) for _ in range(len(self.env_list)*2*len(self.env_list) )]
         # print("len env list : ",len(self.env_list))
         # print("self q sa : ", self.q_sa)
         # sys.exit()
-        self.r_plus_vfsp = [np.zeros(self.trajectory_num) for _ in range(len(self.env_list)*2*len(self.env_list) )]
+        self.r_plus_vfsp = [np.zeros(self.data.size) for _ in range(len(self.env_list)*2*len(self.env_list) )]
 
 
 
