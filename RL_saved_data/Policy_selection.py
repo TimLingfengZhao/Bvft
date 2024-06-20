@@ -377,6 +377,7 @@ class policy_select(ABC):
             q_sa = [np.zeros(data_size) for _ in q_functions]
             r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]
             ptr = 0
+            trajectory_length = 0
             gamma = self.gamma
             while ptr < self.trajectory_num:  # for everything in data size
                 length = self.test_data.get_iter_length(ptr)
@@ -384,12 +385,13 @@ class policy_select(ABC):
                 for j in range(len(q_functions)):
                     actor = q_functions[j]
                     critic = q_functions[j]
-                    q_sa[j][ptr:ptr + length] = critic.predict_value(state, action).flatten()[
+                    q_sa[j][trajectory_length:trajectory_length + length] = critic.predict_value(state, action).flatten()[
                                                      :length]
                     vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1) * gamma)
 
                     r_plus_vfsp[j][ptr:ptr + length] = vfsp.flatten()[:length]
                 ptr += 1
+                trajectory_length += length
             result = self.select_Q(q_functions, q_name_functions,policy_name_list[i], q_sa, r_plus_vfsp)
             index = np.argmin(result)
             save_list = [q_name_functions[index]]

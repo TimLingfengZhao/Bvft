@@ -114,6 +114,7 @@ class BVFT(object):
             self.q_sa = [np.zeros(data_size) for _ in q_functions]             #q_functions corresponding 0
             self.r_plus_vfsp = [np.zeros(data_size) for _ in q_functions]      #initialization 0
             ptr = 0
+            trajectory_length = 0
             while ptr < trajectory_num:                                             #for everything in data size
                 length = self.data.get_iter_length(ptr)
                 state, action, next_state, reward, done = self.data.sample(ptr)
@@ -125,7 +126,7 @@ class BVFT(object):
                     critic= q_functions[i]
                     # self.q_sa[i][ptr:ptr + length] = critic.predict_value(state, action).cpu().detach().numpy().flatten()[
                     #                                  :length]
-                    self.q_sa[i][ptr:ptr + length] = critic.predict_value(state, action).flatten()[
+                    self.q_sa[i][trajectory_length:trajectory_length + length] = critic.predict_value(state, action).flatten()[
                                                      :length]
                     # print("self qa : ",self.q_sa[i][ptr:ptr + 20])
                     # print("done : ",done)
@@ -147,6 +148,7 @@ class BVFT(object):
                     self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
                     # print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
                 ptr += 1
+                trajectory_length += length
             self.n = data_size  #total number of data points
 
         if self.verbose:
