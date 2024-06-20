@@ -610,6 +610,54 @@ class Hopper_edi(ABC):
                     print("beegin load policy : ",str(policy_path))
             # print("sleep now")
             # time.sleep(600)
+    def get_policy_per(self,policy,environment):
+        total_rewards = 0
+        max_iteration = 1000
+        env = environment
+
+        for num in self.unique_numbers:
+            num_step = 0
+            discount_factor = 1
+            observation, info = env.reset(seed=num)
+            action = policy.predict(np.array([observation]))
+            ui = env.step(action[0])
+            state = ui[0]
+            reward = ui[1]
+            done = ui[2]
+            while ((not done) and (num_step < 1000)):
+                action = policy.predict(np.array([state]))
+                ui = env.step(action[0])
+                state = ui[0]
+                reward = ui[1]
+                done = ui[2]
+                total_rewards += reward * discount_factor
+                discount_factor *= self.gamma
+                num_step += 1
+        total_rewards = total_rewards / len(self.unique_numbers)
+        return total_rewards
+    def get_policy_performance(self):
+        Policy_operation_folder = "Policy_operation"
+        Policy_performance_folder = os.path.join(Policy_operation_folder,"Policy_performance")
+        self.create_folder(Policy_performance_folder)
+        Policy_saving_folder = os.path.join(Policy_operation_folder,"Policy_trained")
+        self.create_folder(Policy_saving_folder)
+        # while(True):
+        for i in range(len(self.parameter_list)):
+            current_env = self.env_list[i]
+            policy_folder_name = f"{self.env_name}"
+            for j in range(len(self.parameter_list[i])):
+                param_name = self.parameter_name_list[j]
+                param_value = self.parameter_list[i][j].tolist()
+                policy_folder_name += f"_{param_name}_{str(param_value)}"
+            policy_performance_path = os.path.join(Policy_performance_folder_folder, policy_folder_name)
+            policy_path = os.path.join(Policy_saving_folder,policy_folder_name)
+            result_list = []
+            policy = d3rlpy.load_learnable(policy_path+".d3", device=self.device)
+            for current_env in range(len(self.env_list)):
+                result_list.append(self.get_policy_per(policy=policy,environment=self.env_list[current_env]))
+            self.save_as_pkl(policy_performance_path,result_list)
+            self.save_as_txt(policy_performance_path,result_list)
+
     def get_qa(self,policy_number,environment_number,states,actions):
 
         env = self.env_list[environment_number]
