@@ -424,7 +424,7 @@ class Hopper_edi(ABC):
                 num_step = 0
                 discount_factor = 1
                 # print("len states : ",len(states))
-                # print("len actions : ",len(actions))
+                # print("len actions : ",len(actions)
                 observation =states[i]
                 action = actions[i]
                 env.reset()
