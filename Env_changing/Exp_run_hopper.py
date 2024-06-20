@@ -22,9 +22,9 @@ parameter_list = [
     [gravity[0], magnetic[2], wind[0]]
 ]
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-policy_parameter_map = {"policy_total_step":3000,
-                 "policy_episode_step":1000,
-                        "policy_saving_number" : 3,"policy_learning_rate":0.0001,"policy_hidden_layer":[64,256],
+policy_parameter_map = {"policy_total_step":300000,
+                 "policy_episode_step":10000,
+                        "policy_saving_number" : 30,"policy_learning_rate":0.0001,"policy_hidden_layer":[64,256],
                         "algorithm_name_list":["DDPG","SAC"]}
 parameter_name_list = ["gravity","magnetic","wind"]
 
