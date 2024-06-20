@@ -457,7 +457,7 @@ class Hopper_edi(ABC):
             for i in range(len(self.env_list)):
                 for j in range(len(self.policy_list)):
 
-
+                    print("get qa legnth : ",len(self.get_qa(j,i,state,action)))
                     self.q_sa[(i+1)*(j+1)-1][ptr:ptr + length] = self.get_qa(j,i,state,action)
                     # print("actions : ",[self.policy_list[j].predict(next_state)])
                     # print("len next state : ",len(next_state))
