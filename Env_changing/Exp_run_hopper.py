@@ -23,8 +23,8 @@ policy_parameter_map = {"policy_total_step":30000,
 parameter_name_list = ["gravity","magnetic","wind"]
 
 common_params = {
-    "gamma": 0.99, "trajectory_num" : 10,
-"max_timestep" : 100, "total_select_env_number" : 2,
+    "gamma": 0.99, "trajectory_num" : 200,
+"max_timestep" : 1000, "total_select_env_number" : 2,
 "env_name" : "Hopper-v4"
 }
 
