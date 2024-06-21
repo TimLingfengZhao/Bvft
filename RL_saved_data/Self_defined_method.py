@@ -6,7 +6,7 @@ class Bvft_poli(policy_select):
         rmax, rmin = self.env.reward_range[0], self.env.reward_range[1]
         result_list = []
         Bvft_final_resolution_loss = []
-        for i in range(len(FQE_saving_step_list) * 4):
+        for i in range(len(self.FQE_saving_step_list) * 4):
             current_list = []
             Bvft_final_resolution_loss.append(current_list)
         group_list = []
