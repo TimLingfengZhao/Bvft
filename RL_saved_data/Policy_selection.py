@@ -475,7 +475,7 @@ class policy_select(ABC):
         Figure_saving_path = os.path.join(FQE_returned_folder, plot)
         #
         colors = self.generate_unique_colors(len(self_data_saving_path))
-        figure_name = 'Normalized MSE of FQE min max'
+        figure_name = 'Normalized e MSE of FQE min max'
         filename = "Figure6R_max_min_NMSE_graph" + "_" + str(self.FQE_saving_step_list)
         if self.normalization_factor == 1:
             figure_name = 'Normalized MSE of FQE groundtruth variance'
