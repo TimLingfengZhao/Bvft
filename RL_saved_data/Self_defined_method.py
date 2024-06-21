@@ -126,7 +126,7 @@ class arg_i_max_j(policy_select):
             for j in range(len(q_functions)):
                 inner_value = 0
                 loss = np.abs(np.mean(q_sa[j]*(q_sa[i]-r_plus_vfsp[i])))
-                print(" loss : ",loss)
+                print("loss : ",loss)
                 loss_list.append(loss)
             max_j_list.append(max(loss_list))
         return self.rank_elements_lower_higher(max_j_list)
