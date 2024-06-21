@@ -466,7 +466,7 @@ class policy_select(ABC):
             means.append(NMSE)
             SE.append(standard_error)
             labels.append(self_data_saving_path[i]+"_"+max_step)
-        name_list = ["hopper-medium-expert-v0"]
+        name_list = ['hopper-medium-v2']
 
         FQE_returned_folder = "Policy_ranking_saving_place/Policy_k_saving_place/Figure_6R_plot"
         if not os.path.exists(FQE_returned_folder):
@@ -575,7 +575,7 @@ class policy_select(ABC):
             os.makedirs(plot_folder)
         y_axis_names = ["k precision", "k regret"]
         colors = self.generate_unique_colors(len(plot_mean_list[0]))
-        line_name = ["hopper-medium-expert-v0", "hopper-medium-expert-v0"]
+        line_name = ['hopper-medium-v2', 'hopper-medium-v2']
         print("line name list : ", line_name_list)
         # print("plot mean list : ",plot_mean_list)
         # print("ci lsit : ",plot_ci_list)
