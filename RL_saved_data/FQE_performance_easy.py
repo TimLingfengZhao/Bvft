@@ -228,7 +228,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
                             save_dict_as_txt(FQE_total_path, total_dict)
 
         # time.sleep(600)
-        print("dont while loop")
+        print("dont sl while loop")
         break
 
 
