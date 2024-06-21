@@ -66,7 +66,7 @@ def run_policy_evaluation(input_gamma, num_runs, device):
     input_gamma = input_gamma
     num_run = num_runs
 
-    whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
+    whole_dataset, env = get_d4rl('hopper-medium-v2')
 
     policy_returned_result_folder = "policy_returned_result"
     if not os.path.exists(policy_returned_result_folder):

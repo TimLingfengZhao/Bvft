@@ -5,12 +5,12 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 #
 # train_episodes = whole_dataset.episodes[0:1500]
 # test_episodes = whole_dataset.episodes[1500:2186]
-whole_dataset, env = get_d4rl('hopper-medium-expert-v0')
+whole_dataset, env = get_d4rl('hopper-medium-v2')
 print("len : ",len(whole_dataset.episodes))
-train_episodes = whole_dataset.episodes[0:2000]
-test_episodes = whole_dataset.episodes[2000:2277]
+train_episodes = whole_dataset.episodes[0:1500]
+test_episodes = whole_dataset.episodes[1500:2186]
 
-buffer_one = FIFOBuffer(limit=1000000)
+buffer_one = FIFOBuffer(limit=1500000)
 replay_buffer_test = ReplayBuffer(buffer=buffer_one, episodes=test_episodes)
 Bvft_batch_dim = 1000
 test_data = CustomDataLoader(replay_buffer_test, batch_size=Bvft_batch_dim)
