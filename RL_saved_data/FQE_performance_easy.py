@@ -63,7 +63,7 @@ def run_FQE_evaluation(device,FQE_learning_rate,FQE_hidden_layer,FQE_total_step,
     outlier_max = 400
     outlier_min = 0
     FQE_number_epoch = int(FQE_total_step / FQE_episode_step)
-    num_intervel = 1
+    num_intervel = 5
 
     whole_dataset, env = get_d4rl('hopper-medium-v2')
     train_episodes = whole_dataset.episodes[0:1500]
