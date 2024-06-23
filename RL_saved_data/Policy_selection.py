@@ -772,6 +772,8 @@ class policy_select(ABC):
 
 
         saving_path = os.path.join(k_saving_path,"k_statistic")
+        if not os.path.exists(saving_path):
+            os.makedirs(saving_path)
         plot_name = "plots"
         k_precision_name = str(k)+"_mean_precision_"+str(num_runs)
         k_regret_name = str(k)+"_mean_regret"+str(num_runs)
