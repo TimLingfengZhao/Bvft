@@ -559,7 +559,7 @@ class policy_select(ABC):
         plot_name_saving_path = os.path.join(Result_k_save_path, plot_name)
         precision_path = os.path.join(Result_k_save_path, k_precision_name)
         if os.path.exists(precision_path):
-            print("load saved data")
+            print("load  saved data")
             precision_mean_list = self.load_from_pkl(k_precision_mean_saving_path)
             regret_mean_list = self.load_from_pkl(k_regret_mean_saving_path)
             precision_ci_list = self.load_from_pkl(k_precision_ci_saving_path)
