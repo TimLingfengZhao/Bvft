@@ -145,7 +145,7 @@ class BVFT(object):
 
                     vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1) * self.gamma)
                     # self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.cpu().detach().numpy().flatten()[:length]
-                    self.r_plus_vfsp[i][ptr:ptr + length] = vfsp.flatten()[:length]
+                    self.r_plus_vfsp[i][trajectory_length:trajectory_length + length] = vfsp.flatten()[:length]
                     # print("self r plus vfsp : ",self.r_plus_vfsp[i][ptr:ptr + 20])
                 ptr += 1
                 trajectory_length += length

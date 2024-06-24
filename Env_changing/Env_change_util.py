@@ -727,7 +727,7 @@ class Hopper_edi(ABC):
                         vfsp = (reward + self.get_qa(j, i, next_state, self.policy_list[j].predict(next_state)) * (
                                 1 - np.array(done)) * gamma)
 
-                        self.r_plus_vfsp[(i + 1) * (j + 1) - 1][ptr:ptr + length] = vfsp.flatten()[:length]
+                        self.r_plus_vfsp[(i + 1) * (j + 1) - 1][trajectory_length:trajectory_length + length] = vfsp.flatten()[:length]
                 trajectory_length += length
                 ptr += 1
             print("self iq_sa : ", self.q_sa)
