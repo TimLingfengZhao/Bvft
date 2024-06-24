@@ -389,7 +389,7 @@ class policy_select(ABC):
                                                      :length]
                     vfsp = (reward.squeeze(-1) + critic.predict_value(next_state, actor.predict(next_state)) *(1- np.array(done)).squeeze(-1) * gamma)
 
-                    r_plus_vfsp[j][ptr:ptr + length] = vfsp.flatten()[:length]
+                    r_plus_vfsp[j][trajectory_length:trajectory_length + length] = vfsp.flatten()[:length]
                 ptr += 1
                 trajectory_length += length
             result = self.select_Q(q_functions, q_name_functions,policy_name_list[i], q_sa, r_plus_vfsp)
