@@ -2,7 +2,7 @@ from Policy_selection import *
 class Bvft_poli(policy_select):
     def select_Q(self, q_functions, q_name_functions, policy_name_listi, q_sa, r_plus_vfsp):
         # resolution_list = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-        resolution_list = [0.0001, 0.001, 0.01, 0.1,   0.2, 0.35, 0.5, 1, 1.5, 2,  4,  8,   12, 16, 19, 23]
+        resolution_list = [0.0001,  0.001, 0.01, 0.1,   0.2, 0.35, 0.5, 1, 1.5, 2,  4,  8,   12, 16, 19, 23]
         rmax, rmin = self.env.reward_range[0], self.env.reward_range[1]
         result_list = []
         Bvft_final_resolution_loss = []
