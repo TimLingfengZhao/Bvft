@@ -336,11 +336,12 @@ class BVFT_(object):
         return br_rank
 class Hopper_edi(ABC):
 
-    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,gamma=0.99,trajectory_num=10,
+    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,method_name_list,gamma=0.99,trajectory_num=10,
                  max_timestep = 100, total_select_env_number=2,
                  env_name = "Hopper-v4"):
         self.device = device
         self.q_functions = []
+        self.method_name_list = method_name_list
         self.max_timestep = max_timestep
         self.env_name = env_name
         self.parameter_list = parameter_list
@@ -417,7 +418,7 @@ class Hopper_edi(ABC):
 
 
     @abstractmethod
-    def select_Q(self):
+    def select_Q(self,q_sa,saving_folder_name):
         pass
 
     def generate_one_trajectory(self,env_number,max_time_step,algorithm_name,unique_seed):
@@ -716,10 +717,7 @@ class Hopper_edi(ABC):
                 state, action, next_state, reward, done = self.data.sample(ptr)
                 for i in range(len(self.env_list)):
                     for j in range(len(self.policy_list)):
-                        self.q_sa[(i + 1) * (j + 1) - 1][trajectory_length:trajectory_length + length] = self.get_qa(j,
-                                                                                                                     i,
-                                                                                                                     state,
-                                                                                                                     action)
+                        self.q_sa[(i + 1) * (j + 1) - 1][trajectory_length:trajectory_length + length] = self.get_qa(j,                                                                                          action)
                         # print("actions : ",[self.policy_list[j].predict(next_state)])
                         # print("len next state : ",len(next_state))o
                         # print("len actions : ",len(action))i
@@ -737,18 +735,23 @@ class Hopper_edi(ABC):
         else:
             self.q_sa  = self.load_from_pkl(data_q_path)
             self.r_plus_vfsp = self.load_from_pkl(data_r_path)
+    def get_ranking(self):
+        for j in range(len(self.policy_list)):
+            for i in range(len(self.env_list)):
 
 
 
 
     def run(self,true_data_list):
         self.train_policy()
+        self.get_policy_performance()
+        sys.exit()
         for j in range(len(true_data_list)):
             for i in range(len(self.algorithm_name_list)):
                 self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
                                        true_env_number=true_data_list[j])
                 self.get_whole_qa(i)
-                # ranking_list = self.SelectQ()
+                # ranking_list = self.Select_Q()
 
 
 
