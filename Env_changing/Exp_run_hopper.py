@@ -29,7 +29,7 @@ common_params = {
 }
 
 hopper_exp = Bvft_(device=device,parameter_list=parameter_list,
-                        parameter_name_list=parameter_name_list,policy_training_parameter_map=policy_parameter_map,
+                        parameter_name_list=parameter_name_list,policy_training_parameter_map=policy_parameter_map,method_name_list=["Bvft"],
                         env_name="Hopper-v4")
 
 # hopper_exp.generate_offline_data(10,"DDPG",2)
