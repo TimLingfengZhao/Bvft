@@ -417,9 +417,9 @@ class Hopper_edi(ABC):
         return unique_numbers
 
 
-    @abstractmethod
-    def select_Q(self,q_sa,saving_folder_name):
-        pass
+    # @abstractmethod
+    # def select_Q(self,q_sa,saving_folder_name):
+    #     pass
 
     def generate_one_trajectory(self,env_number,max_time_step,algorithm_name,unique_seed):
         Policy_operation_folder = "Policy_operation"
@@ -735,9 +735,9 @@ class Hopper_edi(ABC):
         else:
             self.q_sa  = self.load_from_pkl(data_q_path)
             self.r_plus_vfsp = self.load_from_pkl(data_r_path)
-    def get_ranking(self):
-        for j in range(len(self.policy_list)):
-            for i in range(len(self.env_list)):
+    # def get_ranking(self):
+    #     for j in range(len(self.policy_list)):
+    #         for i in range(len(self.env_list)):
 
 
 
