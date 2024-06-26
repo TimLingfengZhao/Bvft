@@ -653,9 +653,16 @@ class Hopper_edi(ABC):
             policy_performance_path = os.path.join(Policy_performance_folder, policy_folder_name)
             policy_path = os.path.join(Policy_saving_folder,policy_folder_name)
             result_list = []
-            policy = d3rlpy.load_learnable(policy_path+".d3", device=self.device)
-            for current_env in range(len(self.env_list)):
-                result_list.append(self.get_policy_per(policy=policy,environment=self.env_list[current_env]))
+            for algorithm_name in self.algorithm_name_list:
+                policy_model_name = f"{algorithm_name}_{str(self.policy_total_step)}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
+                policy_path = os.path.join(policy_saving_path, policy_model_name)
+                for epoch in range(num_epoch):
+                    if ((epoch + 1) % self.policy_saving_number == 0):
+                        policy_path = policy_path[:-3] + "_" + str(
+                            (epoch + 1) * self.policy_episode_step) + "step" + ".d3"
+                        policy = d3rlpy.load_learnable(policy_path, device=self.device)
+                        for current_env in range(len(self.env_list)):
+                            result_list.append(self.get_policy_per(policy=policy,environment=self.env_list[current_env]))
             self.save_as_pkl(policy_performance_path,result_list)
             self.save_as_txt(policy_performance_path,result_list)
 
