@@ -650,7 +650,7 @@ class Hopper_edi(ABC):
                 param_name = self.parameter_name_list[j]
                 param_value = self.parameter_list[i][j].tolist()
                 policy_folder_name += f"_{param_name}_{str(param_value)}"
-            policy_performance_path = os.path.join(Policy_performance_folder_folder, policy_folder_name)
+            policy_performance_path = os.path.join(Policy_performance_folder, policy_folder_name)
             policy_path = os.path.join(Policy_saving_folder,policy_folder_name)
             result_list = []
             policy = d3rlpy.load_learnable(policy_path+".d3", device=self.device)
