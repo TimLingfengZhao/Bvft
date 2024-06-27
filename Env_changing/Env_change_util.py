@@ -738,7 +738,6 @@ class Hopper_edi(ABC):
     def run(self,true_data_list):
         self.train_policy()
         self.get_policy_performance()
-        sys.exit()
         for j in range(len(true_data_list)):
             for i in range(len(self.algorithm_name_list)):
                 self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
