@@ -336,7 +336,7 @@ class BVFT_(object):
         return br_rank
 class Hopper_edi(ABC):
 
-    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,method_name_list,gamma=0.99,trajectory_num=10,
+    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,method_name_list,self_method_name,gamma=0.99,trajectory_num=10,
                  max_timestep = 100, total_select_env_number=2,
                  env_name = "Hopper-v4"):
         self.device = device
@@ -355,8 +355,10 @@ class Hopper_edi(ABC):
         self.policy_hidden_layer = policy_training_parameter_map["policy_hidden_layer"]
         self.algorithm_name_list = policy_training_parameter_map["algorithm_name_list"]
         self.policy_list = []
+        self.policy_name_list = []
         self.data = []
         self.gamma = gamma
+        self.self_method_name = self_method_name
         self.trajectory_num = trajectory_num
         self.true_env_num = 0
         for i in range(len(self.parameter_list)):
@@ -417,9 +419,9 @@ class Hopper_edi(ABC):
         return unique_numbers
 
 
-    # @abstractmethod
-    # def select_Q(self,q_sa,saving_folder_name):
-    #     pass
+    @abstractmethod
+    def select_Q(self,q_sa,r_plus_q):
+        pass
 
     def generate_one_trajectory(self,env_number,max_time_step,algorithm_name,unique_seed):
         Policy_operation_folder = "Policy_operation"
@@ -574,6 +576,7 @@ class Hopper_edi(ABC):
                                 policy.save(policy_path[:-3] + "_" + str(
                                     (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
                                 self.policy_list.append(policy)
+                                self.policy_name_list.append(policy_model_name[:-3]+"_"+str(self.policy_total_step)+"step")
                     else:
                         self_class = getattr(d3rlpy.algos, algorithm_name + "Config")
                         policy = self_class(
@@ -599,6 +602,8 @@ class Hopper_edi(ABC):
                                 policy.save(policy_path[:-3] + "_" + str(
                                     (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
                                 self.policy_list.append(policy)
+                                self.policy_name_list.append(
+                                    policy_model_name[:-3] + "_" + str(self.policy_total_step) + "step")
                     if os.path.exists(checkpoint_list_path + ".pkl"):
                         os.remove(checkpoint_list_path + ".pkl")
                     if os.path.exists(checkpoint_path):
@@ -608,6 +613,7 @@ class Hopper_edi(ABC):
                     policy_path = policy_path[:-3]+"_"+str(self.policy_total_step)+"step.d3"
                     policy = d3rlpy.load_learnable(policy_path, device=self.device)
                     self.policy_list.append(policy)
+                    self.policy_name_list.append(policy_model_name[:-3] + "_" + str(self.policy_total_step) + "step")
                     print("beegin load policy : ",str(policy_path))
             # print("sleep now")
             # time.sleep(600)
@@ -658,7 +664,7 @@ class Hopper_edi(ABC):
         result_list = []
         for i in range(len(states)):
             total_rewards = 0
-            for j in range(3):
+            for j in range(1):
                 num_step = 0
                 discount_factor = 1
                 # print("len states : ",len(states))p
@@ -687,7 +693,7 @@ class Hopper_edi(ABC):
                     total_rewards += reward * discount_factor
                     discount_factor *= self.gamma
                     num_step += 1
-            total_rewards = total_rewards / 3
+            total_rewards = total_rewards
             result_list.append(total_rewards)
         return result_list
 
@@ -713,7 +719,7 @@ class Hopper_edi(ABC):
                 state, action, next_state, reward, done = self.data.sample(ptr)
                 for i in range(len(self.env_list)):
                     for j in range(len(self.policy_list)):
-                        self.q_sa[(i + 1) * (j + 1) - 1][trajectory_length:trajectory_length + length] = self.get_qa(policy_number=j,environment_number=i,states=state,actions=action)
+                        self.q_sa[(i + 1) * len(self.policy_list)+ (j + 1) - 1][trajectory_length:trajectory_length + length] = self.get_qa(policy_number=j,environment_number=i,states=state,actions=action)
                         # print("actions : ",[self.policy_list[j].predict(next_state)])
                         # print("len next state : ",len(next_state))o
                         # print("len actions : ",len(action))i
@@ -730,10 +736,32 @@ class Hopper_edi(ABC):
         else:
             self.q_sa  = self.load_from_pkl(data_q_path)
             self.r_plus_vfsp = self.load_from_pkl(data_r_path)
-    # def get_ranking(self):
-    #     for j in range(len(self.policy_list)):
-    #         for i in range(len(self.env_list)):
+    def get_ranking(self,algorithm_index):
+        Q_result_folder = "Exp_result"
+        Q_saving_folder = os.path.join(Q_result_folder,self.self_method_name)
 
+        data_folder_name = f"{self.algorithm_name_list[algorithm_index]}_{self.env_name}"
+        for j in range(len(self.parameter_list[self.true_env_num])):
+            param_name = self.parameter_name_list[j]
+            param_value = self.parameter_list[self.true_env_num][j].tolist()
+            data_folder_name += f"_{param_name}_{str(param_value)}"
+        data_folder_name += f"_{self.max_timestep}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
+        Q_saving_folder_data = os.path.join(Q_saving_folder,data_folder_name)
+        self.whether_file_exists(Q_saving_folder_data)
+        for j in range(len(self.policy_list)):
+            policy_name = self.policy_name_list[j]
+            Q_result_saving_path = os.path.join(Q_saving_folder_data,policy_name)
+            q_list = []
+            r_plus_vfsp = []
+            for i in range(len(self.env_list)):
+                q_list.append(self.q_sa[(i+1)*len(self.policy_list)+(j+1)-1])
+                r_plus_vfsp.append(self.r_plus_vfsp[(i+1)*len(self.policy_list)+(j+1)-1])
+            result = self.select_Q(q_list,r_plus_vfsp)
+            index = np.argmin(result)
+            save_list = [q_name_functions[index]]
+            self.save_as_txt(Q_result_saving_path, save_list)
+            self.save_as_pkl(Q_result_saving_path, save_list)
+            self.delete_files_in_folder(Bvft_folder)
 
 
 
@@ -745,7 +773,7 @@ class Hopper_edi(ABC):
                 self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
                                        true_env_number=true_data_list[j])
                 self.get_whole_qa(i)
-                # ranking_list = self.Select_Q()
+                self.get_ranking(i)
 
 
 
