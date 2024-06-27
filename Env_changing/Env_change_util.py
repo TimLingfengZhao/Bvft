@@ -667,7 +667,7 @@ class Hopper_edi(ABC):
                 action = actions[i]
                 env.reset(seed=12345)
                 # print("before env.state : ", env.state)
-                print("before env.observation : ",env.observation)
+                # print("before env.observation : ",env.observation)
                 env.observation= observation
                 env.state = observation
                 print("env.state : ",env.state)
