@@ -710,7 +710,7 @@ class Hopper_edi(ABC):
                 state, action, next_state, reward, done = self.data.sample(ptr)
                 for i in range(len(self.env_list)):
                     for j in range(len(self.policy_list)):
-                        self.q_sa[(i + 1) * (j + 1) - 1][trajectory_length:trajectory_length + length] = self.get_qa(policy_number=j,environment_number=i,states=state,actions=action)                                                                                      action)
+                        self.q_sa[(i + 1) * (j + 1) - 1][trajectory_length:trajectory_length + length] = self.get_qa(policy_number=j,environment_number=i,states=state,actions=action)
                         # print("actions : ",[self.policy_list[j].predict(next_state)])
                         # print("len next state : ",len(next_state))o
                         # print("len actions : ",len(action))i
