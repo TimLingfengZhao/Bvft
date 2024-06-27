@@ -658,15 +658,14 @@ class Hopper_edi(ABC):
         result_list = []
         for i in range(len(states)):
             total_rewards = 0
-            for j in range(1):
+            for j in range(20):
                 num_step = 0
                 discount_factor = 1
                 # print("len states : ",len(states))p
                 # print("len actions : ",len(actions)
                 observation =states[i]
                 action = actions[i]
-                # env.reset(seed=12345)
-                print("before env.state : ", env.state)
+                env.reset()
                 print("before env.observation : ",observation)
                 env.observation= observation
                 # env.state = observation
@@ -688,7 +687,7 @@ class Hopper_edi(ABC):
                     total_rewards += reward * discount_factor
                     discount_factor *= self.gamma
                     num_step += 1
-            total_rewards = total_rewards
+            total_rewards = total_rewards / 20
             result_list.append(total_rewards)
         return result_list
 
