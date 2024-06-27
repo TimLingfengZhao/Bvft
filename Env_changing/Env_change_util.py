@@ -615,11 +615,11 @@ class Hopper_edi(ABC):
         total_rewards = 0
         max_iteration = 1000
         env = environment
-
+        self.unique_numbers = self.generate_unique_numbers(self.trajectory_num, 1, 12345)
         for num in self.unique_numbers:
             num_step = 0
             discount_factor = 1
-            observation, info = env.reset(seed=num)
+            observation, info = env.reset(seed=0)
             action = policy.predict(np.array([observation]))
             ui = env.step(action[0])
             state = ui[0]
