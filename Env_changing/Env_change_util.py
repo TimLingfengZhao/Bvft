@@ -669,7 +669,7 @@ class Hopper_edi(ABC):
                 # print("before env.state : ", env.state)
                 # print("before env.observation : ",env.observation)
                 env.observation= observation
-                env.state = observation
+                # env.state = observation
                 print("env.state : ",env.state)
                 print("env.observation : ", env.observation)
                 sys.exit()
