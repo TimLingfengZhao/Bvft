@@ -746,7 +746,7 @@ class Hopper_edi(ABC):
                 trajectory_length += length
                 ptr += 1
             self.data_size = trajectory_length
-            print("self q_sa:", self.q_sa)
+            print("self  q_sa:", self.q_sa)
             print("lesa : ", len(self.q_sa))
             self.save_as_pkl(data_q_path,self.q_sa)
             self.save_as_pkl(data_r_path,self.r_plus_vfsp)
