@@ -3,7 +3,7 @@ from Env_change_util import *
 class Bvft_(Hopper_edi):
     def select_Q(self,q_list,r_plus_vfsp):
         resolution_list = np.array([2, 4, 5,  7, 8,  10, 11, 12, 16, 19, 22,23])
-        rmax, rmin = self.env.reward_range[0], self.env.reward_range[1]
+        rmax, rmin = self.env_list[slef.true_env_num].reward_range[0], self.env_list[slef.true_env_num].reward_range[1]
         result_list = []
         for resolution in resolution_list:
             record = BvftRecord()
