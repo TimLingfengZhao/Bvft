@@ -653,7 +653,6 @@ class Hopper_edi(ABC):
         self.save_as_txt(policy_performance_path,final_result_list)
 
     def get_qa(self,policy_number,environment_number,states,actions):
-
         env = self.env_list[environment_number]
         policy = self.policy_list[policy_number]
         result_list = []
@@ -668,6 +667,7 @@ class Hopper_edi(ABC):
                 action = actions[i]
                 env.reset()
                 env.observation= observation
+                env.state = observation
                 ui = env.step(action)
                 state = ui[0]
                 reward = ui[1]
