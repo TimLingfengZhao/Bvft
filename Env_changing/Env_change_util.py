@@ -736,13 +736,21 @@ class Hopper_edi(ABC):
         else:
             self.q_sa  = self.load_from_pkl(data_q_path)
             self.r_plus_vfsp = self.load_from_pkl(data_r_path)
-    def get_ranking(self):
+    def get_ranking(self,algorithm_index):
         Q_result_folder = "Exp_result"
         Q_saving_folder = os.path.join(Q_result_folder,self.self_method_name)
-        self.whether_file_exists(Q_saving_folder)
+
+        data_folder_name = f"{self.algorithm_name_list[algorithm_index]}_{self.env_name}"
+        for j in range(len(self.parameter_list[self.true_env_num])):
+            param_name = self.parameter_name_list[j]
+            param_value = self.parameter_list[self.true_env_num][j].tolist()
+            data_folder_name += f"_{param_name}_{str(param_value)}"
+        data_folder_name += f"_{self.max_timestep}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
+        Q_saving_folder_data = os.path.join(Q_saving_folder,data_folder_name)
+        self.whether_file_exists(Q_saving_folder_data)
         for j in range(len(self.policy_list)):
             policy_name = self.policy_name_list[j]
-            Q_result_saving_path = os.path.join(Q_saving_folder,policy_name)
+            Q_result_saving_path = os.path.join(Q_saving_folder_data,policy_name)
             q_list = []
             r_plus_vfsp = []
             for i in range(len(self.env_list)):
@@ -765,7 +773,7 @@ class Hopper_edi(ABC):
                 self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
                                        true_env_number=true_data_list[j])
                 self.get_whole_qa(i)
-                # ranking_list = self.Select_Q()
+                self.get_ranking(i)
 
 
 
