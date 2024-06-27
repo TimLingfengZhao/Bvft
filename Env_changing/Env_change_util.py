@@ -422,7 +422,7 @@ class Hopper_edi(ABC):
 
 
     @abstractmethod
-    def select_Q(self,q_sa,r_plus_q):
+    def select_Q(self,q_sa,r_plus_q,policy_namei):
         pass
 
     def generate_one_trajectory(self,env_number,max_time_step,algorithm_name,unique_seed):
@@ -522,7 +522,19 @@ class Hopper_edi(ABC):
         self.save_as_pkl(data_seeds_path, self.unique_numbers)
 
 
+    def rank_elements_larger_higher(self,lst):
+        sorted_pairs = sorted(enumerate(lst), key=lambda x: x[1], reverse=True)
+        ranks = [0] * len(lst)
+        for rank, (original_index, _) in enumerate(sorted_pairs, start=1):
+            ranks[original_index] = rank
+        return ranks
 
+    def rank_elements_lower_higher(self,lst):
+        sorted_pairs = sorted(enumerate(lst), key=lambda x: x[1], reverse=False)
+        ranks = [0] * len(lst)
+        for rank, (original_index, _) in enumerate(sorted_pairs, start=1):
+            ranks[original_index] = rank
+        return ranks
 
     def print_environment_parameters(self):
         print(f"{self.parameter_name_list} parameters of environments in current class :")
@@ -734,7 +746,7 @@ class Hopper_edi(ABC):
                 trajectory_length += length
                 ptr += 1
             self.data_size = trajectory_length
-            print("self  q_sa : ", self.q_sa)
+            print("self  q_sa:", self.q_sa)
             print("lesa : ", len(self.q_sa))
             self.save_as_pkl(data_q_path,self.q_sa)
             self.save_as_pkl(data_r_path,self.r_plus_vfsp)
@@ -763,7 +775,7 @@ class Hopper_edi(ABC):
             for i in range(len(self.env_list)):
                 q_list.append(self.q_sa[(i+1)*len(self.policy_list)+(j+1)-1])
                 r_plus_vfsp.append(self.r_plus_vfsp[(i+1)*len(self.policy_list)+(j+1)-1])
-            result = self.select_Q(q_list,r_plus_vfsp)
+            result = self.select_Q(q_list,r_plus_vfsp,policy_namei)
             index = np.argmin(result)
             save_list = [q_name_functions[index]]
             self.save_as_txt(Q_result_saving_path, save_list)
