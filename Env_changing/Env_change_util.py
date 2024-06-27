@@ -349,6 +349,7 @@ class Hopper_edi(ABC):
         self.parameter_name_list = parameter_name_list
         self.unique_numbers = []
         self.env_list = []
+        self.q_name_functions = []
         self.policy_total_step = policy_training_parameter_map["policy_total_step"]
         self.policy_episode_step = policy_training_parameter_map["policy_episode_step"]
         self.policy_saving_number = policy_training_parameter_map["policy_saving_number"]
@@ -357,6 +358,7 @@ class Hopper_edi(ABC):
         self.algorithm_name_list = policy_training_parameter_map["algorithm_name_list"]
         self.policy_list = []
         self.policy_name_list = []
+        self.env_name_list = []
         self.data = []
         self.gamma = gamma
         self.self_method_name = self_method_name
@@ -364,8 +366,12 @@ class Hopper_edi(ABC):
         self.true_env_num = 0
         for i in range(len(self.parameter_list)):
             current_env = gymnasium.make(self.env_name)
+            name = f"{self.env_name}"
             for param_name, param_value in zip(self.parameter_name_list, self.parameter_list[i]):
                 setattr(current_env.unwrapped.model.opt, param_name, param_value)
+                name += f"_{param_name}_{str(param_value)}"
+            self.env_name_list.append(name)
+
             # print(current_env.unwrapped.model.opt)
             self.env_list.append(current_env)
         self.para_map = {index: item for index, item in enumerate(self.parameter_list)}
@@ -777,7 +783,7 @@ class Hopper_edi(ABC):
                 r_plus_vfsp.append(self.r_plus_vfsp[(i+1)*len(self.policy_list)+(j+1)-1])
             result = self.select_Q(q_list,r_plus_vfsp,policy_name)
             index = np.argmin(result)
-            save_list = [q_name_functions[index]]
+            save_list = [self.env_name_list[index]]
             self.save_as_txt(Q_result_saving_path, save_list)
             self.save_as_pkl(Q_result_saving_path, save_list)
             self.delete_files_in_folder(Bvft_folder)
