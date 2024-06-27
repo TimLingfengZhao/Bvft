@@ -615,11 +615,10 @@ class Hopper_edi(ABC):
         total_rewards = 0
         max_iteration = 1000
         env = environment
-        self.unique_numbers = self.generate_unique_numbers(self.trajectory_num, 1, 12345)
-        for num in self.unique_numbers:
+        for num in range(100):
             num_step = 0
             discount_factor = 1
-            observation, info = env.reset(seed=0)
+            observation, info = env.reset(seed=12345)
             action = policy.predict(np.array([observation]))
             ui = env.step(action[0])
             state = ui[0]
@@ -634,7 +633,7 @@ class Hopper_edi(ABC):
                 total_rewards += reward * discount_factor
                 discount_factor *= self.gamma
                 num_step += 1
-        total_rewards = total_rewards / len(self.unique_numbers)
+        total_rewards = total_rewards / 100
         return total_rewards
     def get_policy_performance(self):
         Policy_operation_folder = "Policy_operation"
