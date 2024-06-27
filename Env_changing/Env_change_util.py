@@ -715,13 +715,12 @@ class Hopper_edi(ABC):
                         # print("len next state : ",len(next_state))o
                         # print("len actions : ",len(action))i
                         # print("next actions : ",self.policy_list[j].predict(next_state))
-                        vfsp = (reward + self.get_qa(j, i, next_state, self.policy_list[j].predict(next_state)) * (
-                                1 - np.array(done)) * gamma)
+                        vfsp = (reward + self.get_qa(j, i, next_state, self.policy_list[j].predict(next_state)) * (1 - np.array(done)) * gamma)
 
                         self.r_plus_vfsp[(i + 1) * (j + 1) - 1][trajectory_length:trajectory_length + length] = vfsp.flatten()[:length]
                 trajectory_length += length
                 ptr += 1
-            print("self  iq_sa : ", self.q_sa)
+            print("self  q_sa : ", self.q_sa)
             print("lesa : ", len(self.q_sa))
             self.save_as_pkl(data_q_path,self.q_sa)
             self.save_as_pkl(data_r_path,self.r_plus_vfsp)
