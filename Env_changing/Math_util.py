@@ -7,7 +7,7 @@ class Bvft_(Hopper_edi):
         result_list = []
         for resolution in resolution_list:
             record = BvftRecord()
-            bvft_instance = BVFT(q_list,r_plus_vfsp, self.data, self.gamma, rmax, rmin, "bvft_changing_env", record,
+            bvft_instance = BVFT_(q_list,r_plus_vfsp, self.data, self.gamma, rmax, rmin, "bvft_changing_env", record,
                                  "torch_actor_critic_cont", verbose=True, data_size=self.data_size,
                                  trajectory_num=self.trajectory_num)
             bvft_instance.run(resolution=resolution)
