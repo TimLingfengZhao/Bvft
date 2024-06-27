@@ -522,7 +522,19 @@ class Hopper_edi(ABC):
         self.save_as_pkl(data_seeds_path, self.unique_numbers)
 
 
+    def rank_elements_larger_higher(self,lst):
+        sorted_pairs = sorted(enumerate(lst), key=lambda x: x[1], reverse=True)
+        ranks = [0] * len(lst)
+        for rank, (original_index, _) in enumerate(sorted_pairs, start=1):
+            ranks[original_index] = rank
+        return ranks
 
+    def rank_elements_lower_higher(self,lst):
+        sorted_pairs = sorted(enumerate(lst), key=lambda x: x[1], reverse=False)
+        ranks = [0] * len(lst)
+        for rank, (original_index, _) in enumerate(sorted_pairs, start=1):
+            ranks[original_index] = rank
+        return ranks
 
     def print_environment_parameters(self):
         print(f"{self.parameter_name_list} parameters of environments in current class :")
