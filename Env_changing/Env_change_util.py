@@ -199,14 +199,14 @@ class BVFT_(object):
         self.res = 0                                                            #\epsilon k (discretization parameter set)
         self.q_sa_discrete = []                                                 #discreate q function
         self.q_to_data_map = []                                                 # to do
-        self.q_size = len(q_functions)                                          #how many (s,a) pairs (q function length)
+        self.q_size = len(q_sa)                                          #how many (s,a) pairs (q function length)
         self.verbose = verbose                                                  #if true, print log
         if bins is None:
             bins = [2,  4, 5,  7, 8,  10, 11, 12, 16, 19, 22,23]
         self.bins = bins                                                        #used for discretizing Q-values
         self.q_sa = q_sa                                                    #all trajectory q s a
         self.r_plus_vfsp = r_plus_vfsp                                                 #reward
-        self.q_functions = q_functions                                          #all q functions
+                                      #all q functions
         self.record = record
         self.file_name = file_name_pre
         self.n = data_size
