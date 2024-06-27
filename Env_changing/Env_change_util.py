@@ -209,6 +209,7 @@ class BVFT_(object):
         self.q_functions = q_functions                                          #all q functions
         self.record = record
         self.file_name = file_name_pre
+        self.n = data_size
 
 
         if self.verbose:
@@ -370,6 +371,7 @@ class Hopper_edi(ABC):
         self.para_map = {index: item for index, item in enumerate(self.parameter_list)}
         self.q_sa = []
         self.r_plus_vfsp = []
+        self.data_size = 0
 
 
 
@@ -710,6 +712,8 @@ class Hopper_edi(ABC):
         data_q_path = os.path.join(Offine_data_folder,data_q_name)
         data_r_name = data_folder_name  + "_r"
         data_r_path = os.path.join(Offine_data_folder,data_r_name)
+        data_size_name = data_folder_name  + "_size"
+        data_size_path = os.path.join(Offine_data_folder,data_size_name)
         if(not self.whether_file_exists(data_q_path+".pkl")):
             ptr = 0
             gamma = self.gamma
@@ -729,13 +733,16 @@ class Hopper_edi(ABC):
                         self.r_plus_vfsp[(i + 1) * (j + 1) - 1][trajectory_length:trajectory_length + length] = vfsp.flatten()[:length]
                 trajectory_length += length
                 ptr += 1
+            self.data_size = trajectory_length
             print("self  q_sa : ", self.q_sa)
             print("lesa : ", len(self.q_sa))
             self.save_as_pkl(data_q_path,self.q_sa)
             self.save_as_pkl(data_r_path,self.r_plus_vfsp)
+            self.save_as_pkl(data_size_path,self.data_size)
         else:
             self.q_sa  = self.load_from_pkl(data_q_path)
             self.r_plus_vfsp = self.load_from_pkl(data_r_path)
+            self.data_size = self.load_from_pkl(data_size_path)
     def get_ranking(self,algorithm_index):
         Q_result_folder = "Exp_result"
         Q_saving_folder = os.path.join(Q_result_folder,self.self_method_name)
