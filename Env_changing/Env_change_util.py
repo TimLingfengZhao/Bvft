@@ -640,31 +640,17 @@ class Hopper_edi(ABC):
         Policy_operation_folder = "Policy_operation"
         Policy_performance_folder = os.path.join(Policy_operation_folder,"Policy_performance")
         self.create_folder(Policy_performance_folder)
-        Policy_saving_folder = os.path.join(Policy_operation_folder,"Policy_trained")
-        self.create_folder(Policy_saving_folder)
+        performance_folder_name = "performance"
         # while(True):
-        for i in range(len(self.parameter_list)):
-            current_env = self.env_list[i]
-            policy_folder_name = f"{self.env_name}"
-            for j in range(len(self.parameter_list[i])):
-                param_name = self.parameter_name_list[j]
-                param_value = self.parameter_list[i][j].tolist()
-                policy_folder_name += f"_{param_name}_{str(param_value)}"
-            policy_performance_path = os.path.join(Policy_performance_folder, policy_folder_name)
-            policy_path = os.path.join(Policy_saving_folder,policy_folder_name)
+        final_result_list = []
+        for i in range(len(self.policy_list)):
             result_list = []
-            for algorithm_name in self.algorithm_name_list:
-                policy_model_name = f"{algorithm_name}_{str(self.policy_total_step)}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
-                policy_path = os.path.join(policy_saving_path, policy_model_name)
-                for epoch in range(num_epoch):
-                    if ((epoch + 1) % self.policy_saving_number == 0):
-                        policy_path = policy_path[:-3] + "_" + str(
-                            (epoch + 1) * self.policy_episode_step) + "step" + ".d3"
-                        policy = d3rlpy.load_learnable(policy_path, device=self.device)
-                        for current_env in range(len(self.env_list)):
-                            result_list.append(self.get_policy_per(policy=policy,environment=self.env_list[current_env]))
-            self.save_as_pkl(policy_performance_path,result_list)
-            self.save_as_txt(policy_performance_path,result_list)
+            policy = policy_list[i]
+            for current_env in range(len(self.env_list)):
+                result_list.append(self.get_policy_per(policy=policy,environment=self.env_list[current_env]))
+            final_result_list.append(result_list)
+        self.save_as_pkl(policy_performance_path,final_result_list)
+        self.save_as_txt(policy_performance_path,final_result_list)
 
     def get_qa(self,policy_number,environment_number,states,actions):
 
