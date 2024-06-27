@@ -658,7 +658,7 @@ class Hopper_edi(ABC):
         result_list = []
         for i in range(len(states)):
             total_rewards = 0
-            for j in range(20):
+            for j in range(3):
                 num_step = 0
                 discount_factor = 1
                 # print("len states : ",len(states))p
@@ -687,7 +687,7 @@ class Hopper_edi(ABC):
                     total_rewards += reward * discount_factor
                     discount_factor *= self.gamma
                     num_step += 1
-            total_rewards = total_rewards / 20
+            total_rewards = total_rewards / 3
             result_list.append(total_rewards)
         return result_list
 
