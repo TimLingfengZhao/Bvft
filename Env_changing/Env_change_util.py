@@ -640,6 +640,7 @@ class Hopper_edi(ABC):
         Policy_performance_folder = os.path.join(Policy_operation_folder,"Policy_performance")
         self.create_folder(Policy_performance_folder)
         performance_folder_name = "performance"
+        policy_performance_path = os.path.join(Policy_performance_folder,performance_folder_name)
         # while(True):
         final_result_list = []
         for i in range(len(self.policy_list)):
