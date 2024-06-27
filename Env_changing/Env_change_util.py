@@ -276,7 +276,7 @@ class BVFT_(object):
     def run(self, resolution=1e-2):
         self.res = resolution
         if self.verbose:
-            print(F"Being discretizing outputs of Q functions on batch data with resolution = {resolution}")
+            print(F"Being  discretizing outputs of Q functions on batch data with resolution = {resolution}")
         self.discretize()
         if self.verbose:
             print("Starting pairwise comparison")
