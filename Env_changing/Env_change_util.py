@@ -645,7 +645,7 @@ class Hopper_edi(ABC):
         final_result_list = []
         for i in range(len(self.policy_list)):
             result_list = []
-            policy = policy_list[i]
+            policy = self.policy_list[i]
             for current_env in range(len(self.env_list)):
                 result_list.append(self.get_policy_per(policy=policy,environment=self.env_list[current_env]))
             final_result_list.append(result_list)
