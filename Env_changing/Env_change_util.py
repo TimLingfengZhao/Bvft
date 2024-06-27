@@ -775,7 +775,7 @@ class Hopper_edi(ABC):
             for i in range(len(self.env_list)):
                 q_list.append(self.q_sa[(i+1)*len(self.policy_list)+(j+1)-1])
                 r_plus_vfsp.append(self.r_plus_vfsp[(i+1)*len(self.policy_list)+(j+1)-1])
-            result = self.select_Q(q_list,r_plus_vfsp,policy_namei)
+            result = self.select_Q(q_list,r_plus_vfsp,policy_name)
             index = np.argmin(result)
             save_list = [q_name_functions[index]]
             self.save_as_txt(Q_result_saving_path, save_list)
