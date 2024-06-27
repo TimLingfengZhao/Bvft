@@ -597,6 +597,29 @@ class policy_select(ABC):
             policy_list.append(policy)
         return policy_name_list, policy_list
 
+    def calculate_policy_value(self,env, policy, gamma=0.99, num_run=100):
+        total_rewards = 0
+        max_iteration = 1000
+        for i in range(num_run):
+            num_step = 0
+            discount_factor = 1
+            observation, info = env.reset(seed=12345)
+            action = policy.predict(np.array([observation]))
+            ui = env.step(action[0])
+            state = ui[0]
+            reward = ui[1]
+            done = ui[2]
+            while ((not done) and (num_step < 1000)):
+                action = policy.predict(np.array([state]))
+                ui = env.step(action[0])
+                state = ui[0]
+                reward = ui[1]
+                done = ui[2]
+                total_rewards += reward * discount_factor
+                discount_factor *= gamma
+                num_step += 1
+        total_rewards = total_rewards / num_run
+        return total_rewards
     def load_policy_performance(self, policy_name_list, env):
         policy_folder = 'policy_trained'
 
@@ -618,7 +641,7 @@ class policy_select(ABC):
                 print("not included")
                 policy_path = os.path.join(policy_folder, policy_name)
                 policy = d3rlpy.load_learnable(policy_path + ".d3", device=device)
-                performance_list.append(calculate_policy_value(env, policy, gamma=0.99, num_run=100))
+                performance_list.append(self.calculate_policy_value(env, policy, gamma=0.99, num_run=100))
         return performance_list
     def load_FQE_performance_specific(self,FQE_learning_rate, FQE_hidden_layer, FQE_step, policy_name):
         FQE_returned_result = "FQE_returned_result"
