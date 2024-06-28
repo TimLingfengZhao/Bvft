@@ -789,7 +789,11 @@ class Hopper_edi(ABC):
         Q_saving_folder_data = os.path.join(Q_saving_folder,data_folder_name)
         self.create_folder(Q_saving_folder_data)
         for j in range(len(self.policy_list)):
+            print("len policy list : ",len(self.policy_list))
             policy_name = self.policy_name_list[j]
+            print("policy name : ",policy_name)
+            print("len policy name list : ",len(self.policy_name_list))
+            print("policy name  list : ",self.policy_name_list)
             Q_result_saving_path = os.path.join(Q_saving_folder_data,policy_name)
             q_list = []
             r_plus_vfsp = []
