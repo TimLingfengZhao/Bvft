@@ -772,7 +772,7 @@ class Hopper_edi(ABC):
             data_folder_name += f"_{param_name}_{str(param_value)}"
         data_folder_name += f"_{self.max_timestep}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
         Q_saving_folder_data = os.path.join(Q_saving_folder,data_folder_name)
-        self.whether_file_exists(Q_saving_folder_data)
+        self.create_folder(Q_saving_folder_data)
         for j in range(len(self.policy_list)):
             policy_name = self.policy_name_list[j]
             Q_result_saving_path = os.path.join(Q_saving_folder_data,policy_name)
