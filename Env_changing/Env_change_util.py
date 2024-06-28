@@ -379,7 +379,20 @@ class Hopper_edi(ABC):
         self.r_plus_vfsp = []
         self.data_size = 0
 
-
+    def delete_files_in_folder(self,folder_path):
+        if not os.path.exists(folder_path):
+            print("The folder does not exist.")
+            return
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                    print(f"Deleted {file_path}")
+                elif os.path.isdir(file_path):
+                    print(f"Skipping directory {file_path}")
+            except Exception as e:
+                print(f'Failed to delete {file_path}. Reason: {e}')
 
     def create_folder(self,folder_path):
         if not os.path.exists(folder_path):
