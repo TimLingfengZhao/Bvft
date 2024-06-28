@@ -775,6 +775,8 @@ class Hopper_edi(ABC):
             self.r_plus_vfsp = self.load_from_pkl(data_r_path)
             self.data_size = self.load_from_pkl(data_size_path)
     def get_ranking(self,algorithm_index):
+        Bvft_folder = "Bvft_Records"
+
         Q_result_folder = "Exp_result"
         Q_saving_folder = os.path.join(Q_result_folder,self.self_method_name)
 
