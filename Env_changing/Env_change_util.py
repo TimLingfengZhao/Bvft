@@ -609,7 +609,7 @@ class Hopper_edi(ABC):
                                 policy.save(policy_path[:-3] + "_" + str(
                                     (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
                                 self.policy_list.append(policy)
-                                self.policy_name_list.append(policy_model_name[:-3]+"_"+str(self.policy_total_step)+"step")
+                                self.policy_name_list.append(policy_folder_name+"_"+policy_model_name[:-3]+"_"+str(self.policy_total_step)+"step")
                     else:
                         self_class = getattr(d3rlpy.algos, algorithm_name + "Config")
                         policy = self_class(
@@ -636,7 +636,7 @@ class Hopper_edi(ABC):
                                     (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
                                 self.policy_list.append(policy)
                                 self.policy_name_list.append(
-                                    policy_model_name[:-3] + "_" + str(self.policy_total_step) + "step")
+                                    policy_folder_name+"_"+policy_model_name[:-3] + "_" + str(self.policy_total_step) + "step")
                     if os.path.exists(checkpoint_list_path + ".pkl"):
                         os.remove(checkpoint_list_path + ".pkl")
                     if os.path.exists(checkpoint_path):
@@ -646,7 +646,7 @@ class Hopper_edi(ABC):
                     policy_path = policy_path[:-3]+"_"+str(self.policy_total_step)+"step.d3"
                     policy = d3rlpy.load_learnable(policy_path, device=self.device)
                     self.policy_list.append(policy)
-                    self.policy_name_list.append(policy_model_name[:-3] + "_" + str(self.policy_total_step) + "step")
+                    self.policy_name_list.append(policy_folder_name+"_"+policy_model_name[:-3] + "_" + str(self.policy_total_step) + "step")
                     print("beegin load policy : ",str(policy_path))
             # print("sleep now")
             # time.sleep(600)
