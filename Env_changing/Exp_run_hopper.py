@@ -1,3 +1,5 @@
+import sys
+
 from Env_change_util import *
 from Math_util import *
 # env = gymnasium.make("Hopper-v4")
@@ -16,6 +18,8 @@ parameter_list = [
     [gravity[0], magnetic[2], wind[0]]
 ]
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
+# print("device : ",device)
+# sys.exit()
 policy_parameter_map = {"policy_total_step":30000,
                  "policy_episode_step":1000,
                         "policy_saving_number" : 30,"policy_learning_rate":0.0001,"policy_hidden_layer":[64,256],

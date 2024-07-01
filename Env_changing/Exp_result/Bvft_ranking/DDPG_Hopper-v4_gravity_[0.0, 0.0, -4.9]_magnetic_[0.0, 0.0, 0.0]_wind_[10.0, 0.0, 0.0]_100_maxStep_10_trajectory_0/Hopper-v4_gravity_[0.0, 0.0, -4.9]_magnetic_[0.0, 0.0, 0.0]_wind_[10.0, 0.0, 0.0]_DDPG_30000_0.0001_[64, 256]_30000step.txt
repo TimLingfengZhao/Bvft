@@ -1,1 +1,1 @@
-Hopper-v4_gravity_[ 0.   0.  -4.9]_magnetic_[0. 0. 0.]_wind_[10.  0.  0.]
+Hopper-v4_gravity_[  0.    0.  -15.1]_magnetic_[0. 0. 0.]_wind_[10.  0.  0.]
