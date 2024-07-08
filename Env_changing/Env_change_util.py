@@ -1,13 +1,27 @@
+
 from abc import ABC, abstractmethod
 import numpy as np
 import sys
+from multiprocessing import shared_memory
 import os
+import re
+import multiprocess.context as ctx
 import pickle
+from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
+from pathos.multiprocessing import  Pool
 import heapq
+
+import threading
 from typing import Sequence
+import gc
 from d3rlpy.datasets import get_d4rl
 import gym
+import pathos.multiprocessing as multiprocessing
+
+import psutil
 import random
+import copy
+import concurrent.futures
 from d3rlpy.models.encoders import VectorEncoderFactory
 import sys
 import torch.optim as optim
@@ -51,7 +65,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import sys
 import os
-import pickle
+
 import heapq
 from typing import Sequence
 from d3rlpy.datasets import get_d4rl
@@ -61,6 +75,8 @@ from d3rlpy.models.encoders import VectorEncoderFactory
 import sys
 import torch.optim as optim
 import matplotlib.pyplot as plt
+
+import dill
 from d3rlpy.dataset import FIFOBuffer, ReplayBuffer
 import torch
 import pandas as pd
@@ -97,6 +113,35 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 # dataset_d, env = get_d4rl('hopper-medium-v0')
 from d3rlpy.dataset import Episode
 import gymnasium
+import logging
+
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+
+
+# class CustomDataLoader:
+#     def __init__(self, dataset):
+#         self.dataset = dataset
+#         self.current = 0
+#         self.size = 0
+#         for i in range(len(dataset)):
+#             self.size += len(dataset[i]["action"])
+#
+#     def get_iter_length(self,iteration_number):
+#         return len(self.dataset[iteration_number]["state"])
+#     def get_state_shape(self):
+#         first_state = self.dataset.observations[0]
+#         return np.array(first_state).shape
+#     def sample(self, iteration_number):
+#         dones =np.array(self.dataset[iteration_number]["done"])
+#         states = np.array(self.dataset[iteration_number]["state"])
+#         actions =  np.array(self.dataset[iteration_number]["action"])
+#         padded_next_states =  np.array(self.dataset[iteration_number]["next_state"])
+#         rewards =np.array( self.dataset[iteration_number]["rewards"])
+#
+#         return states, actions, padded_next_states, rewards, dones
+
+
 class CustomDataLoader:
     def __init__(self, dataset):
         self.dataset = dataset
@@ -105,22 +150,21 @@ class CustomDataLoader:
         for i in range(len(dataset)):
             self.size += len(dataset[i]["action"])
 
-    def get_iter_length(self,iteration_number):
+    def get_iter_length(self, iteration_number):
         return len(self.dataset[iteration_number]["state"])
+
     def get_state_shape(self):
-        first_state = self.dataset.observations[0]
+        first_state = self.dataset[0]["state"]
         return np.array(first_state).shape
+
     def sample(self, iteration_number):
-        dones =np.array(self.dataset[iteration_number]["done"])
+        dones = np.array(self.dataset[iteration_number]["done"])
         states = np.array(self.dataset[iteration_number]["state"])
-        actions =  np.array(self.dataset[iteration_number]["action"])
-        padded_next_states =  np.array(self.dataset[iteration_number]["next_state"])
-        rewards =np.array( self.dataset[iteration_number]["rewards"])
+        actions = np.array(self.dataset[iteration_number]["action"])
+        padded_next_states = np.array(self.dataset[iteration_number]["next_state"])
+        rewards = np.array(self.dataset[iteration_number]["rewards"])
 
         return states, actions, padded_next_states, rewards, dones
-
-
-
 
 
 def delete_files_in_folder(folder_path):
@@ -254,6 +298,7 @@ class BVFT_(object):
                             groups.append(list(intersect))               #piecewise constant function
         return groups
 
+
     def compute_loss(self, q1, groups):                                 #
         Tf = self.r_plus_vfsp[q1].copy()
         for group in groups:
@@ -335,12 +380,14 @@ class BVFT_(object):
         self.record.bellman_residual = br
         self.record.record_ranking(br_rank)
         return br_rank
+
 class Hopper_edi(ABC):
 
-    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,method_name_list,self_method_name,gamma=0.99,trajectory_num=10,
+    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,method_name_list,self_method_name,batch_size = 32,gamma=0.99,trajectory_num=10,
                  max_timestep = 100, total_select_env_number=2,
                  env_name = "Hopper-v4"):
         self.device = device
+        self.batch_size = batch_size
         self.q_functions = []
         self.method_name_list = method_name_list
         self.max_timestep = max_timestep
@@ -378,7 +425,25 @@ class Hopper_edi(ABC):
         self.q_sa = []
         self.r_plus_vfsp = []
         self.data_size = 0
-
+        self.active_threads = 0
+        self.lock = threading.Lock()
+    def delete_files_in_folder_r(self, folder_path):
+        if not os.path.exists(folder_path):
+            print("The folder does not exist.")
+            return
+        for filename in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    if not re.match(r'.*\d{1}\.pkl$', filename):
+                        os.unlink(file_path)
+                        print(f"Deleted {file_path}")
+                    else:
+                        print(f"Skipping {file_path} (matches the pattern of ending with a number and '.pkl')")
+                elif os.path.isdir(file_path):
+                    print(f"Skipping directory {file_path}")
+            except Exception as e:
+                print(f'Failed to delete {file_path}. Reason: {e}')
     def delete_files_in_folder(self,folder_path):
         if not os.path.exists(folder_path):
             print("The folder does not exist.")
@@ -443,7 +508,14 @@ class Hopper_edi(ABC):
     @abstractmethod
     def select_Q(self,q_sa,r_plus_q,policy_namei):
         pass
-
+    def remove_duplicates(self,lst):
+        seen = set()
+        result = []
+        for item in lst:
+            if item not in seen:
+                seen.add(item)
+                result.append(item)
+        return result
     def generate_one_trajectory(self,env_number,max_time_step,algorithm_name,unique_seed):
         Policy_operation_folder = "Policy_operation"
         Policy_saving_folder = os.path.join(Policy_operation_folder,"Policy_trained")
@@ -653,7 +725,7 @@ class Hopper_edi(ABC):
     def get_policy_per(self,policy,environment):
         total_rewards = 0
         max_iteration = 1000
-        env = environment
+        env = copy.deepcopy(environment)
         for num in range(100):
             num_step = 0
             discount_factor = 1
@@ -691,89 +763,325 @@ class Hopper_edi(ABC):
         self.save_as_pkl(policy_performance_path,final_result_list)
         self.save_as_txt(policy_performance_path,final_result_list)
 
-    def get_qa(self,policy_number,environment_number,states,actions):
-        env = self.env_list[environment_number]
-        policy = self.policy_list[policy_number]
-        result_list = []
-        for i in range(len(states)):
-            total_rewards = 0
-            for j in range(1):
-                num_step = 0
-                discount_factor = 1
-                # print("len states : ",len(states))p
-                # print("len actions : ",len(actions)
-                observation =states[i]
-                action = actions[i]
-                env.reset()
-                #print("before env.observation : ",observation)
-                env.observation= observation
-                # env.state = observation
-                # print("env.observation : ", env.observation)
-                # sys.exit()
-                ui = env.step(action)
-                state = ui[0]
-                reward = ui[1]
-                total_rewards += reward
-                done = ui[2]
-                while ((not done) and (num_step < self.max_timestep)):
-                    action = policy.predict(np.array([state]))
-                    # print("predicted actioin : ",action)
-                    ui = env.step(action[0])
-                    state = ui[0]
-                    reward = ui[1]
-                    done = ui[2]
-                    # print("state=E fr e step : ",state)
-                    total_rewards += reward * discount_factor
-                    discount_factor *= self.gamma
-                    num_step += 1
-            total_rewards = total_rewards
-            result_list.append(total_rewards)
-        return result_list
+    def run_simulation(self, state_action_policy_env_batch):
+        states, actions, policy, envs = state_action_policy_env_batch
 
-    def get_whole_qa(self,algorithm_index):
-        Offine_data_folder = "Offline_data"
-        self.create_folder(Offine_data_folder)
+        # Initialize environments with states
+        for env, state in zip(envs, states):
+            env.reset()
+            env.observation = state
+
+        total_rewards = np.zeros(len(states))
+        num_steps = np.zeros(len(states))
+        discount_factors = np.ones(len(states))
+        done_flags = np.zeros(len(states), dtype=bool)
+
+        while not np.all(done_flags) and np.any(num_steps < self.max_timestep):
+            actions_batch = policy.predict(np.array(states))
+            for idx, (env, action) in enumerate(zip(envs, actions_batch)):
+                if not done_flags[idx]:
+                    next_state, reward, done, _, _ = env.step(action)
+                    total_rewards[idx] += reward * discount_factors[idx]
+                    discount_factors[idx] *= self.gamma
+                    num_steps[idx] += 1
+                    states[idx] = next_state
+                    done_flags[idx] = done
+
+        return total_rewards
+
+    def get_qa(self, policy_number, env_copy_list, states, actions, batch_size=8):
+        policy = self.policy_list[policy_number]
+        results = []
+
+        total_len = len(states)
+        for i in range(0, total_len, batch_size):
+            actual_batch_size = min(batch_size, total_len - i)
+            state_action_policy_env_pairs = (states[i:i + actual_batch_size], actions[i:i + actual_batch_size], policy,
+                                             env_copy_list[:actual_batch_size])
+            batch_results = self.run_simulation(state_action_policy_env_pairs)
+            results.extend(batch_results)
+
+        return results
+
+    def create_deep_copies(self, env, batch_size):
+        return [copy.deepcopy(env) for _ in range(batch_size)]
+
+    def process_env(self, env_index, policy_index, env_copy_lists_name, policy_list_name, data_name, env_list_name):
+        start_time = time.time()
+        logging.info(f"Starting processing for env_index {env_index}, policy_index {policy_index}")
+
+        # Attach to existing shared memory blocks
+        shm_env_copy_lists = shared_memory.SharedMemory(name=env_copy_lists_name)
+        env_copy_lists = dill.loads(bytes(shm_env_copy_lists.buf))
+
+        shm_policy_list = shared_memory.SharedMemory(name=policy_list_name)
+        policy_list = dill.loads(bytes(shm_policy_list.buf))
+
+        shm_data = shared_memory.SharedMemory(name=data_name)
+        data = dill.loads(bytes(shm_data.buf))
+
+        shm_env_list = shared_memory.SharedMemory(name=env_list_name)
+        env_list = dill.loads(bytes(shm_env_list.buf))
+
+        env = env_list[env_index]
+        env_copy_list = env_copy_lists[env_index][policy_index]
+        policy = policy_list[policy_index]
+        ptr = 0
+        trajectory_length = 0
+        while ptr < self.data.size:
+            length = data[ptr]["state"].shape[0]  # or use self.data.get_iter_length(ptr) if it fits better
+            state, action, next_state, reward, done = data[ptr]
+            self.q_sa[(env_index + 1) * len(policy_list) + (policy_index + 1) - 1][
+            trajectory_length:trajectory_length + length] = self.get_qa(policy_index, env_copy_list, state, action,
+                                                                        self.batch_size)
+            vfsp = (reward + self.get_qa(policy_index, env_copy_list, next_state,
+                                         policy.predict(next_state), self.batch_size) * (
+                            1 - np.array(done)) * self.gamma)
+            self.r_plus_vfsp[(env_index + 1) * (policy_index + 1) - 1][
+            trajectory_length:trajectory_length + length] = vfsp.flatten()[:length]
+            trajectory_length += length
+            ptr += 1
+        self.data_size = trajectory_length
+
+        end_time = time.time()
+        logging.info(
+            f"Finished processing for env_index {env_index}, policy_index {policy_index} in {end_time - start_time} seconds")
+
+        # Cleanup shared memory in worker
+        shm_env_copy_lists.close()
+        shm_policy_list.close()
+        shm_data.close()
+        shm_env_list.close()
+
+        # Force garbage collection
+        gc.collect()
+
+    def get_whole_qa(self, algorithm_index):
+        Offline_data_folder = "Offline_data"
+        self.create_folder(Offline_data_folder)
         data_folder_name = f"{self.algorithm_name_list[algorithm_index]}_{self.env_name}"
         for j in range(len(self.parameter_list[self.true_env_num])):
             param_name = self.parameter_name_list[j]
             param_value = self.parameter_list[self.true_env_num][j].tolist()
             data_folder_name += f"_{param_name}_{str(param_value)}"
         data_folder_name += f"_{self.max_timestep}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
-        data_q_name = data_folder_name  + "_q"
-        data_q_path = os.path.join(Offine_data_folder,data_q_name)
-        data_r_name = data_folder_name  + "_r"
-        data_r_path = os.path.join(Offine_data_folder,data_r_name)
-        data_size_name = data_folder_name  + "_size"
-        data_size_path = os.path.join(Offine_data_folder,data_size_name)
-        if(not self.whether_file_exists(data_q_path+".pkl")):
-            ptr = 0
-            gamma = self.gamma
-            trajectory_length = 0
-            while ptr < self.trajectory_num:  # for everything in data size
-                length = self.data.get_iter_length(ptr)
-                state, action, next_state, reward, done = self.data.sample(ptr)
-                for i in range(len(self.env_list)):
-                    for j in range(len(self.policy_list)):
-                        self.q_sa[(i + 1) * len(self.policy_list)+ (j + 1) - 1][trajectory_length:trajectory_length + length] = self.get_qa(policy_number=j,environment_number=i,states=state,actions=action)
-                        # print("actions : ",[self.policy_list[j].predict(next_state)])
-                        # print("len next state : ",len(next_state))o
-                        # print("len actions : ",len(action))i
-                        # print("next actions : ",self.policy_list[j].predict(next_state))
-                        vfsp = (reward + self.get_qa(j, i, next_state, self.policy_list[j].predict(next_state)) * (1 - np.array(done)) * gamma)
+        data_q_name = data_folder_name + "_q"
+        data_q_path = os.path.join(Offline_data_folder, data_q_name)
+        data_r_name = data_folder_name + "_r"
+        data_r_path = os.path.join(Offline_data_folder, data_r_name)
+        data_size_name = data_folder_name + "_size"
+        data_size_path = os.path.join(Offline_data_folder, data_size_name)
 
-                        self.r_plus_vfsp[(i + 1) * (j + 1) - 1][trajectory_length:trajectory_length + length] = vfsp.flatten()[:length]
-                trajectory_length += length
-                ptr += 1
-            self.data_size = trajectory_length
-            print("self q_sa  d: ", self.q_sa)
-            print("lesa : ", len(self.q_sa))
-            self.save_as_pkl(data_q_path,self.q_sa)
-            self.save_as_pkl(data_r_path,self.r_plus_vfsp)
-            self.save_as_pkl(data_size_path,self.data_size)
+        if not self.whether_file_exists(data_q_path + ".pkl"):
+            logging.info("Enter get qa calculate loop")
+            start_time = time.time()
+
+            env_copy_start_time = time.time()
+            env_copy_lists = np.array(
+                [[self.create_deep_copies(env, self.batch_size) for env in self.env_list] for _ in self.policy_list],
+                dtype=object)
+            env_copy_serialized = dill.dumps(env_copy_lists)
+            env_copy_shm = shared_memory.SharedMemory(create=True, size=len(env_copy_serialized))
+            env_copy_shm.buf[:len(env_copy_serialized)] = env_copy_serialized
+
+            policy_list_serialized = dill.dumps(self.policy_list)
+            policy_list_shm = shared_memory.SharedMemory(create=True, size=len(policy_list_serialized))
+            policy_list_shm.buf[:len(policy_list_serialized)] = policy_list_serialized
+
+            data_list = [self.data.sample(i) for i in range(len(self.data.dataset))]
+            data_serialized = dill.dumps(data_list)
+            data_shm = shared_memory.SharedMemory(create=True, size=len(data_serialized))
+            data_shm.buf[:len(data_serialized)] = data_serialized
+
+            env_list_serialized = dill.dumps(self.env_list)
+            env_list_shm = shared_memory.SharedMemory(create=True, size=len(env_list_serialized))
+            env_list_shm.buf[:len(env_list_serialized)] = env_list_serialized
+
+            env_copy_end_time = time.time()
+            logging.info(f"Environment copy time: {env_copy_end_time - env_copy_start_time} seconds")
+
+            threading_start_time = time.time()
+            with Pool(processes=multiprocessing.cpu_count()) as pool:
+                results = [pool.apply_async(self.process_env, args=(
+                i, j, env_copy_shm.name, policy_list_shm.name, data_shm.name, env_list_shm.name)) for i in
+                           range(len(self.env_list))
+                           for j in range(len(self.policy_list))]
+                for result in results:
+                    result.get()
+            threading_end_time = time.time()
+            logging.info(f"Threading (env-policy) time: {threading_end_time - threading_start_time} seconds")
+
+            end_time = time.time()
+            logging.info(f"Total running time get_qa: {end_time - start_time} seconds")
+
+            self.save_as_pkl(data_q_path, self.q_sa)
+            self.save_as_pkl(data_r_path, self.r_plus_vfsp)
+            self.save_as_pkl(data_size_path, self.data_size)
+
+            # Cleanup shared memory
+            env_copy_shm.close()
+            env_copy_shm.unlink()
+            policy_list_shm.close()
+            policy_list_shm.unlink()
+            data_shm.close()
+            data_shm.unlink()
+            env_list_shm.close()
+            env_list_shm.unlink()
+
+            # Force garbage collection
+            gc.collect()
         else:
-            self.q_sa  = self.load_from_pkl(data_q_path)
+            self.q_sa = self.load_from_pkl(data_q_path)
             self.r_plus_vfsp = self.load_from_pkl(data_r_path)
             self.data_size = self.load_from_pkl(data_size_path)
+    # def run_simulation(self, state_action_policy_env_batch):
+    #     states, actions, policy, envs = state_action_policy_env_batch
+    #
+    #     # Initialize environments with states
+    #     for env, state in zip(envs, states):
+    #         env.reset()
+    #         env.observation = state
+    #
+    #     total_rewards = np.zeros(len(states))
+    #     num_steps = np.zeros(len(states))
+    #     discount_factors = np.ones(len(states))
+    #     done_flags = np.zeros(len(states), dtype=bool)
+    #
+    #     while not np.all(done_flags) and np.any(num_steps < self.max_timestep):
+    #         actions_batch = policy.predict(np.array(states))
+    #         for idx, (env, action) in enumerate(zip(envs, actions_batch)):
+    #             if not done_flags[idx]:
+    #                 next_state, reward, done, _, _ = env.step(action)
+    #                 total_rewards[idx] += reward * discount_factors[idx]
+    #                 discount_factors[idx] *= self.gamma
+    #                 num_steps[idx] += 1
+    #                 states[idx] = next_state
+    #                 done_flags[idx] = done
+    #
+    #     return total_rewards
+    #
+    # # def run_simulation(self, state_action_policy_env_batch):
+    # #     states, actions, policy, envs = state_action_policy_env_batch
+    # #
+    # #     # Initialize environments with states
+    # #     for env, state in zip(envs, states):
+    # #         env.reset()
+    # #         env.observation = state
+    # #
+    # #     total_rewards = np.zeros(len(states))
+    # #     num_steps = np.zeros(len(states))
+    # #     discount_factors = np.ones(len(states))
+    # #     done_flags = np.zeros(len(states), dtype=bool)
+    # #
+    # #     while not np.all(done_flags) and np.any(num_steps < self.max_timestep):
+    # #         actions_batch = policy.predict(np.array(states))
+    # #         step_results = []
+    # #
+    # #         with concurrent.futures.ThreadPoolExecutor() as executor:
+    # #             for env, action in zip(envs, actions_batch):
+    # #                 step_results.append(executor.submit(env.step, action))
+    # #
+    # #         for idx, future in enumerate(step_results):
+    # #             if not done_flags[idx]:
+    # #                 next_state, reward, done, _, _ = future.result()
+    # #                 total_rewards[idx] += reward * discount_factors[idx]
+    # #                 discount_factors[idx] *= self.gamma
+    # #                 num_steps[idx] += 1
+    # #                 states[idx] = next_state
+    # #                 done_flags[idx] = done
+    # #
+    # #     return total_rewards
+    #
+    # def get_qa(self, policy_number, env_copy_list, states, actions, batch_size=8):
+    #     policy = self.policy_list[policy_number]
+    #     results = []
+    #
+    #     total_len = len(states)
+    #     for i in range(0, total_len, batch_size):
+    #         actual_batch_size = min(batch_size, total_len - i)
+    #         state_action_policy_env_pairs = (states[i:i + actual_batch_size], actions[i:i + actual_batch_size], policy,
+    #                                          env_copy_list[:actual_batch_size])
+    #         batch_results = self.run_simulation(state_action_policy_env_pairs)
+    #         results.extend(batch_results)
+    #
+    #     return results
+    #
+    # def create_deep_copies(self, env, batch_size):
+    #     return [copy.deepcopy(env) for _ in range(batch_size)]
+    #
+    # def get_whole_qa(self,algorithm_index):
+    #     Offine_data_folder = "Offline_data"
+    #     self.create_folder(Offine_data_folder)
+    #     data_folder_name = f"{self.algorithm_name_list[algorithm_index]}_{self.env_name}"
+    #     for j in range(len(self.parameter_list[self.true_env_num])):
+    #         param_name = self.parameter_name_list[j]
+    #         param_value = self.parameter_list[self.true_env_num][j].tolist()
+    #         data_folder_name += f"_{param_name}_{str(param_value)}"
+    #     data_folder_name += f"_{self.max_timestep}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
+    #     data_q_name = data_folder_name  + "_q"
+    #     data_q_path = os.path.join(Offine_data_folder,data_q_name)
+    #     data_r_name = data_folder_name  + "_r"
+    #     data_r_path = os.path.join(Offine_data_folder,data_r_name)
+    #     data_size_name = data_folder_name  + "_size"
+    #     data_size_path = os.path.join(Offine_data_folder,data_size_name)
+    #     if(not self.whether_file_exists(data_q_path+".pkl")):
+    #         print("enter get qa calculate loop")
+    #         ptr = 0
+    #         gamma = self.gamma
+    #         start_time = time.time()
+    #         trajectory_length = 0
+    #         env_copy_lists = []
+    #         for i in range(len(self.env_list)):
+    #             env = self.env_list[i]
+    #             env_copy_lists.append(self.create_deep_copies(env, self.batch_size))
+    #         env_copy_time = time.time()
+    #         print(f"full env copy time : {env_copy_time - start_time} for batch size : {self.batch_size}")
+    #
+    #         while ptr < self.trajectory_num:  # for everything in data size
+    #             length = self.data.get_iter_length(ptr)
+    #             sample_state = time.time()
+    #             state, action, next_state, reward, done = self.data.sample(ptr)
+    #             print(f"sample time : {time.time() - sample_state}")
+    #
+    #             for i in range(len(self.env_list)):
+    #                 env = self.env_list[i]
+    #                 # env_copy_list = [copy.deepcopy(env) for _ in range(self.batch_size)]
+    #                 env_copy_list = env_copy_lists[i]
+    #
+    #                 total_st = 0
+    #                 for j in range(len(self.policy_list)):
+    #                     #self.q_sa[(i + 1) * len(self.policy_list) + (j + 1) - 1][
+    #                     # trajectory_length:trajectory_length + length]  = self.get_qa(policy_number=j,
+    #                     #                                                             environment_number=i,
+    #                     #                                                             states=state, actions=action)
+    #                     # q_time = time.time()
+    #                     self.q_sa[(i + 1) * len(self.policy_list)+ (j + 1) - 1][trajectory_length:trajectory_length + length] = self.get_qa(policy_number=j,env_copy_list=env_copy_list,states=state,actions=action,batch_size=self.batch_size)
+    #                     # vfsp = (reward + self.get_qa(policy_number=j, environment_number=i, states=next_state,
+    #                     #                              actions=self.policy_list[j].predict(next_state)
+    #                     #                              ) * (1 - np.array(done)) * self.gamma)
+    #                     # q_end = time.time()
+    #                     # print(f"q sa time : {q_end - q_time}")
+    #                     vfsp = (reward + self.get_qa(policy_number=j, env_copy_list=env_copy_list, states=next_state, actions=self.policy_list[j].predict(next_state),batch_size=self.batch_size) * (1 - np.array(done)) * self.gamma)
+    #                     vfsp_end = time.time()
+    #                     # print(f"vfsp time : {vfsp_end - q_end}")
+    #                     self.r_plus_vfsp[(i + 1) * (j + 1) - 1][trajectory_length:trajectory_length + length] = vfsp.flatten()[:length]
+    #                     # r_plus_end = time.time()
+    #                     # print(f"r plus vfsp end : {r_plus_end - vfsp_end}")
+    #                     # print(f"total time : {r_plus_end - q_time}")
+    #                     # sys.exit()
+    #             trajectory_length += length
+    #             ptr += 1
+    #         end_time = time.time()
+    #         print(f"running time get_qa : {self.batch_size} , running time : {end_time - start_time}")
+    #         self.data_size = trajectory_length
+    #         self.save_as_pkl(data_q_path,self.q_sa)
+    #         self.save_as_pkl(data_r_path,self.r_plus_vfsp)
+    #         self.save_as_pkl(data_size_path,self.data_size)
+    #     else:
+    #         self.q_sa  = self.load_from_pkl(data_q_path)
+    #         self.r_plus_vfsp = self.load_from_pkl(data_r_path)
+    #         self.data_size = self.load_from_pkl(data_size_path)
+
     def get_ranking(self,algorithm_index):
         Bvft_folder = "Bvft_Records"
 
@@ -789,11 +1097,11 @@ class Hopper_edi(ABC):
         Q_saving_folder_data = os.path.join(Q_saving_folder,data_folder_name)
         self.create_folder(Q_saving_folder_data)
         for j in range(len(self.policy_list)):
-            print("len policy list : ",len(self.policy_list))
+            # print("len policy list : ",len(self.policy_list))
             policy_name = self.policy_name_list[j]
-            print("policy name : ",policy_name)
-            print("len policy name list : ",len(self.policy_name_list))
-            print("policy name  list : ",self.policy_name_list)
+            # print("policy name : ",policy_name)
+            # print("len policy name list : ",len(self.policy_name_list))
+            # print("policy name  list : ",self.policy_name_list)
             Q_result_saving_path = os.path.join(Q_saving_folder_data,policy_name)
             q_list = []
             r_plus_vfsp = []
@@ -807,17 +1115,65 @@ class Hopper_edi(ABC):
             self.save_as_pkl(Q_result_saving_path, save_list)
             self.delete_files_in_folder(Bvft_folder)
 
-
+    # def draw_figure_6R(self):
+        # means = []
+        # SE = []
+        # labels = []
+        # self_data_saving_path = self.remove_duplicates(self.data_saving_path)
+        # max_step = str(max(self.FQE_saving_step_list))
+        # for i in range(len(self_data_saving_path)):
+        #     repo_name = self_data_saving_path[i]
+        #     NMSE,standard_error = self.get_NMSE(repo_name)
+        #     means.append(NMSE)
+        #     SE.append(standard_error)
+        #     labels.append(self_data_saving_path[i]+"_"+max_step)
+        # name_list = ['hopper-medium-v2']
+        #
+        # FQE_returned_folder = "Policy_ranking_saving_place/Policy_k_saving_place/Figure_6R_plot"
+        # if not os.path.exists(FQE_returned_folder):
+        #     os.makedirs(FQE_returned_folder)
+        # plot = "NMSE_plot"
+        # Figure_saving_path = os.path.join(FQE_returned_folder, plot)
+        # #
+        # colors = self.generate_unique_colors(len(self_data_saving_path))
+        # figure_name = 'Normalized e MSE of FQE min max'
+        # filename = "Figure6R_max_min_NMSE_graph" + "_" + str(self.FQE_saving_step_list)
+        # if self.normalization_factor == 1:
+        #     figure_name = 'Normalized MSE of FQE groundtruth variance'
+        #     filename = "Figure6R_groundtruth_variance_NMSE_graph" + "_" + str(self.FQE_saving_step_list)
+        # self.draw_mse_graph(combinations=name_list, means=means, colors=colors, standard_errors=SE,
+        #                labels=labels, folder_path=Figure_saving_path, FQE_step_list=self.FQE_saving_step_list,
+        #                filename=filename, figure_name=figure_name)
 
     def run(self,true_data_list):
+        start_time = time.time()
         self.train_policy()
         self.get_policy_performance()
+
+
+        # for j in range(len(true_data_list)):
+        before_for_time = time.time()
         for j in range(len(true_data_list)):
             for i in range(len(self.algorithm_name_list)):
+                # self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
+                #                        true_env_number=true_data_list[j])
+                # load_time = time.time()
+                # print(f"load_time use : {load_time - before_for_time}")
+                # self.get_whole_qa(i)
+                # get_whole_end = time.time()
+                # print(f"after whole end time : {get_whole_end - load_time}")
+                # self.get_ranking(i)
+                # get_ranking_end = time.time()
+                # print(f"get ranking time : {get_ranking_end - get_whole_end}")
+                # print(f"one for loop total time : {get_ranking_end - before_for_time}")
+                # sys.exit()
                 self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
                                        true_env_number=true_data_list[j])
                 self.get_whole_qa(i)
                 self.get_ranking(i)
+        end_time = time.time()
+        self.delete_files_in_folder_r("Offline_data")
+        return (end_time - before_for_time)
 
 
 
