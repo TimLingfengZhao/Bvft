@@ -7,17 +7,27 @@ import os
 import re
 import multiprocess.context as ctx
 import pickle
+
 from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
+from multiprocessing.shared_memory import SharedMemory
+from multiprocessing.managers import SharedMemoryManager
+from multiprocessing.shared_memory import ShareableList
 from pathos.multiprocessing import  Pool
 import heapq
-
+import multiprocessing
+from multiprocessing import Lock
 import threading
 from typing import Sequence
 import gc
+
 from d3rlpy.datasets import get_d4rl
 import gym
-import pathos.multiprocessing as multiprocessing
+import pathos
 
+from pathos.multiprocessing import  ProcessPool
+from fastapi import FastAPI
+from celery import Celery
+from celery.result import AsyncResult
 import psutil
 import random
 import copy
@@ -114,11 +124,16 @@ from scope_rl.ope.estimators_base import BaseOffPolicyEstimator
 from d3rlpy.dataset import Episode
 import gymnasium
 import logging
-
-
+from multiprocessing import Process, resource_tracker
+from memory_profiler import memory_usage
+from memory_profiler import profile
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
-
-
+class RandomPolicy:
+    def __init__(self, action_space):
+        self.action_space = action_space
+        self.array = np.array([0.1,0.2,0.3])
+    def predict(self, states):
+        return np.array([self.array for _ in range(len(states))])
 # class CustomDataLoader:
 #     def __init__(self, dataset):
 #         self.dataset = dataset
@@ -147,6 +162,7 @@ class CustomDataLoader:
         self.dataset = dataset
         self.current = 0
         self.size = 0
+        self.length = len(dataset)
         for i in range(len(dataset)):
             self.size += len(dataset[i]["action"])
 
@@ -383,9 +399,13 @@ class BVFT_(object):
 
 class Hopper_edi(ABC):
 
-    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,method_name_list,self_method_name,batch_size = 32,gamma=0.99,trajectory_num=10,
+    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,method_name_list,self_method_name,batch_size = 32,process_num=5,
+                traj_sa_number = 10000,gamma=0.99,trajectory_num=10,
                  max_timestep = 100, total_select_env_number=2,
                  env_name = "Hopper-v4"):
+        # self.policy_choose = policy_choose
+        self.traj_sa_number = traj_sa_number
+        self.process_num = process_num
         self.device = device
         self.batch_size = batch_size
         self.q_functions = []
@@ -497,6 +517,8 @@ class Hopper_edi(ABC):
             return False
         return True
 
+
+
     def generate_unique_numbers(self,n, range_start, range_end):
         if n > (range_end - range_start + 1):
             raise ValueError("The range is too small to generate the required number of unique numbers.")
@@ -579,9 +601,10 @@ class Hopper_edi(ABC):
         data_seeds_path = os.path.join(Offine_data_folder,data_seeds_name)
         if os.path.exists(data_path):
             self.data = self.load_from_pkl(data_path)
+            self.data_size = self.data.size
             self.unique_numbers = self.load_from_pkl(data_seeds_path)
-            self.q_sa = [np.zeros(self.data.size) for _ in range(len(self.env_list) * 2 * len(self.env_list))]
-            self.r_plus_vfsp = [np.zeros(self.data.size) for _ in range(len(self.env_list) * 2 * len(self.env_list))]
+            self.q_sa = [np.zeros(self.data.size) for _ in range(len(self.env_list)  * len(self.env_list))]
+            self.r_plus_vfsp = [np.zeros(self.data.size) for _ in range(len(self.env_list)  * len(self.env_list))]
         else:
             self.generate_offline_data(max_time_step,algorithm_name,true_env_number)
 
@@ -607,8 +630,9 @@ class Hopper_edi(ABC):
         data_seeds_name = data_folder_name + "_seeds"
         data_seeds_path = os.path.join(Offine_data_folder,data_seeds_name)
         self.data = CustomDataLoader(final_data)
-        self.q_sa = [np.zeros(self.data.size) for _ in range(len(self.env_list)*2*len(self.env_list) )]
-        self.r_plus_vfsp = [np.zeros(self.data.size) for _ in range(len(self.env_list)*2*len(self.env_list) )]
+        self.data_size = self.data.size
+        self.q_sa = [np.zeros(self.data.size) for _ in range(len(self.env_list)*len(self.env_list) )]
+        self.r_plus_vfsp = [np.zeros(self.data.size) for _ in range(len(self.env_list)*len(self.env_list) )]
         self.save_as_pkl(data_path,self.data)
         self.save_as_pkl(data_seeds_path, self.unique_numbers)
 
@@ -762,10 +786,8 @@ class Hopper_edi(ABC):
             final_result_list.append(result_list)
         self.save_as_pkl(policy_performance_path,final_result_list)
         self.save_as_txt(policy_performance_path,final_result_list)
-
     def run_simulation(self, state_action_policy_env_batch):
         states, actions, policy, envs = state_action_policy_env_batch
-
         # Initialize environments with states
         for env, state in zip(envs, states):
             env.reset()
@@ -776,8 +798,13 @@ class Hopper_edi(ABC):
         discount_factors = np.ones(len(states))
         done_flags = np.zeros(len(states), dtype=bool)
 
+        print_idx = 0
+        pr_i = 0
         while not np.all(done_flags) and np.any(num_steps < self.max_timestep):
+
             actions_batch = policy.predict(np.array(states))
+
+
             for idx, (env, action) in enumerate(zip(envs, actions_batch)):
                 if not done_flags[idx]:
                     next_state, reward, done, _, _ = env.step(action)
@@ -787,7 +814,68 @@ class Hopper_edi(ABC):
                     states[idx] = next_state
                     done_flags[idx] = done
 
+
+
+
         return total_rewards
+    # def run_simulation(self, state_action_policy_env_batch):
+    #     states, actions, policy, envs = state_action_policy_env_batch
+    #     before_ini = time.time()
+    #     # Initialize environments with states
+    #     for env, state in zip(envs, states):
+    #         env.reset()
+    #         env.observation = state
+    #     after_ini = time.time()
+    #
+    #     total_rewards = np.zeros(len(states))
+    #     num_steps = np.zeros(len(states))
+    #     discount_factors = np.ones(len(states))
+    #     done_flags = np.zeros(len(states), dtype=bool)
+    #
+    #     after_setup = time.time()
+    #     print_idx = 0
+    #     pr_i = 0
+    #     while not np.all(done_flags) and np.any(num_steps < self.max_timestep):
+    #         before_predict = time.time()
+    #
+    #         actions_batch = policy.predict(np.array(states))
+    #
+    #         after_predict = time.time()
+    #
+    #
+    #         for idx, (env, action) in enumerate(zip(envs, actions_batch)):
+    #             dudu_time = time.time()
+    #             if not done_flags[idx]:
+    #                 before_env_step = time.time()
+    #                 next_state, reward, done, _, _ = env.step(action)
+    #                 after_env_step = time.time()
+    #                 total_rewards[idx] += reward * discount_factors[idx]
+    #                 discount_factors[idx] *= self.gamma
+    #                 num_steps[idx] += 1
+    #                 states[idx] = next_state
+    #                 done_flags[idx] = done
+    #                 after_four_index_calculation = time.time()
+    #                 if(print_idx == 0) :
+    #                     print(f"current run simulation time use : \n"
+    #                           f"initialize time : {after_ini - before_ini} \n"
+    #                           f"set up time : {after_setup - after_ini}\n"
+    #                           f"predict time : {after_predict - before_predict} \n"
+    #                           f"env step time : {after_env_step - before_env_step} \n"
+    #                           f"cauculation five thing time : {after_four_index_calculation - after_env_step}")
+    #                     print_idx += 1
+    #             if idx == 0 :
+    #                 print(f"one iter in for loop time : {time.time() - dudu_time}")
+    #         after_for_loop_time = time.time()
+    #         if pr_i ==0:
+    #             print(f"for loop time : {time.time() - after_predict}")
+    #             pr_i += 1
+    #     print(f"after while loop time : {time.time() - after_setup}")
+    #     sys.exit()
+    #
+    #
+    #
+    #
+    #     return total_rewards
 
     def get_qa(self, policy_number, env_copy_list, states, actions, batch_size=8):
         policy = self.policy_list[policy_number]
@@ -796,65 +884,62 @@ class Hopper_edi(ABC):
         total_len = len(states)
         for i in range(0, total_len, batch_size):
             actual_batch_size = min(batch_size, total_len - i)
-            state_action_policy_env_pairs = (states[i:i + actual_batch_size], actions[i:i + actual_batch_size], policy,
-                                             env_copy_list[:actual_batch_size])
+            state_action_policy_env_pairs = (
+                states[i:i + actual_batch_size], actions[i:i + actual_batch_size], policy,
+                env_copy_list[:actual_batch_size])
             batch_results = self.run_simulation(state_action_policy_env_pairs)
             results.extend(batch_results)
 
-        return results
+        return np.array(results)
 
     def create_deep_copies(self, env, batch_size):
         return [copy.deepcopy(env) for _ in range(batch_size)]
 
-    def process_env(self, env_index, policy_index, env_copy_lists_name, policy_list_name, data_name, env_list_name):
-        start_time = time.time()
+
+    def process_env_policy_combination(self,env_index, policy_index, policy_list, env_list, data, gamma, batch_size,
+                                       trajectory_num, data_size):
         logging.info(f"Starting processing for env_index {env_index}, policy_index {policy_index}")
+        start_time = time.time()
 
-        # Attach to existing shared memory blocks
-        shm_env_copy_lists = shared_memory.SharedMemory(name=env_copy_lists_name)
-        env_copy_lists = dill.loads(bytes(shm_env_copy_lists.buf))
-
-        shm_policy_list = shared_memory.SharedMemory(name=policy_list_name)
-        policy_list = dill.loads(bytes(shm_policy_list.buf))
-
-        shm_data = shared_memory.SharedMemory(name=data_name)
-        data = dill.loads(bytes(shm_data.buf))
-
-        shm_env_list = shared_memory.SharedMemory(name=env_list_name)
-        env_list = dill.loads(bytes(shm_env_list.buf))
+        q_sa = np.zeros(data_size)
+        r_plus_vfsp = np.zeros(data_size)
+        local_data_size = 0
 
         env = env_list[env_index]
-        env_copy_list = env_copy_lists[env_index][policy_index]
-        policy = policy_list[policy_index]
+        env_copy_list = [copy.deepcopy(env) for _ in range(batch_size)]
+        logging.info(f"Memory usage after creating environment copies: {memory_usage()} MB")
+
         ptr = 0
         trajectory_length = 0
-        while ptr < self.data.size:
-            length = data[ptr]["state"].shape[0]  # or use self.data.get_iter_length(ptr) if it fits better
-            state, action, next_state, reward, done = data[ptr]
-            self.q_sa[(env_index + 1) * len(policy_list) + (policy_index + 1) - 1][
-            trajectory_length:trajectory_length + length] = self.get_qa(policy_index, env_copy_list, state, action,
-                                                                        self.batch_size)
-            vfsp = (reward + self.get_qa(policy_index, env_copy_list, next_state,
-                                         policy.predict(next_state), self.batch_size) * (
-                            1 - np.array(done)) * self.gamma)
-            self.r_plus_vfsp[(env_index + 1) * (policy_index + 1) - 1][
-            trajectory_length:trajectory_length + length] = vfsp.flatten()[:length]
+        while ptr < trajectory_num:
+            length = data.get_iter_length(ptr)
+            state, action, next_state, reward, done = data.sample(ptr)
+
+            q_values = self.get_qa(policy_index, env_copy_list, state, action, batch_size)
+            if q_values.shape[0] != length:
+                raise ValueError(f"Shape mismatch: q_values.shape[0]={q_values.shape[0]}, length={length}")
+
+            q_sa[trajectory_length:trajectory_length + length] = q_values
+
+            vfsp_values = (reward + self.get_qa(policy_index, env_copy_list, next_state,
+                                                policy_list[policy_index].predict(next_state), batch_size) *
+                           (1 - np.array(done)) * gamma)
+            if vfsp_values.shape[0] != length:
+                raise ValueError(f"Shape mismatch: vfsp_values.shape[0]={vfsp_values.shape[0]}, length={length}")
+
+            r_plus_vfsp[trajectory_length:trajectory_length + length] = vfsp_values.flatten()[:length]
             trajectory_length += length
             ptr += 1
-        self.data_size = trajectory_length
+
+        local_data_size += trajectory_length
 
         end_time = time.time()
         logging.info(
             f"Finished processing for env_index {env_index}, policy_index {policy_index} in {end_time - start_time} seconds")
+        logging.info(
+            f"Memory usage after processing env_index {env_index}, policy_index {policy_index}: {memory_usage()} MB")
 
-        # Cleanup shared memory in worker
-        shm_env_copy_lists.close()
-        shm_policy_list.close()
-        shm_data.close()
-        shm_env_list.close()
-
-        # Force garbage collection
-        gc.collect()
+        return q_sa, r_plus_vfsp, local_data_size
 
     def get_whole_qa(self, algorithm_index):
         Offline_data_folder = "Offline_data"
@@ -876,40 +961,33 @@ class Hopper_edi(ABC):
             logging.info("Enter get qa calculate loop")
             start_time = time.time()
 
-            env_copy_start_time = time.time()
-            env_copy_lists = np.array(
-                [[self.create_deep_copies(env, self.batch_size) for env in self.env_list] for _ in self.policy_list],
-                dtype=object)
-            env_copy_serialized = dill.dumps(env_copy_lists)
-            env_copy_shm = shared_memory.SharedMemory(create=True, size=len(env_copy_serialized))
-            env_copy_shm.buf[:len(env_copy_serialized)] = env_copy_serialized
-
-            policy_list_serialized = dill.dumps(self.policy_list)
-            policy_list_shm = shared_memory.SharedMemory(create=True, size=len(policy_list_serialized))
-            policy_list_shm.buf[:len(policy_list_serialized)] = policy_list_serialized
-
-            data_list = [self.data.sample(i) for i in range(len(self.data.dataset))]
-            data_serialized = dill.dumps(data_list)
-            data_shm = shared_memory.SharedMemory(create=True, size=len(data_serialized))
-            data_shm.buf[:len(data_serialized)] = data_serialized
-
-            env_list_serialized = dill.dumps(self.env_list)
-            env_list_shm = shared_memory.SharedMemory(create=True, size=len(env_list_serialized))
-            env_list_shm.buf[:len(env_list_serialized)] = env_list_serialized
-
-            env_copy_end_time = time.time()
-            logging.info(f"Environment copy time: {env_copy_end_time - env_copy_start_time} seconds")
-
             threading_start_time = time.time()
-            with Pool(processes=multiprocessing.cpu_count()) as pool:
-                results = [pool.apply_async(self.process_env, args=(
-                i, j, env_copy_shm.name, policy_list_shm.name, data_shm.name, env_list_shm.name)) for i in
-                           range(len(self.env_list))
-                           for j in range(len(self.policy_list))]
-                for result in results:
-                    result.get()
+            print("self process num : ",self.process_num)
+            with Pool(pathos.multiprocessing.cpu_count()) as pool:
+                results = [pool.apply_async(self.process_env_policy_combination, args=(
+                    i, j, self.policy_list, self.env_list, self.data, self.gamma, self.batch_size,
+                    self.trajectory_num,
+                    self.data.size)) for i in range(len(self.env_list)) for j in range(len(self.policy_list))]
+
+                q_sa_aggregated = [np.zeros(self.data.size) for _ in range(len(self.env_list) * len(self.policy_list))]
+                r_plus_vfsp_aggregated = [np.zeros(self.data.size) for _ in
+                                          range(len(self.env_list) * len(self.policy_list))]
+                data_size_aggregated = 0
+
+                for idx, result in enumerate(results):
+                    q_sa_partial, r_plus_vfsp_partial, data_size_partial = result.get()
+                    q_sa_aggregated[idx] += q_sa_partial
+                    r_plus_vfsp_aggregated[idx] += r_plus_vfsp_partial
+                    data_size_aggregated += data_size_partial
+
+
+            self.q_sa = q_sa_aggregated
+            self.r_plus_vfsp = r_plus_vfsp_aggregated
+            self.data_size = data_size_aggregated
+
             threading_end_time = time.time()
-            logging.info(f"Threading (env-policy) time: {threading_end_time - threading_start_time} seconds")
+            logging.info(f"Threading (env only) time: {threading_end_time - threading_start_time} seconds")
+            logging.info(f"Memory usage after processing all environments: {memory_usage()} MB")
 
             end_time = time.time()
             logging.info(f"Total running time get_qa: {end_time - start_time} seconds")
@@ -917,23 +995,210 @@ class Hopper_edi(ABC):
             self.save_as_pkl(data_q_path, self.q_sa)
             self.save_as_pkl(data_r_path, self.r_plus_vfsp)
             self.save_as_pkl(data_size_path, self.data_size)
-
-            # Cleanup shared memory
-            env_copy_shm.close()
-            env_copy_shm.unlink()
-            policy_list_shm.close()
-            policy_list_shm.unlink()
-            data_shm.close()
-            data_shm.unlink()
-            env_list_shm.close()
-            env_list_shm.unlink()
-
-            # Force garbage collection
-            gc.collect()
         else:
             self.q_sa = self.load_from_pkl(data_q_path)
             self.r_plus_vfsp = self.load_from_pkl(data_r_path)
             self.data_size = self.load_from_pkl(data_size_path)
+
+            logging.info(f"Memory usage after loading from pickle: {memory_usage()} MB")
+
+
+        # def run_simulation(self, state_action_policy_env_batch):
+    #     states, actions, policy, envs = state_action_policy_env_batch
+    #
+    #     # Initialize environments with states
+    #     for env, state in zip(envs, states):
+    #         env.reset()
+    #         env.observation = state
+    #
+    #     total_rewards = np.zeros(len(states))
+    #     num_steps = np.zeros(len(states))
+    #     discount_factors = np.ones(len(states))
+    #     done_flags = np.zeros(len(states), dtype=bool)
+    #
+    #     while not np.all(done_flags) and np.any(num_steps < self.max_timestep):
+    #         actions_batch = policy.predict(np.array(states))
+    #         for idx, (env, action) in enumerate(zip(envs, actions_batch)):
+    #             if not done_flags[idx]:
+    #                 next_state, reward, done, _, _ = env.step(action)
+    #                 total_rewards[idx] += reward * discount_factors[idx]
+    #                 discount_factors[idx] *= self.gamma
+    #                 num_steps[idx] += 1
+    #                 states[idx] = next_state
+    #                 done_flags[idx] = done
+    #
+    #     return total_rewards
+    #
+    # def get_qa(self, policy_number, env_copy_list, states, actions, batch_size=8):
+    #     policy = self.policy_list[policy_number]
+    #     results = []
+    #
+    #     total_len = len(states)
+    #     for i in range(0, total_len, batch_size):
+    #         actual_batch_size = min(batch_size, total_len - i)
+    #         state_action_policy_env_pairs = (states[i:i + actual_batch_size], actions[i:i + actual_batch_size], policy,
+    #                                          env_copy_list[:actual_batch_size])
+    #         batch_results = self.run_simulation(state_action_policy_env_pairs)
+    #         results.extend(batch_results)
+    #
+    #     return results
+    #
+    # def create_deep_copies(self, env, batch_size):
+    #     return [copy.deepcopy(env) for _ in range(batch_size)]
+    #
+    # def process_env(self, env_index, policy_index, env_copy_lists_name, policy_list_name, data_name, env_list_name):
+    #     start_time = time.time()
+    #     logging.info(f"Starting processing for env_index {env_index}, policy_index {policy_index}")
+    #
+    #     # Attach to existing shared memory blocks
+    #     shm_env_copy_lists = shared_memory.SharedMemory(name=env_copy_lists_name)
+    #     env_copy_lists = dill.loads(bytes(shm_env_copy_lists.buf))
+    #
+    #     shm_policy_list = shared_memory.SharedMemory(name=policy_list_name)
+    #     policy_list = dill.loads(bytes(shm_policy_list.buf))
+    #
+    #     shm_data = shared_memory.SharedMemory(name=data_name)
+    #     data = dill.loads(bytes(shm_data.buf))
+    #
+    #     shm_env_list = shared_memory.SharedMemory(name=env_list_name)
+    #     env_list = dill.loads(bytes(shm_env_list.buf))
+    #
+    #     env = env_list[env_index]
+    #     env_copy_list = env_copy_lists[env_index][policy_index]
+    #     policy = policy_list[policy_index]
+    #     ptr = 0
+    #     trajectory_length = 0
+    #     while ptr < self.data.size:
+    #         length = data[ptr]["state"].shape[0]  # or use self.data.get_iter_length(ptr) if it fits better
+    #         state, action, next_state, reward, done = data[ptr]
+    #         self.q_sa[(env_index + 1) * len(policy_list) + (policy_index + 1) - 1][
+    #         trajectory_length:trajectory_length + length] = self.get_qa(policy_index, env_copy_list, state, action,
+    #                                                                     self.batch_size)
+    #         vfsp = (reward + self.get_qa(policy_index, env_copy_list, next_state,
+    #                                      policy.predict(next_state), self.batch_size) * (
+    #                         1 - np.array(done)) * self.gamma)
+    #         self.r_plus_vfsp[(env_index + 1) * (policy_index + 1) - 1][
+    #         trajectory_length:trajectory_length + length] = vfsp.flatten()[:length]
+    #         trajectory_length += length
+    #         ptr += 1
+    #     self.data_size = trajectory_length
+    #
+    #     end_time = time.time()
+    #     logging.info(
+    #         f"Finished processing for env_index {env_index}, policy_index {policy_index} in {end_time - start_time} seconds")
+    #
+    #     # Cleanup shared memory in worker
+    #     shm_env_copy_lists.close()
+    #     shm_policy_list.close()
+    #     shm_data.close()
+    #     shm_env_list.close()
+    #
+    #     # Force garbage collection
+    #     gc.collect()
+    #
+    # def get_whole_qa(self, algorithm_index):
+    #     Offline_data_folder = "Offline_data"
+    #     self.create_folder(Offline_data_folder)
+    #     data_folder_name = f"{self.algorithm_name_list[algorithm_index]}_{self.env_name}"
+    #     for j in range(len(self.parameter_list[self.true_env_num])):
+    #         param_name = self.parameter_name_list[j]
+    #         param_value = self.parameter_list[self.true_env_num][j].tolist()
+    #         data_folder_name += f"_{param_name}_{str(param_value)}"
+    #     data_folder_name += f"_{self.max_timestep}_maxStep_{self.trajectory_num}_trajectory_{self.true_env_num}"
+    #     data_q_name = data_folder_name + "_q"
+    #     data_q_path = os.path.join(Offline_data_folder, data_q_name)
+    #     data_r_name = data_folder_name + "_r"
+    #     data_r_path = os.path.join(Offline_data_folder, data_r_name)
+    #     data_size_name = data_folder_name + "_size"
+    #     data_size_path = os.path.join(Offline_data_folder, data_size_name)
+    #
+    #     if not self.whether_file_exists(data_q_path + ".pkl"):
+    #         logging.info("Enter get qa calculate loop")
+    #         start_time = time.time()
+    #
+    #         env_copy_start_time = time.time()
+    #         env_copy_lists = np.array(
+    #             [[self.create_deep_copies(env, self.batch_size) for env in self.env_list] for _ in self.policy_list],
+    #             dtype=object)
+    #         env_copy_serialized = dill.dumps(env_copy_lists)
+    #         env_copy_shm = shared_memory.SharedMemory(create=True, size=len(env_copy_serialized))
+    #         env_copy_shm.buf[:len(env_copy_serialized)] = env_copy_serialized
+    #
+    #         policy_list_serialized = dill.dumps(self.policy_list)
+    #         policy_list_shm = shared_memory.SharedMemory(create=True, size=len(policy_list_serialized))
+    #         policy_list_shm.buf[:len(policy_list_serialized)] = policy_list_serialized
+    #
+    #         data_list = [self.data.sample(i) for i in range(len(self.data.dataset))]
+    #         data_serialized = dill.dumps(data_list)
+    #         data_shm = shared_memory.SharedMemory(create=True, size=len(data_serialized))
+    #         data_shm.buf[:len(data_serialized)] = data_serialized
+    #
+    #         env_list_serialized = dill.dumps(self.env_list)
+    #         env_list_shm = shared_memory.SharedMemory(create=True, size=len(env_list_serialized))
+    #         env_list_shm.buf[:len(env_list_serialized)] = env_list_serialized
+    #
+    #         env_copy_end_time = time.time()
+    #         logging.info(f"Environment copy time: {env_copy_end_time - env_copy_start_time} seconds")
+    #
+    #         # Determine total memory and set maximum memory usage to 90% of it
+    #         total_memory = psutil.virtual_memory().total / (1024 ** 3)  # Total memory in GB
+    #         max_memory_usage = total_memory * 0.9  # Set to 90% of total memory
+    #         logging.info(f"Total memory: {total_memory} GB, Max memory usage: {max_memory_usage} GB")
+    #
+    #         threading_start_time = time.time()
+    #         with Pool(processes=multiprocessing.cpu_count()) as pool:
+    #             results = [pool.apply_async(self.process_env, args=(
+    #                 i, j, env_copy_shm.name, policy_list_shm.name, data_shm.name, env_list_shm.name)) for i in
+    #                        range(len(self.env_list))
+    #                        for j in range(len(self.policy_list))]
+    #
+    #             # Memory usage check loop
+    #             while results:
+    #                 if self.get_memory_usage() > max_memory_usage:
+    #                     logging.info(f"Memory usage exceeded {max_memory_usage}GB, waiting for tasks to complete...")
+    #                     results.pop(0).get()  # Wait for the first task in the list to complete
+    #                 else:
+    #                     break  # Exit loop if memory usage is within limits
+    #
+    #             # Ensure all tasks are completed
+    #             for result in results:
+    #                 result.get()
+    #
+    #         threading_end_time = time.time()
+    #         logging.info(f"Threading (env-policy) time: {threading_end_time - threading_start_time} seconds")
+    #
+    #         end_time = time.time()
+    #         logging.info(f"Total running time get_qa: {end_time - start_time} seconds")
+    #
+    #         self.save_as_pkl(data_q_path, self.q_sa)
+    #         self.save_as_pkl(data_r_path, self.r_plus_vfsp)
+    #         self.save_as_pkl(data_size_path, self.data_size)
+    #
+    #         # Cleanup shared memory
+    #         env_copy_shm.close()
+    #         env_copy_shm.unlink()
+    #         policy_list_shm.close()
+    #         policy_list_shm.unlink()
+    #         data_shm.close()
+    #         data_shm.unlink()
+    #         env_list_shm.close()
+    #         env_list_shm.unlink()
+    #
+    #         # Force garbage collection
+    #         gc.collect()
+    #     else:
+    #         self.q_sa = self.load_from_pkl(data_q_path)
+    #         self.r_plus_vfsp = self.load_from_pkl(data_r_path)
+    #         self.data_size = self.load_from_pkl(data_size_path)
+    #
+    # def get_memory_usage(self):
+    #     # 获取当前进程的内存使用情况（以GB为单位）
+    #     process = psutil.Process()
+    #     mem_info = process.memory_info()
+    #     return mem_info.rss / (1024 ** 3)
+
+
+
     # def run_simulation(self, state_action_policy_env_batch):
     #     states, actions, policy, envs = state_action_policy_env_batch
     #
@@ -1105,9 +1370,10 @@ class Hopper_edi(ABC):
             Q_result_saving_path = os.path.join(Q_saving_folder_data,policy_name)
             q_list = []
             r_plus_vfsp = []
+            print("q sa : ",self.q_sa[0])
             for i in range(len(self.env_list)):
-                q_list.append(self.q_sa[(i+1)*len(self.policy_list)+(j+1)-1])
-                r_plus_vfsp.append(self.r_plus_vfsp[(i+1)*len(self.policy_list)+(j+1)-1])
+                q_list.append(self.q_sa[(i)*len(self.policy_list)+(j+1)-1])
+                r_plus_vfsp.append(self.r_plus_vfsp[(i)*len(self.policy_list)+(j+1)-1])
             result = self.select_Q(q_list,r_plus_vfsp,policy_name)
             index = np.argmin(result)
             save_list = [self.env_name_list[index]]
@@ -1150,7 +1416,6 @@ class Hopper_edi(ABC):
         self.train_policy()
         self.get_policy_performance()
 
-
         # for j in range(len(true_data_list)):
         before_for_time = time.time()
         for j in range(len(true_data_list)):
@@ -1169,6 +1434,9 @@ class Hopper_edi(ABC):
                 # sys.exit()
                 self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
                                        true_env_number=true_data_list[j])
+                # if self.policy_choose == 0 :
+                #     for h in range(len(self.policy_list)):
+                #         self.policy_list[h] = RandomPolicy(self.env_list[0].action_space)
                 self.get_whole_qa(i)
                 self.get_ranking(i)
         end_time = time.time()
