@@ -1311,7 +1311,7 @@ class Hopper_edi(ABC):
     def get_seeds(self,true_env_index,true_policy_index):
         folder = os.path.join("Offline_data",f"{self.env_name_list[true_env_index]}_Policy_{self.policy_name_list[true_policy_index]}")
         seeds_name = self.find_prefix_suffix(folder_path=folder,prefix = f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa",suffix="seeds.pkl")
-        seed_path = os.path.join(folder,seeds_name)[:-3]
+        seed_path = os.path.join(folder,seeds_name)[:-4]
         return self.load_from_pkl(seed_path)
 
 
@@ -1456,7 +1456,11 @@ class Hopper_edi(ABC):
         data_size_name = trajectory_name + "_size"
         data_size_path = os.path.join(data_folder, data_size_name)
 
-        if not self.whether_file_exists(data_q_path + ".pkl"):
+        target_path = self.find_prefix_suffix(data_folder,f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa","q.pkl")
+        if not self.whether_file_exists(target_path):
+            q_path = os.path.join(data_folder,f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa_q")
+            self.save_as_pkl(q_path)
+
             logging.info("Enter get qa calculate loop")
             start_time = time.time()
 

@@ -1,8 +1,0 @@
-Bvft_ranking
-Bvft_res_0
-FQE_0.0001_256
-FQE_0.0001_1024
-FQE_0.00002_256
-FQE_0.00002_1024
-l1_norm
-arg_i_max_j

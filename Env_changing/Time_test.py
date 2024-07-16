@@ -173,7 +173,7 @@ env = gymnasium.make("Hopper-v4")
 
 # Load the offline data
 offline_data = "Offline_data"
-offlin = os.path.join(offline_data, "DDPG_Hopper-v4_gravity_[0.0, 0.0, -4.9]_magnetic_[0.0, 0.0, 0.0]_wind_[10.0, 0.0, 0.0]_1000_maxStep_200_trajectory_0")
+offlin = os.path.join(offline_data, "DDPG_Hopper-v4_gravity_[0.0, 0.0, -4.9]_magnetic_[0.0, 0.0, 0.0]_wind_[10.0, 0.0, 0.0]_1000_maxStep_24_trajectory_0")
 data = load_from_pkl(offlin).dataset
 
 # Load the DDPG policy
@@ -226,6 +226,10 @@ print(f"ddpg max step : {ddpg_max_step } and rnadom max step: {random_max_step}"
 ddpg_min_step = np.min(ddpg_total_steps_list)
 random_min_step = np.min(random_total_steps_list)
 print(f"ddpg min step : {ddpg_min_step } and rnadom min step: {random_min_step}")
+
+ddpg_len_step = len(ddpg_total_steps_list)
+random_len_step = len(random_total_steps_list)
+print(f"ddpg shape : {ddpg_len_step } and rnadom shape: {random_len_step}")
 # def run_simulation(self, state_action_policy_env_batch):
 #     states, actions, policy, envs = state_action_policy_env_batch
 #
