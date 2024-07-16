@@ -652,7 +652,7 @@ class policy_select(ABC):
             os.makedirs(FQE_folder_path)
         FQE_total = "FQE_returned_total"
         FQE_path = os.path.join(FQE_folder_path, FQE_total)
-        FQE_dictionary = load_from_pkl(FQE_path)
+        FQE_dictionary = self.load_from_pkl(FQE_path)
         FQE_result = FQE_dictionary[FQE_name]
         return FQE_result
 

@@ -8,7 +8,7 @@ class Bvft_(Hopper_edi):
         for resolution in resolution_list:
             record = BvftRecord()
             bvft_instance = BVFT_(q_list,r_plus_vfsp, self.data, self.gamma, rmax, rmin, policy_namei, record,
-                                 "torch_actor_critic_cont", verbose=True, data_size=self.data_size,
+                                 "torch_actor_critic_cont", verbose=True, data_size=self.data.size,
                                  trajectory_num=self.trajectory_num)
             bvft_instance.run(resolution=resolution)
             result_list.append(record.losses[0])
