@@ -135,27 +135,6 @@ class RandomPolicy:
         self.array = np.array([0.1,0.2,0.3])
     def predict(self, states):
         return np.array([self.array for _ in range(len(states))])
-# class CustomDataLoader:
-#     def __init__(self, dataset):
-#         self.dataset = dataset
-#         self.current = 0
-#         self.size = 0
-#         for i in range(len(dataset)):
-#             self.size += len(dataset[i]["action"])
-#
-#     def get_iter_length(self,iteration_number):
-#         return len(self.dataset[iteration_number]["state"])
-#     def get_state_shape(self):
-#         first_state = self.dataset.observations[0]
-#         return np.array(first_state).shape
-#     def sample(self, iteration_number):
-#         dones =np.array(self.dataset[iteration_number]["done"])
-#         states = np.array(self.dataset[iteration_number]["state"])
-#         actions =  np.array(self.dataset[iteration_number]["action"])
-#         padded_next_states =  np.array(self.dataset[iteration_number]["next_state"])
-#         rewards =np.array( self.dataset[iteration_number]["rewards"])
-#
-#         return states, actions, padded_next_states, rewards, dones
 
 
 class CustomDataLoader:
@@ -405,7 +384,7 @@ class Hopper_edi(ABC):
                  process_num=9, sa_evaluate_times = 10,
                 traj_sa_number = 10000,gamma=0.99,trajectory_num=24,
                  max_timestep = 100, total_select_env_number=1,
-                 env_name = "Hopper-v4",k=5):
+                 env_name = "Hopper-v4",k=5,num_runs = 20):
         # self.policy_choose = policy_choose
         self.k = k
         self.sa_evaluate_time = sa_evaluate_times
@@ -438,6 +417,7 @@ class Hopper_edi(ABC):
         self.self_method_name = self_method_name
         self.trajectory_num = trajectory_num
         self.true_env_num = 0
+        self.num_runs = num_runs
         for h in range(len(self.parameter_list)):
             for i in range((len(self.parameter_list[h]))):
                 current_env = gymnasium.make(self.env_name)
@@ -682,13 +662,13 @@ class Hopper_edi(ABC):
     def evaluate_policy_on_seeds(self, policy, env, seeds):
         total_rewards = 0
 
-        for i in range(1):
+        for i in range(self.num_runs):
             for seed in seeds:
                 rewards = self.evaluate_policy_on_seed(policy, env, int(seed))
                 total_rewards += rewards
 
 
-        return total_rewards / len(seeds) / 10
+        return total_rewards / len(seeds) / self.num_runs
 
     def evaluate_policy_on_seed(self, policy, env, seed):
         env.reset(seed=seed)
@@ -696,7 +676,7 @@ class Hopper_edi(ABC):
 
         total_rewards = 0
         discount_factor = 1
-        max_iteration = 1000
+        max_iteration = self.max_timestep
 
         for _ in range(max_iteration):
             action = policy.predict(np.array([obs]))[0]
@@ -722,7 +702,6 @@ class Hopper_edi(ABC):
             if policy_name in performance_map:
                 return performance_map[policy_name]
 
-        # If the performance map does not exist or the policy_name is not in the map
         self.get_policy_performance(true_env_index=true_env_index, true_policy_index=true_policy_index)
         performance_map = self.load_from_pkl(policy_performance_path)
         return performance_map.get(policy_name, None)
@@ -913,7 +892,7 @@ class Hopper_edi(ABC):
             line_name_list = self.load_from_pkl(plot_name_saving_path)
         else:
             precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(
-                true_data_list = true_data_list, k = self.k,plot_name_list = ["precision plot"]
+                true_data_list = true_data_list, k = self.k,plot_name_list = self.method_name_list
             )
 
         plot_mean_list = [precision_mean_list, regret_mean_list]
@@ -1305,30 +1284,37 @@ class Hopper_edi(ABC):
                     print("beegin load policy : ",str(policy_path))
             # print("sleep now")
             # time.sleep(600)
-    def get_policy_per(self,policy,environment):
-        total_rewards = 0
-        max_iteration = 1000
-        env = copy.deepcopy(environment)
-        for num in range(100):
-            num_step = 0
-            discount_factor = 1
-            observation, info = env.reset(seed=12345)
-            action = policy.predict(np.array([observation]))
-            ui = env.step(action[0])
-            state = ui[0]
-            reward = ui[1]
-            done = ui[2]
-            while ((not done) and (num_step < 1000)):
-                action = policy.predict(np.array([state]))
-                ui = env.step(action[0])
-                state = ui[0]
-                reward = ui[1]
-                done = ui[2]
-                total_rewards += reward * discount_factor
-                discount_factor *= self.gamma
-                num_step += 1
-        total_rewards = total_rewards / 100
-        return total_rewards
+    # def get_policy_per(self,policy,environment):
+    #     total_rewards = 0
+    #     max_iteration = 1000
+    #     env = copy.deepcopy(environment)
+    #     for num in range(100):
+    #         num_step = 0
+    #         discount_factor = 1
+    #         observation, info = env.reset(seed=12345)
+    #         action = policy.predict(np.array([observation]))
+    #         ui = env.step(action[0])
+    #         state = ui[0]
+    #         reward = ui[1]
+    #         done = ui[2]
+    #         while ((not done) and (num_step < 1000)):
+    #             action = policy.predict(np.array([state]))
+    #             ui = env.step(action[0])
+    #             state = ui[0]
+    #             reward = ui[1]
+    #             done = ui[2]
+    #             total_rewards += reward * discount_factor
+    #             discount_factor *= self.gamma
+    #             num_step += 1
+    #     total_rewards = total_rewards / 100
+    #     return total_rewards
+    def get_seeds(self,true_env_index,true_policy_index):
+        folder = os.path.join("Offline_data",f"{self.env_name_list[true_env_index]}_Policy_{self.policy_name_list[true_policy_index]}")
+        seeds_name = self.find_prefix_suffix(folder_path=folder,prefix = f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa",suffix="seeds.pkl")
+        seed_path = os.path.join(folder,seeds_name)[:-3]
+        return self.load_from_pkl(seed_path)
+
+
 
     def get_policy_performance(self,true_env_index,true_policy_index):
         Policy_operation_folder = "Policy_operation"
@@ -1336,6 +1322,8 @@ class Hopper_edi(ABC):
         Policy_performance_folder = os.path.join(Policy_performance,f"{self.env_name_list[true_env_index]}_Policy_{self.policy_name_list[true_policy_index]}")
         self.create_folder(Policy_performance_folder)
 
+
+        seeds = self.get_seeds(true_env_index=true_env_index,true_policy_index=true_policy_index)
 
         performance_folder_name = "performance"
         policy_performance_path = os.path.join(Policy_performance_folder, performance_folder_name)
@@ -1353,7 +1341,7 @@ class Hopper_edi(ABC):
                 policy_name = self.get_policy_name(env_index=i, algorithm_name=algorithm_name)[:-3]
                 if os.path.exists(policy_path) and policy_name not in final_result_dict:
                     policy = d3rlpy.load_learnable(policy_path, device=self.device)
-                    performance = self.get_policy_per(policy, env)
+                    performance = self.evaluate_policy_on_seeds(policy, env,seeds)
                     final_result_dict[policy_name] = performance
         #print(final_result_dict)
         self.save_as_pkl(policy_performance_path, final_result_dict)

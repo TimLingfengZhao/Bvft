@@ -40,7 +40,7 @@ if __name__ == '__main__':
     common_params = {
         "gamma": 0.99, "trajectory_num" : 10,
     "max_timestep" : 1000, "total_select_env_number" : 1,
-    "env_name" : "Hopper-v4","k":5
+    "env_name" : "Hopper-v4","k":5,"num_runs":20
     }
     # batch_size = [8,16,32,64,100]
     # batch_size = [200,128,100,64,32]
