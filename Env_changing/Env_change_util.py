@@ -7,7 +7,8 @@ import os
 import re
 import multiprocess.context as ctx
 import pickle
-
+from itertools import product
+import ast
 from concurrent.futures import ProcessPoolExecutor, as_completed, ThreadPoolExecutor
 from multiprocessing.shared_memory import SharedMemory
 from multiprocessing.managers import SharedMemoryManager
@@ -380,109 +381,147 @@ class BVFT_(object):
 
 class Hopper_edi(ABC):
 
-    def __init__(self,device,parameter_list,parameter_name_list,policy_training_parameter_map,method_name_list,self_method_name,batch_size = 32,
-                 process_num=9, sa_evaluate_times = 10,
-                traj_sa_number = 10000,gamma=0.99,trajectory_num=24,
-                 max_timestep = 100, total_select_env_number=1,
-                 env_name = "Hopper-v4",k=5,num_runs = 20):
-        # self.policy_choose = policy_choose
-        self.k = k
-        self.sa_evaluate_time = sa_evaluate_times
-        self.traj_sa_number = traj_sa_number
-        self.target_traj_sa_number = traj_sa_number
-        self.target_trajectory_num = trajectory_num
-        self.process_num = process_num
-        self.device = device
-        self.batch_size = batch_size
-        self.q_functions = []
-        self.method_name_list = method_name_list
-        self.max_timestep = max_timestep
-        self.env_name = env_name
-        self.parameter_list = parameter_list
-        self.parameter_name_list = parameter_name_list
-        self.unique_numbers = []
-        self.env_list = []
-        self.q_name_functions = []
-        self.policy_total_step = policy_training_parameter_map["policy_total_step"]
-        self.policy_episode_step = policy_training_parameter_map["policy_episode_step"]
-        self.policy_saving_number = policy_training_parameter_map["policy_saving_number"]
-        self.policy_learning_rate = policy_training_parameter_map["policy_learning_rate"]
-        self.policy_hidden_layer = policy_training_parameter_map["policy_hidden_layer"]
-        self.algorithm_name_list = policy_training_parameter_map["algorithm_name_list"]
-        self.policy_list = []
-        self.policy_name_list = []
-        self.env_name_list = []
-        self.data = []
-        self.gamma = gamma
-        self.self_method_name = self_method_name
-        self.trajectory_num = trajectory_num
-        self.true_env_num = 0
-        self.num_runs = num_runs
-        for h in range(len(self.parameter_list)):
-            for i in range((len(self.parameter_list[h]))):
-                current_env = gymnasium.make(self.env_name)
-                name = f"{self.env_name}"
-                for param_name, param_value in zip(self.parameter_name_list[h], self.parameter_list[h][i]):
+    def __init__(self
+                 ):
+        self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+    def get_env_list(self,env_parameter_map):
+        env_name_list = []
+        env_list = []
+        for h in range(len(env_parameter_map["parameter_list"])):
+            for i in range((len(env_parameter_map["parameter_list"][h]))):
+                current_env = gymnasium.make(env_parameter_map["env_name"])
+                name = f"{env_parameter_map['env_name']}"
+                for param_name, param_value in zip(env_parameter_map["parameter_name_list"][h],env_parameter_map["parameter_list"][h][i]):
                     setattr(current_env.unwrapped.model.opt, param_name, param_value)
                     name += f"_{param_name}_{str(param_value)}"
-                self.env_name_list.append(name)
+                env_name_list.append(name)
 
                 # print(current_env.unwrapped.model.opt)
-                self.env_list.append(current_env)
-        self.para_map = {index: item for index, item in enumerate(self.parameter_list)}
-        self.q_sa = []
-        self.r_plus_vfsp = []
-        self.data_size = 0
-        self.active_threads = 0
-        self.lock = threading.Lock()
-    def get_policy(self,env_index,algorithm_name):
-        Policy_operation_folder = "Policy_operation"
-        Policy_saving_folder = os.path.join(Policy_operation_folder, "Policy_trained")
-        self.create_folder(Policy_saving_folder)
+                env_list.append(current_env)
+        return env_list,env_name_list
 
-        current_env = self.env_list[env_index]
-        policy_folder_name = self.env_name_list[env_index]
 
-        policy_saving_path = os.path.join(Policy_saving_folder, policy_folder_name)
 
-        num_epoch = int(self.policy_total_step / self.policy_episode_step)
-        buffer = d3rlpy.dataset.create_fifo_replay_buffer(limit=1000000, env=current_env)
+    def get_policy_name(self,env_name,algorithm_name,learning_rate,hidden_layer,total_step):
+        return f"{env_name}_{algorithm_name}_{learning_rate}_{str(hidden_layer)}_{total_step}step"
+
+    def get_policy_path(self,env_name,algorithm_name,learning_rate,hidden_layer,total_step):
+        Policy_operation = "Policy_operation"
+        Policy_trained = "Policy_trained"
+        policy_name = self.get_policy_name(env_name,algorithm_name,learning_rate,hidden_layer,total_step)
+        return os.path.join(Policy_operation,Policy_trained,f"{policy_name}.d3")
+
+    def parse_param_value(self,param_value):
+        # Remove brackets and split by spaces or commas
+        param_value = param_value.strip('[]')
+        elements = param_value.split()
+        if len(elements) == 1:
+            elements = param_value.split(',')
+
+        # Convert elements to floats
+        try:
+            float_elements = [float(el) for el in elements]
+            if len(float_elements) > 1:
+                return np.array(float_elements)
+            else:
+                return float_elements[0]
+        except ValueError:
+            raise ValueError(f"Could not convert param_value '{param_value}' to float or list of floats")
+
+    def get_env(self, env_name):
+        parts = env_name.split('_')
+        base_env_name = parts[0]
+        param_dict = {}
+
+        for i in range(1, len(parts), 2):
+            param_name = parts[i]
+            param_value = parts[i + 1]
+            if param_value.startswith('[') and param_value.endswith(']'):
+                # Handle list-like parameter values
+                param_value = self.parse_param_value(param_value)
+            else:
+                # Handle single numeric values
+                param_value = float(param_value)
+            param_dict[param_name] = param_value
+
+        env = gymnasium.make(base_env_name)
+
+        # Set parameters
+        for param_name, param_value in param_dict.items():
+            setattr(env.unwrapped.model.opt, param_name, param_value)
+
+        return env
+
+    def train_single_policy(self,env_name,algorithm_name,learning_rate,hidden_layer,total_step):
+        Policy_saving_folder = "Policy_operation"
+        Policy_trained_folder = os.path.join(Policy_saving_folder, "Policy_trained")
+        Policy_checkpoints_folder = os.path.join(Policy_saving_folder, "Policy_checkpoints")
+
+        self.create_folder(Policy_checkpoints_folder)
+        self.create_folder(Policy_trained_folder)
+
+        env = self.get_env(env_name)
+
+        policy_saving_path = os.path.join(Policy_trained_folder, env_name)
+        policy_checkpoints_path = os.path.join(Policy_checkpoints_folder, env_name)
+
+        self.create_folder(policy_checkpoints_path)
+
+        num_epoch = 10  # Assuming 1000 steps per episode
+        buffer = d3rlpy.dataset.create_fifo_replay_buffer(limit=1500000, env=env)
         explorer = d3rlpy.algos.ConstantEpsilonGreedy(0.3)
         checkpoint_list = []
 
-        policy_model_name = f"{algorithm_name}_{str(self.policy_total_step)}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
+        # Prepare paths for saving checkpoints and final policy
+        policy_model_name = f"{algorithm_name}_{learning_rate}_{str(hidden_layer)}_{total_step}step.d3"
         policy_path = policy_saving_path + "_" + policy_model_name
-        policy_path = policy_path[:-3] + "_" + str(self.policy_total_step) + "step.d3"
-        policy = d3rlpy.load_learnable(policy_path,device=self.device)
-        return policy
-    def get_policy_path(self,env_index,algorithm_name):
-        Policy_operation_folder = "Policy_operation"
-        Policy_saving_folder = os.path.join(Policy_operation_folder, "Policy_trained")
-        self.create_folder(Policy_saving_folder)
+        checkpoint_path = os.path.join(policy_checkpoints_path, f"{algorithm_name}_{learning_rate}_{str(hidden_layer)}_{total_step}_checkpoints.d3")
+        checkpoint_list_path = os.path.join(policy_checkpoints_path, f"{algorithm_name}_{learning_rate}_{str(hidden_layer)}_{total_step}_checkpoints")
 
-        current_env = self.env_list[env_index]
-        policy_folder_name = self.env_name_list[env_index]
+        # Check if the policy already exists
+        if not self.whether_file_exists(f"{policy_path}"):
+            print(f"{policy_path} does not exist, starting training")
 
-        policy_saving_path = os.path.join(Policy_saving_folder, policy_folder_name)
+            self_class = getattr(d3rlpy.algos, f"{algorithm_name}Config")
+            policy = self_class(
+                actor_encoder_factory=d3rlpy.models.VectorEncoderFactory(hidden_units=hidden_layer),
+                critic_encoder_factory=d3rlpy.models.VectorEncoderFactory(hidden_units=hidden_layer),
+                actor_learning_rate=learning_rate,
+                critic_learning_rate=learning_rate
+            ).create(device=self.device)
 
-        policy_model_name = f"{algorithm_name}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
-        policy_path = policy_saving_path + "_" + policy_model_name
-        policy_path = policy_path[:-3] + "_" + str(self.policy_total_step) + "step.d3"
-        return policy_path
+            for epoch in range(num_epoch):
+                policy.fit_online(env=env,
+                                  buffer=buffer,
+                                  explorer=explorer,
+                                  n_steps=total_step/num_epoch,
+                                  eval_env=env,
+                                  with_timestamp=False)
+                policy.save(checkpoint_path)
+                checkpoint_list.append(epoch)
+                self.save_as_pkl(checkpoint_list_path, checkpoint_list)
 
-    def get_policy_name(self,env_index,algorithm_name):
+                if (epoch + 1) % num_epoch == 0:
+                    policy.save(f"{policy_path}")
 
+            if os.path.exists(f"{checkpoint_list_path}.pkl"):
+                os.remove(f"{checkpoint_list_path}.pkl")
+            if os.path.exists(checkpoint_path):
+                os.remove(checkpoint_path)
 
-        current_env = self.env_list[env_index]
-        policy_folder_name = self.env_name_list[env_index]
+            print(f"Finished training {env_name} with algorithm {algorithm_name}")
 
+    def get_policy(self,env_name,algorithm_name,learning_rate,hidden_layer,total_step):
+        policy_path = self.get_policy_path(env_name,algorithm_name,learning_rate,hidden_layer,total_step)
+        if os.path.exists(policy_path):
+            return d3rlpy.load_learnable(policy_path,
+                                         device = self.device)
+        else:
+            self.train_single_policy(env_name,algorithm_name,learning_rate,hidden_layer,total_step)
+            return d3rlpy.load_learnable(policy_path,
+                                         device=self.device)
 
-        num_epoch = int(self.policy_total_step / self.policy_episode_step)
-
-        policy_model_name = f"{algorithm_name}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
-        policy_path = self.env_name_list[env_index]+ "_" + policy_model_name
-        policy_path = policy_path[:-3] + "_" + str(self.policy_total_step) + "step.d3"
-        return policy_path
 
     def delete_files_in_folder_r(self, folder_path):
         if not os.path.exists(folder_path):
@@ -565,8 +604,6 @@ class Hopper_edi(ABC):
             return False
         return True
 
-
-
     def generate_unique_numbers(self,n, range_start, range_end):
         if n > (range_end - range_start + 1):
             raise ValueError("The range is too small to generate the required number of unique numbers.")
@@ -586,6 +623,7 @@ class Hopper_edi(ABC):
                 seen.add(item)
                 result.append(item)
         return result
+
     def generate_unique_colors(self,number_of_colors):
 
         cmap = plt.get_cmap('tab20')
@@ -659,36 +697,6 @@ class Hopper_edi(ABC):
         # Return the ranking of the policy names
         return self.rank_elements_larger_higher(policy_performance)
 
-    def evaluate_policy_on_seeds(self, policy, env, seeds):
-        total_rewards = 0
-
-        for i in range(self.num_runs):
-            for seed in seeds:
-                rewards = self.evaluate_policy_on_seed(policy, env, int(seed))
-                total_rewards += rewards
-
-
-        return total_rewards / len(seeds) / self.num_runs
-
-    def evaluate_policy_on_seed(self, policy, env, seed):
-        env.reset(seed=seed)
-        obs, info = env.reset(seed=seed)
-
-        total_rewards = 0
-        discount_factor = 1
-        max_iteration = self.max_timestep
-
-        for _ in range(max_iteration):
-            action = policy.predict(np.array([obs]))[0]
-            ui = env.step(action)
-            obs, reward, done = ui[0], ui[1],ui[2]
-            total_rewards += reward * discount_factor
-            discount_factor *= self.gamma
-
-            if done:
-                break
-
-        return total_rewards
 
     def load_policy_performance(self, policy_name, true_env_index, true_policy_index):
 
@@ -933,55 +941,6 @@ class Hopper_edi(ABC):
         plt.savefig(saving_path)
         plt.close()
 
-    def load_policy(self, policy_index):
-        Policy_operation = "Policy_operation"
-        Policy_trained = "Policy_trained"
-        policy_folder = os.path.join(Policy_operation, Policy_trained)
-        self.create_folder(policy_folder)
-        policy_name = self.policy_name_list[policy_index] + ".d3"
-        policy_path = os.path.join(policy_folder, policy_name)
-        return d3rlpy.load_learnable(policy_path, device=self.device)
-
-    def generate_one_trajectory(self, env_number, max_time_step, policy_index, unique_seed):
-        policy = self.load_policy(policy_index)
-        env = self.env_list[env_number]
-        obs, info = env.reset(seed=unique_seed)
-
-        observations = []
-        rewards = []
-        actions = []
-        dones = []
-        next_steps = []
-        episode_data = {}
-        observations.append(obs)
-        total_state_number = 1  # Initialize the state counter
-
-        for _ in range(max_time_step):
-            action = policy.predict(np.array([obs]))[0]
-            ui = env.step(action)
-            next_obs, reward, done = ui[0],ui[1],ui[2]
-            rewards.append(reward)
-            actions.append(action)
-            dones.append(done)
-            next_steps.append(next_obs)
-            total_state_number += 1
-
-            if done or _ == max_time_step - 1:
-                break
-
-            obs = next_obs
-            observations.append(obs)
-
-        episode_data = {
-            "observations": observations,
-            "rewards": rewards,
-            "actions": actions,
-            "dones": dones,
-            "next_steps": next_steps,
-            "total_state_number": total_state_number
-        }
-
-        return episode_data
     def desire_exists(self,data_folder):
         existing_files = [f[:-4] for f in os.listdir(data_folder) if
                           not f.endswith(('q.pkl', 'r.pkl', 'seeds.pkl', 'size.pkl'))]
@@ -998,181 +957,93 @@ class Hopper_edi(ABC):
             parts = file.split('_')
             if int(parts[1]) == self.target_trajectory_num and int(parts[3]) == self.target_traj_sa_number:
                 return file
+    def generate_one_trajectory(self, env, policy, unique_seed,Offline_trajectory_max_timestep=1000):
+        obs, info = env.reset(seed=unique_seed)
 
+        observations = []
+        rewards = []
+        actions = []
+        dones = []
+        next_steps = []
+        episode_data = {}
+        observations.append(obs)
+        total_state_number = 1  # Initialize the state counter
 
+        for _ in range(Offline_trajectory_max_timestep):
+            action = policy.predict(np.array([obs]))[0]
+            ui = env.step(action)
+            next_obs, reward, done = ui[0],ui[1],ui[2]
+            rewards.append(reward)
+            actions.append(action)
+            dones.append(done)
+            next_steps.append(next_obs)
+            total_state_number += 1
 
-    def load_offline_data(self, max_time_step, policy_index, true_env_number):
-        self.print_environment_parameters()
-        self.true_env_num = true_env_number
-        Offline_data_folder = "Offline_data"
-        self.create_folder(Offline_data_folder)
-        data_folder_name = f"{self.env_name_list[true_env_number]}_Policy_{self.policy_name_list[policy_index]}"
-        data_folder = os.path.join(Offline_data_folder, data_folder_name)
-        self.create_folder(data_folder)
-
-
-        if self.desire_exists(data_folder):
-            file_name = self.load_files(data_folder)
-            data_path = os.path.join(data_folder, file_name)
-            data_seeds_name = file_name + "_seeds"
-            data_seeds_path = os.path.join(data_folder, data_seeds_name)
-            self.data = self.load_from_pkl(data_path)
-            self.data_size = self.data.size
-            self.unique_numbers = self.load_from_pkl(data_seeds_path)
-            self.q_sa = [np.zeros(self.data.size) for _ in range(len(self.env_list) * len(self.policy_name_list))]
-            self.r_plus_vfsp = [np.zeros(self.data.size) for _ in range(len(self.env_list) * len(self.policy_name_list))]
-        else:
-            self.generate_offline_data(max_time_step, policy_index, true_env_number)
-    def generate_all_offline_data(self):
-        self.train_policy()
-        Offline_data_folder = "Offline_data"
-        self.create_folder(Offline_data_folder)
-        for i in range(len(self.env_list)):
-            for j in range(len(self.policy_list)):
-                self.get_policy_performance(true_env_index=i,true_policy_index=j)
-                data_folder_name = f"{self.env_name_list[i]}_Policy_{self.policy_name_list[j]}"
-                data_folder = os.path.join(Offline_data_folder, data_folder_name)
-                self.create_folder(data_folder)
-
-                existing_files = [f[:-4] for f in os.listdir(data_folder) if
-                                  not f.endswith(('q.pkl', 'r.pkl', 'seeds.pkl', 'size.pkl'))]
-                total_trajectory_num = 0
-                total_sa_num = 0
-                final_data = []
-                self.unique_numbers = []
-
-                # Merge existing files
-                exist = False
-                for file in existing_files:
-                    parts = file.split('_')
-                    if int(parts[1]) == self.target_trajectory_num and int(parts[3]) == self.target_traj_sa_number:
-                        exist = True
-                if not exist:
-                    dudu = f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_"
-                    dudu_path = os.path.join(data_folder,dudu)
-                    self.save_as_pkl(dudu_path,"1")
-                    #
-                    # for file in existing_files:
-                    #     parts = file.split('_')
-                    #     traj_num = int(parts[6])
-                    #     sa_num = int(parts[8])
-                    #     total_trajectory_num += traj_num
-                    #     total_sa_num += sa_num
-                    #     print(file)
-                    #     data = self.load_from_pkl(os.path.join(data_folder, file)).dataset
-                    #     final_data.extend(data)
-                    #     seeds = self.load_from_pkl(os.path.join(data_folder, f"{file}_seeds"))
-                    #     self.unique_numbers.extend(seeds)
-                    #
-                    #     if total_sa_num >= self.target_traj_sa_number and total_trajectory_num >= self.target_trajectory_num:
-                    #         break
-
-                    # If not satisfied, keep generating
-
-                    while total_sa_num < self.target_traj_sa_number or total_trajectory_num < self.target_trajectory_num:
-                        new_seed = self.generate_unique_seed()
-                        new_trajectory = self.generate_one_trajectory(i, self.max_timestep, j,
-                                                                      new_seed)
-                        final_data.append(new_trajectory)
-                        self.unique_numbers.append(new_seed)
-                        total_sa_num += new_trajectory["total_state_number"]
-                        total_trajectory_num += 1
-                    self.trajectory_num = total_trajectory_num
-                    self.traj_sa_number = total_sa_num
-
-                    trajectory_saving_name = f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa_normal_{total_trajectory_num}_trajectories_{total_sa_num}_sa"
-                    trajectory_data_path = os.path.join(data_folder, trajectory_saving_name)
-                    initial_state_seeds_path = os.path.join(data_folder, f"{trajectory_saving_name}_seeds")
-
-                    self.data = CustomDataLoader(final_data)
-                    self.data_size = self.data.size
-                    self.q_sa = [np.zeros(self.data.size) for _ in
-                                 range(len(self.env_list) * len(self.policy_name_list))]
-                    self.r_plus_vfsp = [np.zeros(self.data.size) for _ in
-                                        range(len(self.env_list) * len(self.policy_name_list))]
-                    # print(self.data.dataset)
-                    self.save_as_pkl(trajectory_data_path, self.data)
-                    self.save_as_pkl(initial_state_seeds_path, self.unique_numbers)
-                    self.delete_as_pkl(dudu_path)
-
-
-
-
-
-    def generate_offline_data(self, max_time_step, policy_index, true_env_number):
-        self.print_environment_parameters()
-        self.true_env_num = true_env_number
-        Offline_data_folder = "Offline_data"
-        data_folder_name = f"{self.env_name_list[true_env_number]}_Policy_{self.policy_name_list[policy_index]}"
-        data_folder = os.path.join(Offline_data_folder, data_folder_name)
-        self.create_folder(data_folder)
-
-        existing_files = [f[:-4] for f in os.listdir(data_folder) if not f.endswith(('q.pkl', 'r.pkl', 'seeds.pkl','size.pkl'))]
-        total_trajectory_num = 0
-        total_sa_num = 0
-        final_data = []
-        self.unique_numbers = []
-
-        # Merge existing files
-        for file in existing_files:
-            parts = file.split('_')
-            traj_num = int(parts[6])
-            sa_num = int(parts[8])
-            total_trajectory_num += traj_num
-            total_sa_num += sa_num
-            print(file)
-            data = self.load_from_pkl(os.path.join(data_folder, file)).dataset
-            final_data.extend(data)
-            seeds = self.load_from_pkl(os.path.join(data_folder, f"{file}_seeds"))
-            self.unique_numbers.extend(seeds)
-
-            if total_sa_num >= self.target_traj_sa_number and total_trajectory_num >= self.target_trajectory_num:
+            if done or _ == Offline_trajectory_max_timestep - 1:
                 break
 
-        # If not satisfied, keep generating
+            obs = next_obs
+            observations.append(obs)
 
-        while total_sa_num < self.target_traj_sa_number or total_trajectory_num < self.target_trajectory_num:
-            new_seed = self.generate_unique_seed()
-            new_trajectory = self.generate_one_trajectory(true_env_number, max_time_step, policy_index, new_seed)
-            final_data.append(new_trajectory)
-            self.unique_numbers.append(new_seed)
-            total_sa_num += new_trajectory["total_state_number"]
-            total_trajectory_num += 1
-        self.trajectory_num = total_trajectory_num
-        self.traj_sa_number = total_sa_num
-
-        trajectory_saving_name = f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa_normal_{total_trajectory_num}_trajectories_{total_sa_num}_sa"
-        trajectory_data_path = os.path.join(data_folder, trajectory_saving_name)
-        initial_state_seeds_path = os.path.join(data_folder, f"{trajectory_saving_name}_seeds")
-
-        self.data = CustomDataLoader(final_data)
-        self.data_size = self.data.size
-        self.q_sa = [np.zeros(self.data.size) for _ in range(len(self.env_list) * len(self.policy_name_list))]
-        self.r_plus_vfsp = [np.zeros(self.data.size) for _ in range(len(self.env_list) * len(self.policy_name_list))]
-        # print(self.data.dataset)
-        self.save_as_pkl(trajectory_data_path, self.data)
-        self.save_as_pkl(initial_state_seeds_path, self.unique_numbers)
-        print("after saving")
-
-    def merge_trajectories(self, trajectories):
-        merged_data = {
-            "observations": [],
-            "rewards": [],
-            "actions": [],
-            "dones": [],
-            "next_steps": [],
-            "total_state_number": 0
+        episode_data = {
+            "observations": observations,
+            "rewards": rewards,
+            "actions": actions,
+            "dones": dones,
+            "next_steps": next_steps,
+            "total_state_number": total_state_number
         }
 
-        for trajectory in trajectories:
-            merged_data["observations"].extend(trajectory["observations"])
-            merged_data["rewards"].extend(trajectory["rewards"])
-            merged_data["actions"].extend(trajectory["actions"])
-            merged_data["dones"].extend(trajectory["dones"])
-            merged_data["next_steps"].extend(trajectory["next_steps"])
-            merged_data["total_state_number"] += trajectory["total_state_number"]
+        return episode_data
+    def generate_trajectory(self,env,trajectory_number,policy,Offline_trajectory_max_timestep=1000):
+        trajectories = []
+        max_timestep = Offline_trajectory_max_timestep
+        total_sa = 0
+        for _ in range(trajectory_number):
+            unique_seed = self.generate_unique_seed()
+            episode = self.generate_one_trajectory( env, policy, unique_seed,Offline_trajectory_max_timestep=Offline_trajectory_max_timestep)
+            trajectories.append(episode)
+            total_sa += episode["total_state_number"]
 
-        return merged_data
+        return trajectories,total_sa
+    def generate_offline_data(self, trajectory_number, true_environment_parameter_list, behaviroal_policy_parameter_map,
+                              Offline_trajectory_max_timestep=1000):
+        folder_name = "Offline_data"
+        env_list, env_name_list = self.get_env_list(true_environment_parameter_list)
+        parameter_tuples = self.generate_policy_parameter_tuples(env_name_list, behaviroal_policy_parameter_map)
+        unique_id = time.strftime("%Y%m%d-%H%M%S")
+        for params in parameter_tuples:
+            env = env_list[params[0]]
+            params[0] = env_name_list[params[0]]
+            env_name = params[0]
+            policy_name = self.get_policy_name(*params)
+            trajectory_folder = os.path.join(folder_name,env_name,policy_name)
+            self.create_folder(trajectory_folder)
+
+            print(f"start generate environment   {env_name}  \n"
+                  f"policy {policy_name}  \n"
+                  f"total trajectory : {trajectory_number} \n"
+                  f"time id series : {unique_id}")
+            policy = self.get_policy(*params)
+            dataset,total_sa = self.generate_trajectory(env=env,trajectory_number = trajectory_number,
+                                                        policy=policy,
+                                                        Offline_trajectory_max_timestep=Offline_trajectory_max_timestep)
+
+            trajectory_name = f"{trajectory_number}_trajectory_{unique_id}"
+            # trajectory_name = f"{trajectory_number}_trajectory_{total_sa}_states"
+            trajectory_path = os.path.join(trajectory_folder,trajectory_name)
+            self.save_as_pkl(trajectory_path,dataset)
+            self.save_as_txt(trajectory_path,dataset)
+            print(f"finish generate environment   {env_name}  \n"
+                  f"policy {policy_name}  \n"
+                  f"total trajectory : {trajectory_number} \n"
+                  f"time id series : {unique_id}")
+
+
+
+
+
+
 
     def generate_unique_seed(self):
         return np.random.randint(0, 1000000)
@@ -1192,37 +1063,37 @@ class Hopper_edi(ABC):
             ranks[original_index] = rank
         return ranks
 
-    def print_environment_parameters(self):
-        print(f"{self.parameter_name_list} parameters of environments in current class :")
-        for key, value in self.para_map.items():
-            print(f"{key}: {value}")
-
-    def train_policy(self):
+    def train_policy(self,env_parameter_map,target_policy_training_parameter_map):
         Policy_operation_folder = "Policy_operation"
         Policy_saving_folder = os.path.join(Policy_operation_folder,"Policy_trained")
         self.create_folder(Policy_saving_folder)
         Policy_checkpoints_folder = os.path.join(Policy_operation_folder,"Policy_checkpoints")
         self.create_folder(Policy_checkpoints_folder)
         # while(True):
-        for i in range(len(self.env_name_list)):
-            current_env = self.env_list[i]
-            policy_folder_name = self.env_name_list[i]
+        env_list, env_name_list = self.get_env_list(env_parameter_map)
+        for i in range(len(env_name_list)):
+            current_env = env_list[i]
+            policy_folder_name = env_name_list[i]
 
-            print(f"start training {policy_folder_name} with algorithm {str(self.algorithm_name_list)}")
+            print(f"start training {policy_folder_name} with algorithm {str(target_policy_training_parameter_map['algorithm_name_list'])}")
             policy_saving_path = os.path.join(Policy_saving_folder, policy_folder_name)
             policy_checkpoints_path = os.path.join(Policy_checkpoints_folder, policy_folder_name)
 
             self.create_folder(policy_checkpoints_path)
-            num_epoch = int(self.policy_total_step / self.policy_episode_step)
-            buffer = d3rlpy.dataset.create_fifo_replay_buffer(limit=1000000, env=current_env)
+            num_epoch = int(target_policy_training_parameter_map['policy_total_step'] / target_policy_training_parameter_map['policy_episode_step'])
+            buffer = d3rlpy.dataset.create_fifo_replay_buffer(limit=1500000, env=current_env)
             explorer = d3rlpy.algos.ConstantEpsilonGreedy(0.3)
             checkpoint_list = []
-            for algorithm_name in self.algorithm_name_list:
+            for algorithm_name in target_policy_training_parameter_map['algorithm_name_list']:
                 checkpoint_path = os.path.join(policy_checkpoints_path,f"{algorithm_name}_checkpoints.d3")
                 checkpoint_list_path = os.path.join(policy_checkpoints_path, f"{algorithm_name}_checkpoints")
-                policy_model_name = f"{algorithm_name}_{str(self.policy_learning_rate)}_{str(self.policy_hidden_layer)}.d3"
+                policy_model_name = f"{algorithm_name}_{str(target_policy_training_parameter_map['policy_learning_rate'])}_{str(target_policy_training_parameter_map['policy_hidden_layer'])}.d3"
                 policy_path = policy_saving_path+"_"+policy_model_name
-                if(not self.whether_file_exists(policy_path[:-3]+"_"+str(self.policy_total_step)+"step.d3")):
+
+                if((not self.find_prefix_suffix(Policy_saving_folder,policy_folder_name+"_"+policy_model_name[:-3],"step.pkl") ) and
+                        (not self.whether_file_exists(policy_path[:-3]+"_"+str(target_policy_training_parameter_map["policy_total_step"])+"step.d3"))):
+                    self.save_as_pkl(policy_path[:-3]+"step",2)
+
                     print(f"{policy_path} not exists")
                     if (self.whether_file_exists(checkpoint_path)):
                         policy = d3rlpy.load_learnable(checkpoint_path, device=self.device)
@@ -1232,128 +1103,151 @@ class Hopper_edi(ABC):
                             policy.fit_online(env=current_env,
                                               buffer=buffer,
                                               explorer=explorer,
-                                              n_steps=self.policy_episode_step,
+                                              n_steps=target_policy_training_parameter_map['policy_episode_step'],
                                               eval_env=current_env,
                                               with_timestamp=False,
                                               )
                             policy.save(checkpoint_path)
                             checkpoint_list.append(epoch)
                             self.save_as_pkl(checkpoint_list_path, checkpoint_list)
-                            if ((epoch + 1) % self.policy_saving_number == 0):
+                            if ((epoch + 1) % target_policy_training_parameter_map['policy_saving_number'] == 0):
                                 policy.save(policy_path[:-3] + "_" + str(
-                                    (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
-                                self.policy_list.append(policy)
-                                self.policy_name_list.append(policy_folder_name+"_"+policy_model_name[:-3]+"_"+str(self.policy_total_step)+"step")
+                                    (epoch + 1) * target_policy_training_parameter_map['policy_episode_step']) + "step" + ".d3")
                     else:
                         self_class = getattr(d3rlpy.algos, algorithm_name + "Config")
                         policy = self_class(
                             actor_encoder_factory=d3rlpy.models.VectorEncoderFactory(
-                                hidden_units=self.policy_hidden_layer),
+                                hidden_units=target_policy_training_parameter_map['policy_hidden_layer']),
                             critic_encoder_factory=d3rlpy.models.VectorEncoderFactory(
-                                hidden_units=self.policy_hidden_layer),
-                            actor_learning_rate=self.policy_learning_rate,
-                            critic_learning_rate=self.policy_learning_rate,
+                                hidden_units=target_policy_training_parameter_map['policy_hidden_layer']),
+                            actor_learning_rate=target_policy_training_parameter_map['policy_learning_rate'],
+                            critic_learning_rate=target_policy_training_parameter_map['policy_learning_rate'],
                         ).create(device=self.device)
                         for epoch in range(num_epoch):
                             policy.fit_online(env=current_env,
                                               buffer=buffer,
                                               explorer=explorer,
-                                              n_steps=self.policy_episode_step,
+                                              n_steps=target_policy_training_parameter_map['policy_episode_step'],
                                               eval_env=current_env,
                                               with_timestamp=False,
                                               )
                             policy.save(checkpoint_path)
                             checkpoint_list.append(epoch)
                             self.save_as_pkl(checkpoint_list_path, checkpoint_list)
-                            if ((epoch + 1) % self.policy_saving_number == 0):
+                            if ((epoch + 1) % target_policy_training_parameter_map['policy_saving_number'] == 0):
                                 policy.save(policy_path[:-3] + "_" + str(
-                                    (epoch + 1) * self.policy_episode_step) + "step" + ".d3")
-                                self.policy_list.append(policy)
-                                self.policy_name_list.append(
-                                    policy_folder_name+"_"+policy_model_name[:-3] + "_" + str(self.policy_total_step) + "step")
+                                    (epoch + 1) * target_policy_training_parameter_map['policy_episode_step']) + "step" + ".d3")
+                    self.delete_as_pkl(policy_path[:-3]+"step")
                     if os.path.exists(checkpoint_list_path + ".pkl"):
                         os.remove(checkpoint_list_path + ".pkl")
                     if os.path.exists(checkpoint_path):
                         os.remove(checkpoint_path)
-                    print(f"end training {policy_folder_name} with algorithm {str(self.algorithm_name_list)}")
-                else:
-                    policy_path = policy_path[:-3]+"_"+str(self.policy_total_step)+"step.d3"
-                    policy = d3rlpy.load_learnable(policy_path, device=self.device)
-                    self.policy_list.append(policy)
-                    self.policy_name_list.append(policy_folder_name+"_"+policy_model_name[:-3] + "_" + str(self.policy_total_step) + "step")
-                    print("beegin load policy : ",str(policy_path))
-            # print("sleep now")
-            # time.sleep(600)
-    # def get_policy_per(self,policy,environment):
-    #     total_rewards = 0
-    #     max_iteration = 1000
-    #     env = copy.deepcopy(environment)
-    #     for num in range(100):
-    #         num_step = 0
-    #         discount_factor = 1
-    #         observation, info = env.reset(seed=12345)
-    #         action = policy.predict(np.array([observation]))
-    #         ui = env.step(action[0])
-    #         state = ui[0]
-    #         reward = ui[1]
-    #         done = ui[2]
-    #         while ((not done) and (num_step < 1000)):
-    #             action = policy.predict(np.array([state]))
-    #             ui = env.step(action[0])
-    #             state = ui[0]
-    #             reward = ui[1]
-    #             done = ui[2]
-    #             total_rewards += reward * discount_factor
-    #             discount_factor *= self.gamma
-    #             num_step += 1
-    #     total_rewards = total_rewards / 100
-    #     return total_rewards
-    def get_seeds(self,true_env_index,true_policy_index):
-        folder = os.path.join("Offline_data",f"{self.env_name_list[true_env_index]}_Policy_{self.policy_name_list[true_policy_index]}")
-        seeds_name = self.find_prefix_suffix(folder_path=folder,prefix = f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa",suffix="seeds.pkl")
-        seed_path = os.path.join(folder,seeds_name)[:-4]
-        return self.load_from_pkl(seed_path)
+                    print(f"end training {policy_folder_name} with algorithm {str(target_policy_training_parameter_map['algorithm_name_list'])}")
 
 
+    def get_policy_parameters_from_map(self,policy_parameter_map):
 
-    def get_policy_performance(self,true_env_index,true_policy_index):
+        return  (policy_parameter_map["policy_total_step"],policy_parameter_map["policy_episode_step"],policy_parameter_map["policy_saving_number"],policy_parameter_map["policy_learning_rate"],
+
+                 policy_parameter_map["policy_hidden_layer"], policy_parameter_map["algorithm_name_list"])
+
+    def get_trained_policy_path(self,env_name,algorithm_name,learning_rate,hidden_layer,total_step):
         Policy_operation_folder = "Policy_operation"
         Policy_performance = os.path.join(Policy_operation_folder, "Policy_performance")
-        Policy_performance_folder = os.path.join(Policy_performance,f"{self.env_name_list[true_env_index]}_Policy_{self.policy_name_list[true_policy_index]}")
+        Policy_performance_folder = os.path.join(Policy_performance, env_name)
         self.create_folder(Policy_performance_folder)
 
+        policy_name = self.get_policy_name(env_name, algorithm_name, learning_rate, hidden_layer, total_step)
+        policy_performance_path = os.path.join(Policy_performance_folder, policy_name)
+        return policy_performance_path
 
-        seeds = self.get_seeds(true_env_index=true_env_index,true_policy_index=true_policy_index)
+    def generate_policy_parameter_tuples(self,env_name_list, policy_parameter_map):
+        parameter_tuples = []
+        for env_name_index, env_name in enumerate(env_name_list):
+            for algorithm_name in policy_parameter_map["algorithm_name_list"]:
+                for learning_rate in [policy_parameter_map["policy_learning_rate"]]:
+                    for hidden_layer in [policy_parameter_map["policy_hidden_layer"]]:
+                        for total_step in [policy_parameter_map["policy_total_step"]]:
+                            parameter_tuples.append(
+                                [env_name_index, algorithm_name, learning_rate, hidden_layer, total_step])
+        return parameter_tuples
+    def train_policy_performance(self,env_parameter_map,policy_parameter_map,policy_evaluation_parameter_map):
+        env_list, env_name_list = self.get_env_list(env_parameter_map)
+        parameter_tuples = self.generate_policy_parameter_tuples(env_name_list,policy_parameter_map)
+        for params in parameter_tuples:
+            env = env_list[params[0]]
+            params[0] = env_name_list[params[0]]
+            policy_performance_path = self.get_trained_policy_path(*params)
+            performance = [0]
+            if not os.path.exists( policy_performance_path+ '.pkl'):
+                self.save_as_pkl(policy_performance_path, performance)
+                self.save_as_txt(policy_performance_path, performance)
+                performance = self.load_from_pkl(policy_performance_path)
+                policy = self.get_policy(*params)
+                performance[0] = self.evaluate_policy(policy=policy, env=env, **policy_evaluation_parameter_map)
+                # print(final_result_dict)
+                self.save_as_pkl(policy_performance_path, performance)
+                self.save_as_txt(policy_performance_path, performance)
+                print(f"finished evaluated policy {policy_performance_path}")
+            else:
+                print(f"already exist policy performance {policy_performance_path}")
 
-        performance_folder_name = "performance"
-        policy_performance_path = os.path.join(Policy_performance_folder, performance_folder_name)
 
-        # Check if performance.pkl exists, if not initialize an empty dictionary
+
+
+
+    def get_policy_performance(self,env_name,algorithm_name,learning_rate,hidden_layer,total_step,evaluate_time=30,
+                               max_timestep=1000,
+                               gamma=0.99):
+        Policy_operation_folder = "Policy_operation"
+        Policy_performance = os.path.join(Policy_operation_folder, "Policy_performance")
+        Policy_performance_folder = os.path.join(Policy_performance,env_name)
+        self.create_folder(Policy_performance_folder)
+
+        policy_name = self.get_policy_name(env_name,algorithm_name,learning_rate,hidden_layer,total_step)
+        policy_performance_path = os.path.join(Policy_performance_folder, policy_name)
+        performance = 0
         if os.path.exists(policy_performance_path + '.pkl'):
-            final_result_dict = self.load_from_pkl(policy_performance_path)
+            performance = self.load_from_pkl(policy_performance_path)
         else:
-            final_result_dict = {}
+            env = gymnasium.make(env_name)
+            policy = self.get_policy(env_name,algorithm_name,learning_rate,hidden_layer,total_step)
+            performance = self.evaluate_policy(policy=policy, env=env, evaluate_time=evaluate_time,max_timestep=max_timestep,gamma=gamma)
+            #print(final_result_dict)
+            self.save_as_pkl(policy_performance_path, performance)
+            self.save_as_txt(policy_performance_path, performance)
+        return performance
 
-        for i in range(len(self.env_list)):
-            env = self.env_list[i]
-            for algorithm_name in self.algorithm_name_list:
-                policy_path = self.get_policy_path(env_index=i, algorithm_name=algorithm_name)
-                policy_name = self.get_policy_name(env_index=i, algorithm_name=algorithm_name)[:-3]
-                if os.path.exists(policy_path) and policy_name not in final_result_dict:
-                    policy = d3rlpy.load_learnable(policy_path, device=self.device)
-                    performance = self.evaluate_policy_on_seeds(policy, env,seeds)
-                    final_result_dict[policy_name] = performance
-        #print(final_result_dict)
-        self.save_as_pkl(policy_performance_path, final_result_dict)
-        self.save_as_txt(policy_performance_path, final_result_dict)
+    def evaluate_policy(self, policy, env, evaluate_time=30,max_timestep=1000,gamma=0.99):
+        total_rewards = 0
+
+        for i in range(evaluate_time):
+            rewards = self.evaluate_single(env=env,policy=policy,max_timestep=max_timestep,gamma=gamma)
+            total_rewards += rewards
 
 
+        return total_rewards /  evaluate_time
 
-    def run_simulation(self, state_action_policy_env_batch):
-        dudu_time = time.time()
-        # print("run simulation batch size 100 one time : ",dudu_time)
+    def evaluate_single(self, env,policy,max_timestep,gamma):
+        obs, info = env.reset()
+        total_rewards = 0
+        discount_factor = 1
+        max_iteration = max_timestep
+
+        for _ in range(max_iteration):
+            action = policy.predict(np.array([obs]))[0]
+            ui = env.step(action)
+            obs, reward, done = ui[0], ui[1],ui[2]
+            total_rewards += reward * discount_factor
+            discount_factor *= gamma
+
+            if done:
+                break
+
+        return total_rewards
+
+    def run_simulation(self, state_action_policy_env_batch,max_timestep=1000,gamma=0.99):
         states, actions, policy, envs = state_action_policy_env_batch
-        # Initialize environments with states
         for env, state in zip(envs, states):
             env.reset()
             env.observation = state
@@ -1363,168 +1257,181 @@ class Hopper_edi(ABC):
         discount_factors = np.ones(len(states))
         done_flags = np.zeros(len(states), dtype=bool)
 
-        while not np.all(done_flags) and np.any(num_steps < self.max_timestep):
+        while not np.all(done_flags) and np.any(num_steps < max_timestep):
             actions_batch = policy.predict(np.array(states))
             for idx, (env, action) in enumerate(zip(envs, actions_batch)):
                 if not done_flags[idx]:
                     next_state, reward, done, _, _ = env.step(action)
                     total_rewards[idx] += reward * discount_factors[idx]
-                    discount_factors[idx] *= self.gamma
+                    discount_factors[idx] *= gamma
                     num_steps[idx] += 1
                     states[idx] = next_state
                     done_flags[idx] = done
-        # print("finish one simulation batch size 100 run simulation time :",time.time()-dudu_time)
-        # sys.exit()
 
         return total_rewards
 
-    def get_qa(self, policy_number, env_copy_list, states, actions, batch_size=8):
-        policy = self.policy_list[policy_number]
-        total_len = len(states)
-        results = []
+    def load_offline_data(self,env_name,Policy_name,offline_trajectory_name):
+        file_path = os.path.join("Offline_data",env_name,Policy_name,offline_trajectory_name[:-4])
+        return self.load_from_pkl(file_path)
 
-        for i in range(0, total_len, batch_size):
-            actual_batch_size = min(batch_size, total_len - i)
-            state_action_policy_env_pairs = (
-                states[i:i + actual_batch_size], actions[i:i + actual_batch_size], policy,
-                env_copy_list[:actual_batch_size])
-            batch_results = self.run_simulation(state_action_policy_env_pairs)
-            results.extend(batch_results)
+    def train_qa(self, offline_trajectory_name,data_env_name, behaviroal_policy_parameter, target_policy_parameter, batch_size=100, max_timestep=1000,gamma=0.99):
+        behaviroal_policy_name = self.get_policy_name(*behaviroal_policy_parameter)
+        trajectory = self.load_offline_data(env_name=data_env_name,Policy_name=behaviroal_policy_name,offline_trajectory_name=offline_trajectory_name)
+        qa_results = []
+        q_prime_results = []
+        policy = self.get_policy(*target_policy_parameter)
 
-        return np.array(results)
+        env_copy_list = self.create_deep_copies(env=self.get_env(data_env_name),batch_size=batch_size)
 
-    def create_deep_copies(self, env, batch_size):
-        return [copy.deepcopy(env) for _ in range(batch_size)]
+        folder_path = os.path.join("Offline_data",data_env_name,behaviroal_policy_name)
+        self.create_folder(folder_path)
+        print(f"start train q(s, a) , q (s', pi(a)) for env {data_env_name} \n "
+              f"behaviroal policy {behaviroal_policy_name} \n"
+              f"dataset name {offline_trajectory_name} \n"
+              f"target policy name {self.get_policy_name(*target_policy_parameter)}")
 
-    def process_env_policy_combination(self, env_index, policy_index, policy_list, env_list, data, gamma, batch_size,
-                                       trajectory_num, data_size):
-        logging.info(f"Starting processing for env_index {env_index}, policy_index {policy_index}")
-        start_time = time.time()
+        data_file_path = os.path.join(folder_path,offline_trajectory_name)
+        if self.whether_file_exists(data_file_path):
+            if not self.find_prefix_suffix(folder_path,f"{self.get_policy_name(*target_policy_parameter)}_{offline_trajectory_name[:-4]}","q.pkl"):
+                check_saving_path = os.path.join(folder_path,f"{self.get_policy_name(*target_policy_parameter)}_{offline_trajectory_name[:-4]}q")
+                self.save_as_pkl(check_saving_path,[1])
+                for i in range(len(trajectory)):
+                    total_len = len(trajectory[i]["observations"])
+                    states = trajectory[i]["observations"]
+                    actions = trajectory[i]["actions"]
 
-        q_sa = np.zeros(data_size)
-        r_plus_vfsp = np.zeros(data_size)
-        local_data_size = 0
+                    next_states = trajectory[i]["next_steps"]
+                    next_actions = policy.predict(np.array(next_states))
+                    for j in range(0, total_len, batch_size):
+                        actual_batch_size = min(batch_size, total_len - i)
+                        state_action_policy_env_pairs = (
+                            states[i:i + total_len], actions[i:i + actual_batch_size], policy,
+                            env_copy_list[:actual_batch_size])
+                        batch_results = self.run_simulation(state_action_policy_env_pairs,max_timestep=max_timestep,gamma=gamma)
 
-        env = env_list[env_index]
-        env_copy_list = [copy.deepcopy(env) for _ in range(batch_size)]
-        logging.info(f"Memory usage after creating environment copies: {memory_usage()} MB")
+                        next_state_action_policy_env_pairs = (next_states[i:i+total_len],actions[i:i+total_len],policy,
+                                                              env_copy_list[:actual_batch_size])
+                        prime_results = self.run_simulation(next_state_action_policy_env_pairs,max_timestep=max_timestep,gamma=gamma)
 
-        ptr = 0
-        trajectory_length = 0
-        while ptr < trajectory_num:
-            length = data.get_iter_length(ptr)
-            state, action, next_state, reward, done = data.sample(ptr)
+                        qa_results.extend(batch_results)
+                        q_prime_results.extend(prime_results)
+                self.delete_as_pkl(check_saving_path)
+                target_policy_name = self.get_policy_name(*target_policy_parameter)
+                qa_saving_name = f"{target_policy_name}_{offline_trajectory_name[:-4]}_q"
+                qa_save_path = os.path.join("Offline_data",data_env_name,behaviroal_policy_name,qa_saving_name)
 
-            q_values = self.get_qa(policy_index, env_copy_list, state, action, batch_size)
-            if q_values.shape[0] != length:
-                raise ValueError(f"Shape mismatch: q_values.shape[0]={q_values.shape[0]}, length={length}")
+                prime_saving_name = f"{target_policy_name}_{offline_trajectory_name[:-4]}_q_prime"
+                prime_saving_path = os.path.join("Offline_data",data_env_name,behaviroal_policy_name,prime_saving_name)
+                self.save_as_pkl(qa_save_path,qa_results)
+                self.save_as_txt(qa_save_path,qa_results)
 
-            q_sa[trajectory_length:trajectory_length + length] = q_values
+                self.save_as_pkl(prime_saving_path,q_prime_results)
+                self.save_as_txt(prime_saving_path,q_prime_results)
 
-            vfsp_values = (reward + self.get_qa(policy_index, env_copy_list, next_state,
-                                                policy_list[policy_index].predict(next_state), batch_size) *
-                           (1 - np.array(done)) * gamma)
-            if vfsp_values.shape[0] != length:
-                raise ValueError(f"Shape mismatch: vfsp_values.shape[0]={vfsp_values.shape[0]}, length={length}")
+                print(f"finish train q(s, a) , q (s', pi(a)) for env {data_env_name} \n "
+                      f"behaviroal policy {behaviroal_policy_name} \n"
+                      f"dataset name {offline_trajectory_name} \n"
+                      f"target policy name {self.get_policy_name(*target_policy_parameter)}")
+            else:
+                print(f" q(s, a) , q (s', pi(a)) for env {data_env_name} \n "
+                      f"behaviroal policy {behaviroal_policy_name} \n"
+                      f"dataset name {offline_trajectory_name} \n"
+                      f"target policy name {self.get_policy_name(*target_policy_parameter)} \n"
+                      f"already Exist")
 
-            r_plus_vfsp[trajectory_length:trajectory_length + length] = vfsp_values.flatten()[:length]
-            trajectory_length += length
-            ptr += 1
-
-        local_data_size += trajectory_length
-
-        end_time = time.time()
-        logging.info(
-            f"Finished processing for env_index {env_index}, policy_index {policy_index} in {end_time - start_time} seconds")
-        logging.info(
-            f"Memory usage after processing env_index {env_index}, policy_index {policy_index}: {memory_usage()} MB")
-
-        return q_sa, r_plus_vfsp, local_data_size
-
-    def get_whole_qa(self, env_index, policy_index):
-        Offline_data_folder = "Offline_data"
-        self.create_folder(Offline_data_folder)
-        data_folder_name = f"{self.env_name_list[env_index]}_Policy_{self.policy_name_list[policy_index]}"
-        data_folder = os.path.join(Offline_data_folder,data_folder_name)
-        self.create_folder(data_folder)
-        trajectory_name = f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa_normal_{self.trajectory_num}_trajectory_{self.traj_sa_number}_sa"
-
-        data_q_name = trajectory_name + "_q"
-        data_q_path = os.path.join(data_folder, data_q_name)
-        data_r_name = trajectory_name + "_r"
-        data_r_path = os.path.join(data_folder, data_r_name)
-        data_size_name = trajectory_name + "_size"
-        data_size_path = os.path.join(data_folder, data_size_name)
-
-        target_path = self.find_prefix_suffix(data_folder,f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa","q.pkl")
-        if not self.whether_file_exists(target_path):
-            q_path = os.path.join(data_folder,f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa_q")
-            self.save_as_pkl(q_path)
-
-            logging.info("Enter get qa calculate loop")
-            start_time = time.time()
-
-            threading_start_time = time.time()
-            print("self process num: ", self.process_num)
-            # results = []
-            # for iteration in range(self.sa_evaluate_time):
-            #     for i in range(len(self.env_list)):
-            #         for j in range(len(self.policy_list)):
-            #             result = self.process_env_policy_combination(
-            #                 i, j, self.policy_list, self.env_list, self.data, self.gamma, self.batch_size,
-            #                 self.trajectory_num, self.data.size)
-            #             results.append(result)
-
-            # q_sa_aggregated = [np.zeros(self.data.size) for _ in range(len(self.env_list) * len(self.policy_list))]
-            # r_plus_vfsp_aggregated = [np.zeros(self.data.size) for _ in
-            #                           range(len(self.env_list) * len(self.policy_list))]
-            # data_size_aggregated = 0
-            with Pool(self.process_num) as pool:
-                results = []
-                for iteration in range(self.sa_evaluate_time):
-                    results.extend([pool.apply_async(self.process_env_policy_combination, args=(
-                        i, j, self.policy_list, self.env_list, self.data, self.gamma, self.batch_size,
-                        self.trajectory_num, self.data.size))
-                        for i in range(len(self.env_list)) for j in range(len(self.policy_list))])
-
-                q_sa_aggregated = [np.zeros(self.data.size) for _ in range(len(self.env_list) * len(self.policy_list))]
-                r_plus_vfsp_aggregated = [np.zeros(self.data.size) for _ in range(len(self.env_list) * len(self.policy_list))]
-                data_size_aggregated = 0
-
-                for idx, result in enumerate(results):
-                    q_sa_partial, r_plus_vfsp_partial, data_size_partial = result.get()
-                    index = idx % (len(self.env_list) * len(self.policy_list))
-                    q_sa_aggregated[index] += q_sa_partial
-                    r_plus_vfsp_aggregated[index] += r_plus_vfsp_partial
-                    data_size_aggregated += data_size_partial
-
-                q_sa_aggregated = [q_sa / self.sa_evaluate_time for q_sa in q_sa_aggregated]
-                r_plus_vfsp_aggregated = [r_plus_vfsp / self.sa_evaluate_time for r_plus_vfsp in r_plus_vfsp_aggregated]
-
-            self.q_sa = q_sa_aggregated
-            self.r_plus_vfsp = r_plus_vfsp_aggregated
-            self.data_size = data_size_aggregated
-
-            threading_end_time = time.time()
-            logging.info(f"Threading (env only) time: {threading_end_time - threading_start_time} seconds")
-            logging.info(f"Memory usage after processing all environments: {memory_usage()} MB")
-
-            end_time = time.time()
-            logging.info(f"Total running time get_qa: {end_time - start_time} seconds")
-
-            self.save_as_pkl(data_q_path, self.q_sa)
-            self.save_as_pkl(data_r_path, self.r_plus_vfsp)
-            self.save_as_pkl(data_size_path, self.data_size)
         else:
-            self.q_sa = self.load_from_pkl(data_q_path)
-            self.r_plus_vfsp = self.load_from_pkl(data_r_path)
-            self.data_size = self.load_from_pkl(data_size_path)
+            print(f"  Data file: env {data_env_name} \n "
+                  f"behaviroal policy {behaviroal_policy_name} \n"
+                  f"dataset name {offline_trajectory_name} "
+                  f"does not exist \n")
 
-            logging.info(f"Memory usage after loading from pickle: {memory_usage()} MB")
+    def train_whole_qa(self, offline_trajectory_name_list, behavioral_env_parameter_map,
+                       behavioral_policy_parameter_map, target_env_parameter_map,
+                       target_parameter_map, batch_size=100, max_timestep=1000,
+                       gamma=0.99):
+        behavioral_env_list, behavioral_env_name_list = self.get_env_list(behavioral_env_parameter_map)
+        behavioral_parameter = self.generate_policy_parameter_tuples(behavioral_env_name_list,
+                                                                     behavioral_policy_parameter_map)
+
+        target_env_list, target_env_name_list = self.get_env_list(target_env_parameter_map)
+        target_parameter = self.generate_policy_parameter_tuples(target_env_name_list, target_parameter_map)
+
+        all_combinations = product(behavioral_parameter, target_parameter, offline_trajectory_name_list)
+
+        for behavioral_param, target_param, trajectory_name in all_combinations:
+            behavioral_env_name = behavioral_env_name_list[behavioral_param[0]]
+            behavioral_input = behavioral_param.copy()
+            behavioral_input[0] = behavioral_env_name
+
+            target_env_name = target_env_name_list[target_param[0]]
+            target_input = target_param.copy()
+            target_input[0] = target_env_name
+
+            print("target: ", target_input[0])
+
+            self.train_qa(offline_trajectory_name=trajectory_name,
+                          data_env_name=behavioral_env_name,
+                          behaviroal_policy_parameter=behavioral_input,
+                          target_policy_parameter=target_input,
+                          batch_size=batch_size,
+                          max_timestep=max_timestep,
+                          gamma=gamma)
+    # def train_whole_qa(self,offline_trajectory_name_list,behavioral_env_parameter_map,
+    #                    behavioral_policy_parameter_map,target_env_parameter_map,
+    #                    target_parameter_map,batch_size=100,max_timestep=1000,
+    #                    gamma=0.99):
+    #     behavioral_env_list, behavioral_env_name_list = self.get_env_list(behavioral_env_parameter_map)
+    #     behavioral_parameter = self.generate_policy_parameter_tuples(behavioral_env_name_list, behavioral_policy_parameter_map)
+    #
+    #     target_env_list,target_env_name_list = self.get_env_list(target_env_parameter_map)
+    #     target_parameter = self.generate_policy_parameter_tuples(target_env_name_list,target_parameter_map)
+    #     for i in range(len(behavioral_parameter)):
+    #         behavioral_env_name = behavioral_env_name_list[behavioral_parameter[i][0]]
+    #
+    #         behavioral_input = behavioral_parameter[i].copy()
+    #         behavioral_input[0] = behavioral_env_name_list[behavioral_parameter[i][0]]
+    #         for h in range(len(target_parameter)):
+    #             print("target : ",target_parameter[h][0])
+    #             target_env_name = target_env_name_list[target_parameter[h][0]]
+    #             target_input = target_parameter[h].copy()
+    #             target_input[0] = target_env_name
+    #
+    #             for j in range(len(offline_trajectory_name_list)):
+    #                 self.train_qa(offline_trajectory_name=offline_trajectory_name_list[j],
+    #                               data_env_name=behavioral_env_name,
+    #                               behaviroal_policy_parameter=behavioral_input,
+    #                               target_policy_parameter = target_input,
+    #                               batch_size = batch_size,
+    #                               max_timestep = max_timestep,
+    #                               gamma=gamma)
 
 
 
-    def get_ranking(self,env_index):
+
+    def get_data_q(self,behavioral_parameter_list,target_env_parameter_map,target_policy_parameter_map):
+        '''
+
+        :param behavioral_parameter_list:
+            element: [ behavioral environment, behavioral_policy_name, offline_dataset_name]
+        :param target_env_parameter_map:
+        :param target_policy_parameter_map:
+        :return:
+        '''
+        q_sa = []
+        q_prime = []
+        dataset = []
+        env_list, env_name_list = self.get_env_list(target_env_parameter_map)
+        target_parameter_list = self.generate_policy_parameter_tuples(env_name_list, target_policy_parameter_map)
+        for i in range(len(behavioral_parameter_list)):
+            current_behavioral_env_name,current_behavioral_policy_name,current_behavioral_offline_dataset_name = behavioral_parameter_list[i][0],behavioral_parameter_list[i][1],behavioral_parameter_list[i][2]
+            dataset_path = os.path.join("Offline_data",current_behavioral_env_name,current_behavioral_policy_name,current_behavioral_offline_dataset_name)
+            if self.whether_file_exists(dataset_path):
+                dataset.extend(self.load_from_pkl(dataset_path[:-4]))
+
+            else:
+                print(f"dataset {dataset_path} does not exist. go to next one")
+
+    def get_ranking(self,ranking_method_name,behavioral_parameter_list,target_env_parameter_map,target_policy_parameter_map):
         Bvft_folder = "Bvft_Records"
 
         Q_result_folder = "Exp_result"
@@ -1535,11 +1442,7 @@ class Hopper_edi(ABC):
         method_folder_name = os.path.join(Q_saving_folder,method_folder_name)
         self.create_folder(method_folder_name)
         for j in range(len(self.policy_list)):
-            # print("len policy list : ",len(self.policy_list))
             policy_name = self.policy_name_list[j]
-            # print("policy name : ",policy_name)
-            # print("len policy name list : ",len(self.policy_name_list))
-            # print("policy name  list : ",self.policy_name_list)
             Q_result_saving_path = os.path.join(method_folder_name,policy_name)
             q_list = []
             r_plus_vfsp = []

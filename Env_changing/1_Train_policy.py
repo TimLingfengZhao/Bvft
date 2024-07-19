@@ -7,18 +7,12 @@ from Math_util import *
 
 env = gymnasium.make("Hopper-v4")
 # print(env.unwrapped.model.opt)
-from top_k_cal import *
 # env.unwrapped.model.opt.gravity = np.array([0.0,0.0,-1002])
 # print(env.unwrapped.model.opt)
 if __name__ == '__main__':
-    torch.multiprocessing.set_start_method('spawn')
-    ctx._force_start_method('spawn')
-    # torch.multiprocessing.set_start_method('fork')
-    # ctx._force_start_method('fork')
     gravity = [np.array([0.0, 0.0, -9.8]), np.array([0.0, 0.0, -4.9]), np.array([0.0, 0.0, -15.1])]
     magnetic = [np.array([0.0, 0.0, 0.0]), np.array([0.0, 1.0, 0.0]), np.array([1.0, 0.0, 0.0])]
     wind = [np.array([10.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0]), np.array([0.0, 10.0, 0.0])]
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
     policy_parameter_map = {"policy_total_step":3000,
                      "policy_episode_step":1000,
                             "policy_saving_number" : 3,"policy_learning_rate":0.0001,"policy_hidden_layer":[64,256],
@@ -30,16 +24,7 @@ if __name__ == '__main__':
     policy_evaluation_parameter_map = {"evaluate_time" : 30,
     "max_timestep" : 1000,
     "gamma" : 0.99}
-    common_params = { "trajectory_num" : 10,
-    "k":5
-    }
-    batch_size = [100]
-    process_number = [5]
-    traj_sa_number = 1000
-    time_list = []
-    result_list = []
-    policy_choose = [0,1]
-    sa_evaluate_time = 1
+
 
     env_parameter_map = {"env_name" : "Hopper-v4",
                          "parameter_list":[[
