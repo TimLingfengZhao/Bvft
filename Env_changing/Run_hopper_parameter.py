@@ -54,6 +54,6 @@ batch_size = 100
 max_timestep = 1000
 gamma = 0.99
 ranking_method_name = "BVFT"
-experiment_dataset_name = "experiment"
+
 
 k = 3

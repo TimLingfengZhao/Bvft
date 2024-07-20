@@ -764,33 +764,6 @@ class Hopper_edi(ABC):
         # sys.exit()
         return k_precision_list
 
-    # def calculate_top_k_precision(self, experiment_name,rank_list, Policy_name_list, k=5):
-    #     device = self.device
-    #
-    #     exp_parameter_path = os.path.join("Exp_result",experiment_name,"parameter")
-    #     exp_parameter = self.load_from_pkl(exp_parameter_path)
-    #     true_env_name = exp_parameter[0]
-    #
-    #
-    #
-    #     policy_performance_list = [self.load_policy_performance(true_env_name = true_env_name,policy_name = policy_name) for policy_name in Policy_name_list]
-    #     policy_ranking_groundtruth = self.rank_elements_larger_higher(policy_performance_list)
-    #
-    #     print(policy_ranking_groundtruth)
-    #     print(rank_list)
-    #
-    #     k_precision_list = []
-    #     for i in range(1, k + 1):
-    #         proportion = 0
-    #         for pos in rank_list:
-    #             if (rank_list[pos - 1] <= i - 1 and policy_ranking_groundtruth[pos - 1] <= i - 1):
-    #                 proportion += 1
-    #         proportion = proportion / i
-    #         k_precision_list.append(proportion)
-    #     print(k_precision_list)
-    #     sys.exit()
-    #     return k_precision_list
-
 
     def calculate_top_k_normalized_regret(self,experiment_name,rank_list, Policy_name_list, k=5):
         print("calcualte top k normalized regret")
@@ -1669,42 +1642,6 @@ class Hopper_edi(ABC):
 
 
 
-
-
-    def run(self,true_data_list):
-        start_time = time.time()
-        self.train_policy()
-
-        # for j in range(len(true_data_list)):
-        before_for_time = time.time()
-        for j in range(len(true_data_list)):
-            for i in range(len(self.policy_list)):
-                self.get_policy_performance(true_env_index=j,true_policy_index=i)
-                # self.load_offline_data(max_time_step=self.max_timestep,algorithm_name=self.algorithm_name_list[i],
-                #                        true_env_number=true_data_list[j])
-                # load_time = time.time()
-                # print(f"load_time use : {load_time - before_for_time}")
-                # self.get_whole_qa(i)
-                # get_whole_end = time.time()
-                # print(f"after whole end time : {get_whole_end - load_time}")
-                # self.get_ranking(i)
-                # get_ranking_end = time.time()
-                # print(f"get ranking time : {get_ranking_end - get_whole_end}")
-                # print(f"one for loop total time : {get_ranking_end - before_for_time}")
-                # sys.exit()
-                self.load_offline_data(max_time_step=self.max_timestep,policy_index = j,
-                                       true_env_number=true_data_list[j])
-                # if self.policy_choose == 0 :
-                #     for h in range(len(self.policy_list)):
-                #         self.policy_list[h] = RandomPolicy(self.env_list[0].action_space)
-
-                self.get_whole_qa(env_index = j, policy_index = i)
-            self.get_ranking(env_index=j)
-
-
-        end_time = time.time()
-        # self.delete_files_in_folder_r("Offline_data")
-        return (end_time - before_for_time)
 
 
 
