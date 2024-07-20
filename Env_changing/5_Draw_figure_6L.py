@@ -47,10 +47,11 @@ if __name__ == '__main__':
     hopper_exp = Bvft_()
     true_env_list,true_env_name_list = hopper_exp.get_env_list(true_env_parameter_map)
     experiment_dataset_name = "experiment"
+    experiment_name_list = []
+    k=3
     for i in range(len(true_env_name_list)):
-        hopper_exp.get_ranking(experiment_name=str(i)+"_"+experiment_dataset_name,
-                               ranking_method_name=ranking_method_name,
-                               algorithm_trajectory_list=algorithm_trajectory_list,
-                               true_env_name=true_env_name_list[i],
-                               target_env_parameter_map = env_parameter_map,
-                               target_policy_parameter_map=policy_parameter_map,gamma=0.99)
+        experiment_name_list.append(str(i) + "_" + experiment_dataset_name)
+    hopper_exp.draw_figure_6L(saving_folder_name="experiment_3env_3policy",
+                              experiment_name_list=experiment_name_list,
+                              method_name_list=["BVFT"],
+                              k = k)

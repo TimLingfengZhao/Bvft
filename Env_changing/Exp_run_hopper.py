@@ -1,54 +1,52 @@
 import sys
 from Env_change_util import *
-
 from Math_util import *
-# env = gymnasium.make("Hopper-v4")
-# print(env.unwrapped.model.opt)  # change this
-
-env = gymnasium.make("Hopper-v4")
-# print(env.unwrapped.model.opt)
 from top_k_cal import *
-# env.unwrapped.model.opt.gravity = np.array([0.0,0.0,-1002])
-# print(env.unwrapped.model.opt)
-if __name__ == '__main__':
-    torch.multiprocessing.set_start_method('spawn')
-    ctx._force_start_method('spawn')
-    # torch.multiprocessing.set_start_method('fork')
-    # ctx._force_start_method('fork')
-    gravity = [np.array([0.0, 0.0, -9.8]), np.array([0.0, 0.0, -4.9]), np.array([0.0, 0.0, -15.1])]
-    magnetic = [np.array([0.0, 0.0, 0.0]), np.array([0.0, 1.0, 0.0]), np.array([1.0, 0.0, 0.0])]
-    wind = [np.array([10.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0]), np.array([0.0, 10.0, 0.0])]
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    policy_parameter_map = {"policy_total_step":3000,
-                     "policy_episode_step":1000,
-                            "policy_saving_number" : 3,"policy_learning_rate":0.0001,"policy_hidden_layer":[64,256],
-                            "algorithm_name_list":["DDPG"]}
-    bahavioral_policy_map =    {"policy_total_step":5000,
-                     "policy_episode_step":1000,
-                            "policy_saving_number" : 5,"policy_learning_rate":0.0001,"policy_hidden_layer":[64,1024],
-                            "algorithm_name_list":["DDPG"]}
-    policy_evaluation_parameter_map = {"evaluate_time" : 30,
-    "max_timestep" : 1000,
-    "gamma" : 0.99}
-    common_params = { "trajectory_num" : 10,
-    "k":5
-    }
-    batch_size = [100]
-    process_number = [5]
-    traj_sa_number = 1000
-    time_list = []
-    result_list = []
-    policy_choose = [0,1]
-    sa_evaluate_time = 1
+from Run_hopper_parameter import *
 
-    env_parameter_map = {"env_name" : "Hopper-v4",
-                         "parameter_list":[[
-        [gravity[1], magnetic[0], wind[0]],
-        [gravity[2], magnetic[0], wind[0]],
-        [gravity[0], magnetic[2], wind[0]]]],
-                         "parameter_name_list":[["gravity","magnetic","wind"]]}
+if __name__ == '__main__':
     hopper_exp = Bvft_()
-    hopper_exp.train_policy(env_parameter_map=env_parameter_map,target_policy_training_parameter_map=policy_parameter_map)
-    hopper_exp.train_policy(env_parameter_map=env_parameter_map,target_policy_training_parameter_map=bahavioral_policy_map)
-    hopper_exp.train_policy_performance(env_parameter_map=env_parameter_map,policy_parameter_map=policy_parameter_map,policy_evaluation_parameter_map=policy_evaluation_parameter_map)
-    hopper_exp.train_policy_performance(env_parameter_map=env_parameter_map,policy_parameter_map=bahavioral_policy_map,policy_evaluation_parameter_map=policy_evaluation_parameter_map)
+
+    # 第一步：训练策略
+    hopper_exp.train_policy(env_parameter_map=env_parameter_map,
+                            target_policy_training_parameter_map=policy_parameter_map)
+    hopper_exp.train_policy(env_parameter_map=env_parameter_map,
+                            target_policy_training_parameter_map=behavioral_policy_map)
+
+    # 第二步：训练策略性能
+    hopper_exp.train_policy_performance(env_parameter_map=env_parameter_map, policy_parameter_map=policy_parameter_map,
+                                        policy_evaluation_parameter_map=policy_evaluation_parameter_map)
+    hopper_exp.train_policy_performance(env_parameter_map=env_parameter_map, policy_parameter_map=behavioral_policy_map,
+                                        policy_evaluation_parameter_map=policy_evaluation_parameter_map)
+
+    # 第三步：生成离线数据
+    trajectory_number = 10
+    trajectory_max_timestep = 1000
+    hopper_exp.generate_offline_data(trajectory_number=trajectory_number,
+                                     true_environment_parameter_list=env_parameter_map,
+                                     behaviroal_policy_parameter_map=behavioral_policy_map,
+                                     Offline_trajectory_max_timestep=trajectory_max_timestep)
+
+    # 第四步：训练QA
+    offline_data_name_list = ["10_trajectory_20240720-163657.pkl"]
+    hopper_exp.train_whole_qa(offline_trajectory_name_list=offline_data_name_list,
+                              behavioral_env_parameter_map=env_parameter_map,
+                              behavioral_policy_parameter_map=behavioral_policy_map,
+                              target_env_parameter_map=env_parameter_map, target_parameter_map=policy_parameter_map,
+                              batch_size=batch_size, max_timestep=max_timestep, gamma=gamma)
+
+    # 第五步：获取排名
+    algorithm_trajectory_list = [behavioral_policy_map, ["10_trajectory_20240720-163657.pkl"]]
+    true_env_list, true_env_name_list = hopper_exp.get_env_list(true_env_parameter_map)
+    experiment_name_list = []
+    for i in range(len(true_env_name_list)):
+        hopper_exp.get_ranking(experiment_name=str(i) + "_" + experiment_dataset_name,
+                               ranking_method_name=ranking_method_name,
+                               algorithm_trajectory_list=algorithm_trajectory_list, true_env_name=true_env_name_list[i],
+                               target_env_parameter_map=env_parameter_map,
+                               target_policy_parameter_map=policy_parameter_map, gamma=gamma)
+        experiment_name_list.append(str(i) + "_" + experiment_dataset_name)
+
+    # 第六步：绘制图表
+    hopper_exp.draw_figure_6L(saving_folder_name="experiment_3env_3policy", experiment_name_list=experiment_name_list,
+                              method_name_list=["BVFT"], k=k, **policy_evaluation_parameter_map)

@@ -690,65 +690,115 @@ class Hopper_edi(ABC):
         except ValueError:
             return -1
     #self.get_data_ranking(data_address_lists[data_address_index], policy_name_list[0],run_list[runs][0],run_list[runs][1]))
-    def get_data_ranking(self, data_address, policy_name_list, experiment_name,policy_name):
+    def get_data_ranking(self,experiment_name,method_name ,policy_name_list, evaluate_time=30,max_timestep=1000,gamma=0.99):
         Offline_data_folder = "Offline_data"
-        true_env_name = self.env_name_list[true_env_number]
-        prefix =  f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa"
+        #true_env_name,algorithm_trajectory_list,target_env_parameter_map,target_policy_parameter_map
+        exp_parameter_path = os.path.join("Exp_result",experiment_name,method_name)
 
-        ranking_data_folder = os.path.join("Exp_result", f"{true_env_name}")
 
-        data_folder = os.path.join(Offline_data_folder, f"{true_env_name}_Policy_{self.policy_name_list[true_policy_number]}")
-        seeds = self.load_from_pkl(os.path.join(data_folder,self.find_prefix_suffix(data_folder, prefix, "seeds.pkl")[:-4]))
-        ranking_folder = os.path.join(ranking_data_folder,
-                                    self.find_folder_prefix_suffix(ranking_data_folder, prefix, data_address))
+        policy_folder = os.path.join("Policy_operation","Policy_trained")
+
         policy_performance = []
+        print("policy name list : ",policy_name_list)
+
         for i in range(len(policy_name_list)):
-            ranking_path = os.path.join(ranking_folder,self.policy_name_list[i])
-            env_name = self.load_from_pkl(ranking_path)
-            policy = self.load_policy(i)
-            policy_performance.append(self.evaluate_policy_on_seeds(policy=policy,env=self.env_list[self.find_position(self.env_name_list,env_name)],seeds=seeds))
+            policy_path= os.path.join(policy_folder,policy_name_list[i])
+            policy = d3rlpy.load_learnable(policy_path+".d3",self.device)
+
+            current_env_path = os.path.join("Exp_result",experiment_name,method_name,policy_name_list[i])
+            current_env_name = self.load_from_pkl(current_env_path)
+            # print(current_env_name)
+            current_env_name = current_env_name[0]
+            env = self.get_env(current_env_name)
+            policy_performance.append(self.evaluate_policy( policy, env, evaluate_time,max_timestep,gamma))
 
 
         # Return the ranking of the policy names
         return self.rank_elements_larger_higher(policy_performance)
 
+    # policy_name = policy_name, true_env_name = true_env_name, true_policy_name = true_policy_name
 
-    def load_policy_performance(self, policy_name, true_env_index, true_policy_index):
+    def load_policy_performance(self, policy_name, true_env_name):
 
-        policy_performance_folder = os.path.join("Policy_operation", "Policy_performance",
-                                                 f"{self.env_name_list[true_env_index]}_Policy_{self.policy_name_list[true_policy_index]}")
-        self.create_folder(policy_performance_folder)
-        policy_performance_path = os.path.join(policy_performance_folder, "performance")
+        policy_performance_path = os.path.join("Policy_operation", "Policy_performance",
+                                                 true_env_name,policy_name)
+
 
         if os.path.exists(policy_performance_path):
-            performance_map = self.load_from_pkl(policy_performance_path)
-            if policy_name in performance_map:
-                return performance_map[policy_name]
+            return self.load_from_pkl(policy_performance_path)
+        else:
+            env = self.get_env(true_env_name)
+            policy_path = os.path.join("Policy_operation","Policy_trained",policy_name)
+            policy = d3rlpy.load_learnable(policy_path+".d3",device=self.device)
+            return self.evaluate_policy(policy=policy,env=env)
 
-        self.get_policy_performance(true_env_index=true_env_index, true_policy_index=true_policy_index)
-        performance_map = self.load_from_pkl(policy_performance_path)
-        return performance_map.get(policy_name, None)
-    def calculate_top_k_precision(self, true_env_index,true_policy_index, policy_name_list, rank_list, k=2):
-
+#(experiment_name=run_list[i],ranking_list = Ranking_list[num_index][i],
+                                                         #  Policy_name_list = Policy_name_list[i],
+                                                          # k=k)
+    def calculate_top_k_precision(self, experiment_name, rank_list, Policy_name_list, k=5):
         device = self.device
 
-        policy_performance_list = [self.load_policy_performance(policy_name=policy_name,true_env_index=true_env_index,true_policy_index=true_policy_index) for policy_name in policy_name_list]
+        exp_parameter_path = os.path.join("Exp_result", experiment_name, "parameter")
+        exp_parameter = self.load_from_pkl(exp_parameter_path)
+        true_env_name = exp_parameter[0]
+
+        policy_performance_list = [self.load_policy_performance(true_env_name=true_env_name, policy_name=policy_name)
+                                   for policy_name in Policy_name_list]
         policy_ranking_groundtruth = self.rank_elements_larger_higher(policy_performance_list)
+
+        print("Ground truth ranking:", policy_ranking_groundtruth)
+        print("Rank list:", rank_list)
 
         k_precision_list = []
         for i in range(1, k + 1):
-            proportion = 0
-            for pos in rank_list:
-                if (rank_list[pos - 1] <= i - 1 and policy_ranking_groundtruth[pos - 1] <= i - 1):
-                    proportion += 1
-            proportion = proportion / i
-            k_precision_list.append(proportion)
+            top_k_pred = set([idx for idx, rank in enumerate(rank_list) if rank <= i])
+            top_k_true = set([idx for idx, rank in enumerate(policy_ranking_groundtruth) if rank <= i])
+
+            correct_predictions = len(top_k_pred.intersection(top_k_true))
+            precision = correct_predictions / i
+
+            k_precision_list.append(precision)
+            print(f"Top-{i} Precision: {precision}, Top-{i} Predicted: {top_k_pred}, Top-{i} True: {top_k_true}")
+
+        print("Final k precision list:", k_precision_list)
+        # sys.exit()
         return k_precision_list
 
+    # def calculate_top_k_precision(self, experiment_name,rank_list, Policy_name_list, k=5):
+    #     device = self.device
+    #
+    #     exp_parameter_path = os.path.join("Exp_result",experiment_name,"parameter")
+    #     exp_parameter = self.load_from_pkl(exp_parameter_path)
+    #     true_env_name = exp_parameter[0]
+    #
+    #
+    #
+    #     policy_performance_list = [self.load_policy_performance(true_env_name = true_env_name,policy_name = policy_name) for policy_name in Policy_name_list]
+    #     policy_ranking_groundtruth = self.rank_elements_larger_higher(policy_performance_list)
+    #
+    #     print(policy_ranking_groundtruth)
+    #     print(rank_list)
+    #
+    #     k_precision_list = []
+    #     for i in range(1, k + 1):
+    #         proportion = 0
+    #         for pos in rank_list:
+    #             if (rank_list[pos - 1] <= i - 1 and policy_ranking_groundtruth[pos - 1] <= i - 1):
+    #                 proportion += 1
+    #         proportion = proportion / i
+    #         k_precision_list.append(proportion)
+    #     print(k_precision_list)
+    #     sys.exit()
+    #     return k_precision_list
 
-    def calculate_top_k_normalized_regret(self,ranking_list, policy_name_list, true_env_index,true_policy_index, k=2):
+
+    def calculate_top_k_normalized_regret(self,experiment_name,rank_list, Policy_name_list, k=5):
         print("calcualte top k normalized regret")
-        policy_performance_list = [self.load_policy_performance(policy_name=policy_name,true_env_index=true_env_index,true_policy_index=true_policy_index) for policy_name in policy_name_list]
+        exp_parameter_path = os.path.join("Exp_result",experiment_name,"parameter")
+        exp_parameter = self.load_from_pkl(exp_parameter_path)
+        true_env_name = exp_parameter[0]
+
+        policy_performance_list = [self.load_policy_performance(true_env_name = true_env_name,policy_name = policy_name) for policy_name in Policy_name_list]
 
         ground_truth_value = max(policy_performance_list)
         worth_value = min(policy_performance_list)
@@ -757,8 +807,8 @@ class Hopper_edi(ABC):
         k_regret_list = []
         for j in range(1, k + 1):
             gap_list = []
-            for i in range(len(ranking_list)):
-                if (ranking_list[i] <= j):
+            for i in range(len(rank_list)):
+                if (rank_list[i] <= j):
                     value = policy_performance_list[i]
                     norm = (ground_truth_value - value) / (ground_truth_value - worth_value)
                     gap_list.append(norm)
@@ -770,27 +820,34 @@ class Hopper_edi(ABC):
         sem = std_dev / np.sqrt(len(data_list))
         ci = 2 * sem
         return mean, ci
-    def calculate_k(self, experiment_name_list, k ,plot_name_list):
+    def calculate_k(self, experiment_name_list,saving_folder_name, k ,plot_name_list,evaluate_time=30,max_timestep=1000,gamma=0.99):
         Ranking_list = []
         Policy_name_list = []
 
-        policy_num_list = []
-        policy_name_list = []
+
+        Policy_name_list = []
         for i in range(len(experiment_name_list)):
             exp_parameter_path = os.path.join("Exp_result",experiment_name_list[i],"parameter")
             #true_env_name, algorithm_trajectory_list, target_env_parameter_map, target_policy_parameter_map
             para_list = self.load_from_pkl(exp_parameter_path)
             current_target_env_list,current_target_env_name_list = self.get_env_list(para_list[2])
             current_target_policy_parameters = self.generate_policy_parameter_tuples(current_target_env_name_list,para_list[3])
-            policy_num_list.append(len(current_target_policy_parameters))
+            policy_name_list = []
             for j in range(len(current_target_policy_parameters)):
                 dudu = copy.deepcopy(current_target_policy_parameters[j])
                 dudu[0] = current_target_env_name_list[current_target_policy_parameters[j][0]]
                 policy_name_list.append(self.get_policy_name(*dudu))
+            Policy_name_list.append(policy_name_list)
+
         run_list = []
         for i in range(len(experiment_name_list)):
-            for j in range(len(policy_name_list[0])):
-                run_list.append([experiment_name_list[i],policy_name_list[j]])
+            experiment_name = experiment_name_list[i]
+            exp_parameter_path = os.path.join("Exp_result", experiment_name, "parameter")
+            # true_env_name,algorithm_trajectory_list,target_env_parameter_map,target_policy_parameter_map
+            exp_parameter = self.load_from_pkl(exp_parameter_path)
+
+            true_env_name = exp_parameter[0]
+            run_list.append(experiment_name_list[i])
 
 
         data_address_lists = copy.deepcopy(plot_name_list)
@@ -798,10 +855,11 @@ class Hopper_edi(ABC):
             Ranking_list.append([])
 
         for runs in range(len(run_list)):
-
             for data_address_index in range(len(data_address_lists)):
                 Ranking_list[data_address_index].append(
-                    self.get_data_ranking(data_address_lists[data_address_index], policy_name_list[0],run_list[runs][0],run_list[runs][1]))
+                    #当前algorithm的排名
+                    self.get_data_ranking(experiment_name=run_list[runs],method_name = data_address_lists[data_address_index],
+                                          policy_name_list=Policy_name_list[runs]))
 
 
         Precision_list = []
@@ -812,15 +870,14 @@ class Hopper_edi(ABC):
 
         for i in range(len(run_list)):
             for num_index in range(len(Ranking_list)):
+
                 Precision_list[num_index].append(
-                    self.calculate_top_k_precision(true_env_index=run_list[i][0],true_policy_index=run_list[i][1],
-                                                   policy_name_list=Policy_name_list[i],rank_list=Ranking_list[num_index][i],k=k))
+                    self.calculate_top_k_precision(experiment_name=run_list[i],rank_list=Ranking_list[num_index][i],Policy_name_list=Policy_name_list[i],k=k))
                 Regret_list[num_index].append(
-                    self.calculate_top_k_normalized_regret(ranking_list = Ranking_list[num_index][i],
-                                                           policy_name_list=Policy_name_list[i],
-                                                    true_env_index=run_list[i][0],
-                                                           true_policy_index=run_list[i][1],
+                    self.calculate_top_k_normalized_regret(experiment_name=run_list[i],rank_list = Ranking_list[num_index][i],
+                                                           Policy_name_list = Policy_name_list[i],
                                                            k=k))
+
 
         Precision_k_list = []
         Regret_k_list = []
@@ -858,11 +915,12 @@ class Hopper_edi(ABC):
             regret_mean_list.append(current_regret_mean_list)
             precision_ci_list.append(current_precision_ci_list)
             regret_ci_list.append(current_regret_ci_list)
-        policy_ranking_saving_place = 'Policy_operation'
+
+
+        policy_ranking_saving_place = 'Exp_result'
         k_saving_folder = 'K_statistics'
         saving_folder = os.path.join(policy_ranking_saving_place, k_saving_folder)
-        saving_path = os.path.join(saving_folder,
-                                          f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}")
+        saving_path = os.path.join(saving_folder,saving_folder_name)
 
         self.create_folder(saving_path)
         # Bvft_k_save_path = os.path.join(Bvft_saving_place, Bvft_k)
@@ -871,10 +929,10 @@ class Hopper_edi(ABC):
         if not os.path.exists(saving_path):
             os.makedirs(saving_path)
         plot_name = "plots"
-        k_precision_name = str(k) + "_mean_precision_" + str(len(run_list))
-        k_regret_name = str(k) + "_mean_regret" + str(len(run_list))
-        precision_ci_name = str(k) + "_CI_precision" + str(len(run_list))
-        regret_ci_name = str(k) + "_CI_regret" + str(len(run_list))
+        k_precision_name = str(k) + "_mean_precision_" + str(len(experiment_name_list))
+        k_regret_name = str(k) + "_mean_regret" + str(len(experiment_name_list))
+        precision_ci_name = str(k) + "_CI_precision" + str(len(experiment_name_list))
+        regret_ci_name = str(k) + "_CI_regret" + str(len(experiment_name_list))
 
         k_precision_mean_saving_path = os.path.join(saving_path, k_precision_name)
         k_regret_mean_saving_path = os.path.join(saving_path, k_regret_name)
@@ -896,7 +954,7 @@ class Hopper_edi(ABC):
 
         return precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, plot_name_list
 
-    def draw_figure_6L(self,saving_folder_name,experiment_name_list,method_name_list,k=5):
+    def draw_figure_6L(self,saving_folder_name,experiment_name_list,method_name_list,k=5,evaluate_time=30,max_timestep=1000,gamma=0.99):
         Result_saving_place = 'Exp_result'
         Result_k = 'K_statistics'
         Result_k_save_path = os.path.join(Result_saving_place,Result_k,saving_folder_name)
@@ -924,7 +982,8 @@ class Hopper_edi(ABC):
             line_name_list = self.load_from_pkl(plot_name_saving_path)
         else:
             precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(
-               experiment_name_list = experiment_name_list, k = k,plot_name_list = method_name_list
+               experiment_name_list = experiment_name_list, saving_folder_name = saving_folder_name,k = k,plot_name_list = method_name_list,
+                evaluate_time =evaluate_time,max_timestep = max_timestep, gamma=gamma
             )
 
         plot_mean_list = [precision_mean_list, regret_mean_list]
@@ -1525,7 +1584,7 @@ class Hopper_edi(ABC):
             input = parameter_tuples[i].copy()
             input[0] = environment_name
             current_policy_name = self.get_policy_name(*input)
-            target_policy_name_list.append(current_policy_name)
+
             for j in range(len(algorithm_trajectory_list[1])):
                 current_offline_data_name = algorithm_trajectory_list[1][j]
                 current_offline_data_path = os.path.join("Offline_data",environment_name,current_policy_name,current_offline_data_name)
@@ -1538,6 +1597,8 @@ class Hopper_edi(ABC):
                 for h in range(len(input_target_tuple)):
                     for u in range(len(target_env_name_list)):
                         current_target_policy_name = self.get_policy_name(*input_target_tuple[h])
+                        if u == 0 :
+                            target_policy_name_list.append(current_target_policy_name)
                         target_q_name = f"{target_env_name_list[u]}_Policy_{current_target_policy_name}_{current_offline_data_name[:-4]}_q"
                         target_prime_name = target_q_name + "_prime"
                         target_q_path = os.path.join("Offline_data", environment_name, current_policy_name,
