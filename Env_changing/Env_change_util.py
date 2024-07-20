@@ -294,11 +294,14 @@ class BVFT_(object):
                         set1 = set1.difference(intersect)                #in set1 but not in intersection
                         if len(intersect) > 1:
                             groups.append(list(intersect))               #piecewise constant function
+
         return groups
 
 
+
     def compute_loss(self, q1, groups):                                 #
-        Tf = self.r_plus_vfsp[q1].copy()
+        Tf = np.array(self.r_plus_vfsp[q1].copy())
+
         for group in groups:
             Tf[group] = np.mean(Tf[group])
         diff = self.q_sa[q1] - Tf
@@ -385,7 +388,8 @@ class Hopper_edi(ABC):
                  ):
         self.device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
-    def get_env_list(self,env_parameter_map):
+    def get_env_list(self,env_parameter_map_o):
+        env_parameter_map = copy.deepcopy(env_parameter_map_o)
         env_name_list = []
         env_list = []
         for h in range(len(env_parameter_map["parameter_list"])):
@@ -613,7 +617,7 @@ class Hopper_edi(ABC):
 
 
     @abstractmethod
-    def select_Q(self,q_list,r_plus_vfsp,policy_namei):
+    def select_Q(self,q_list,q_prime,policy_namei,dataset,env,gamma=0.99):
         pass
     def remove_duplicates(self,lst):
         seen = set()
@@ -662,6 +666,16 @@ class Hopper_edi(ABC):
 
         return None
 
+    def whether_prefix_suffix(self, folder_path, prefix, suffix):
+        if not os.path.exists(folder_path):
+            raise ValueError(f"The folder path {folder_path} does not exist.")
+
+        for file_name in os.listdir(folder_path):
+            if file_name.startswith(prefix) and file_name.endswith(suffix):
+                return True
+
+        return False
+
     def find_folder_prefix_suffix(self,folder_path, prefix, suffix):
 
         for item in os.listdir(folder_path):
@@ -675,7 +689,8 @@ class Hopper_edi(ABC):
             return lst.index(item)
         except ValueError:
             return -1
-    def get_data_ranking(self, data_address, policy_name_list, true_env_number,true_policy_number):
+    #self.get_data_ranking(data_address_lists[data_address_index], policy_name_list[0],run_list[runs][0],run_list[runs][1]))
+    def get_data_ranking(self, data_address, policy_name_list, experiment_name,policy_name):
         Offline_data_folder = "Offline_data"
         true_env_name = self.env_name_list[true_env_number]
         prefix =  f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa"
@@ -755,27 +770,38 @@ class Hopper_edi(ABC):
         sem = std_dev / np.sqrt(len(data_list))
         ci = 2 * sem
         return mean, ci
-    def calculate_k(self, true_data_list,k,plot_name_list):
+    def calculate_k(self, experiment_name_list, k ,plot_name_list):
         Ranking_list = []
         Policy_name_list = []
 
+        policy_num_list = []
+        policy_name_list = []
+        for i in range(len(experiment_name_list)):
+            exp_parameter_path = os.path.join("Exp_result",experiment_name_list[i],"parameter")
+            #true_env_name, algorithm_trajectory_list, target_env_parameter_map, target_policy_parameter_map
+            para_list = self.load_from_pkl(exp_parameter_path)
+            current_target_env_list,current_target_env_name_list = self.get_env_list(para_list[2])
+            current_target_policy_parameters = self.generate_policy_parameter_tuples(current_target_env_name_list,para_list[3])
+            policy_num_list.append(len(current_target_policy_parameters))
+            for j in range(len(current_target_policy_parameters)):
+                dudu = copy.deepcopy(current_target_policy_parameters[j])
+                dudu[0] = current_target_env_name_list[current_target_policy_parameters[j][0]]
+                policy_name_list.append(self.get_policy_name(*dudu))
         run_list = []
-        for i in range(len(true_data_list)):
-            for j in range(len(self.policy_list)):
-                run_list.append([i,j])
+        for i in range(len(experiment_name_list)):
+            for j in range(len(policy_name_list[0])):
+                run_list.append([experiment_name_list[i],policy_name_list[j]])
 
-        data_address_lists = self.remove_duplicates(self.method_name_list)
 
+        data_address_lists = copy.deepcopy(plot_name_list)
         for i in range(len(data_address_lists)):
             Ranking_list.append([])
 
         for runs in range(len(run_list)):
-            self.pick_policy()
-            Policy_name_list.append(self.policy_name_list)
 
             for data_address_index in range(len(data_address_lists)):
                 Ranking_list[data_address_index].append(
-                    self.get_data_ranking(data_address_lists[data_address_index], self.policy_name_list,run_list[runs][0],run_list[runs][1]))
+                    self.get_data_ranking(data_address_lists[data_address_index], policy_name_list[0],run_list[runs][0],run_list[runs][1]))
 
 
         Precision_list = []
@@ -870,20 +896,18 @@ class Hopper_edi(ABC):
 
         return precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, plot_name_list
 
-    def draw_figure_6L(self,true_data_list):
-        Result_saving_place = 'Policy_operation'
+    def draw_figure_6L(self,saving_folder_name,experiment_name_list,method_name_list,k=5):
+        Result_saving_place = 'Exp_result'
         Result_k = 'K_statistics'
-        Result_k_save_folder = os.path.join(Result_saving_place, Result_k)
-        Result_k_save_path = os.path.join(Result_k_save_folder,
-                                          f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}")
-
+        Result_k_save_path = os.path.join(Result_saving_place,Result_k,saving_folder_name)
         self.create_folder(Result_k_save_path)
-        num_runs = len(true_data_list) * len(self.policy_list)
 
-        k_precision_name = str(self.k) + "_mean_precision_" + str(num_runs)
-        k_regret_name = str(self.k) + "_mean_regret_" + str(num_runs)
-        precision_ci_name = str(self.k) + "_CI_precision_" + str(num_runs)
-        regret_ci_name = str(self.k) + "_CI_regret_" + str(num_runs)
+        num_runs = str(experiment_name_list)
+
+        k_precision_name = str(k) + "_mean_precision_" + str(num_runs)
+        k_regret_name = str(k) + "_mean_regret_" + str(num_runs)
+        precision_ci_name = str(k) + "_CI_precision_" + str(num_runs)
+        regret_ci_name = str(k) + "_CI_regret_" + str(num_runs)
         plot_name = "plots"
 
         k_precision_mean_saving_path = os.path.join(Result_k_save_path, k_precision_name)
@@ -900,7 +924,7 @@ class Hopper_edi(ABC):
             line_name_list = self.load_from_pkl(plot_name_saving_path)
         else:
             precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(
-                true_data_list = true_data_list, k = self.k,plot_name_list = self.method_name_list
+               experiment_name_list = experiment_name_list, k = k,plot_name_list = method_name_list
             )
 
         plot_mean_list = [precision_mean_list, regret_mean_list]
@@ -977,13 +1001,14 @@ class Hopper_edi(ABC):
             actions.append(action)
             dones.append(done)
             next_steps.append(next_obs)
-            total_state_number += 1
 
             if done or _ == Offline_trajectory_max_timestep - 1:
                 break
 
             obs = next_obs
             observations.append(obs)
+            total_state_number += 1
+
 
         episode_data = {
             "observations": observations,
@@ -1090,10 +1115,9 @@ class Hopper_edi(ABC):
                 policy_model_name = f"{algorithm_name}_{str(target_policy_training_parameter_map['policy_learning_rate'])}_{str(target_policy_training_parameter_map['policy_hidden_layer'])}.d3"
                 policy_path = policy_saving_path+"_"+policy_model_name
 
-                if((not self.find_prefix_suffix(Policy_saving_folder,policy_folder_name+"_"+policy_model_name[:-3],"step.pkl") ) and
+                if((not self.whether_prefix_suffix(Policy_saving_folder,policy_folder_name+"_"+policy_model_name[:-3],"step.pkl") ) and
                         (not self.whether_file_exists(policy_path[:-3]+"_"+str(target_policy_training_parameter_map["policy_total_step"])+"step.d3"))):
                     self.save_as_pkl(policy_path[:-3]+"step",2)
-
                     print(f"{policy_path} not exists")
                     if (self.whether_file_exists(checkpoint_path)):
                         policy = d3rlpy.load_learnable(checkpoint_path, device=self.device)
@@ -1274,76 +1298,118 @@ class Hopper_edi(ABC):
         file_path = os.path.join("Offline_data",env_name,Policy_name,offline_trajectory_name[:-4])
         return self.load_from_pkl(file_path)
 
-    def train_qa(self, offline_trajectory_name,data_env_name, behaviroal_policy_parameter, target_policy_parameter, batch_size=100, max_timestep=1000,gamma=0.99):
+    def calculate_r_plus_vfsp(self, q_sa, q_prime, dataset, gamma=0.99):
+        r_plus_vfsp = []
+        for i in range(len(q_sa)):
+            r_plus_vfsp.append([])
+        for h in range(len(q_sa)):
+            index = 0
+
+            for j in range(len(dataset)):
+                length = len(dataset[j]["observations"])
+                rewards = dataset[j]["rewards"]
+                dones = dataset[j]["dones"]
+                for i in range(length):
+                    reward = rewards[i]
+                    q_p = q_prime[h][index]
+                    done = dones[i]
+                    if (done):
+                        done = 1
+                    else:
+                        done = 0
+                    r_plus_vfsp[h].append(reward + gamma * q_p * (1 - done))
+                    index += 1
+
+        return r_plus_vfsp
+
+    def create_deep_copies(self, env, batch_size):
+        env_copies = [copy.deepcopy(env) for _ in range(batch_size)]
+        return env_copies
+
+    def train_qa(self, offline_trajectory_name, data_env_name, behaviroal_policy_parameter, target_env_parameter_map,
+                 target_policy_parameter, batch_size=100, max_timestep=1000, gamma=0.99):
         behaviroal_policy_name = self.get_policy_name(*behaviroal_policy_parameter)
-        trajectory = self.load_offline_data(env_name=data_env_name,Policy_name=behaviroal_policy_name,offline_trajectory_name=offline_trajectory_name)
-        qa_results = []
-        q_prime_results = []
         policy = self.get_policy(*target_policy_parameter)
 
-        env_copy_list = self.create_deep_copies(env=self.get_env(data_env_name),batch_size=batch_size)
-
-        folder_path = os.path.join("Offline_data",data_env_name,behaviroal_policy_name)
+        folder_path = os.path.join("Offline_data", data_env_name, behaviroal_policy_name)
         self.create_folder(folder_path)
-        print(f"start train q(s, a) , q (s', pi(a)) for env {data_env_name} \n "
-              f"behaviroal policy {behaviroal_policy_name} \n"
-              f"dataset name {offline_trajectory_name} \n"
-              f"target policy name {self.get_policy_name(*target_policy_parameter)}")
 
-        data_file_path = os.path.join(folder_path,offline_trajectory_name)
+        data_file_path = os.path.join(folder_path, offline_trajectory_name)
+        target_env_list, target_env_name_list = self.get_env_list(target_env_parameter_map)
+
         if self.whether_file_exists(data_file_path):
-            if not self.find_prefix_suffix(folder_path,f"{self.get_policy_name(*target_policy_parameter)}_{offline_trajectory_name[:-4]}","q.pkl"):
-                check_saving_path = os.path.join(folder_path,f"{self.get_policy_name(*target_policy_parameter)}_{offline_trajectory_name[:-4]}q")
-                self.save_as_pkl(check_saving_path,[1])
-                for i in range(len(trajectory)):
-                    total_len = len(trajectory[i]["observations"])
-                    states = trajectory[i]["observations"]
-                    actions = trajectory[i]["actions"]
+            trajectory = self.load_from_pkl(data_file_path[:-4])
+            total_leng = sum(traj["total_state_number"] for traj in trajectory)
 
-                    next_states = trajectory[i]["next_steps"]
-                    next_actions = policy.predict(np.array(next_states))
-                    for j in range(0, total_len, batch_size):
-                        actual_batch_size = min(batch_size, total_len - i)
-                        state_action_policy_env_pairs = (
-                            states[i:i + total_len], actions[i:i + actual_batch_size], policy,
-                            env_copy_list[:actual_batch_size])
-                        batch_results = self.run_simulation(state_action_policy_env_pairs,max_timestep=max_timestep,gamma=gamma)
+            print("len total : ", total_leng)
 
-                        next_state_action_policy_env_pairs = (next_states[i:i+total_len],actions[i:i+total_len],policy,
-                                                              env_copy_list[:actual_batch_size])
-                        prime_results = self.run_simulation(next_state_action_policy_env_pairs,max_timestep=max_timestep,gamma=gamma)
+            for h, target_env_name in enumerate(target_env_name_list):
+                prifix = f"{target_env_name}_Policy_{self.get_policy_name(*target_policy_parameter)}_{offline_trajectory_name[:-4]}q.pkl"
+                dudu = os.path.join(folder_path, prifix)
 
-                        qa_results.extend(batch_results)
-                        q_prime_results.extend(prime_results)
-                self.delete_as_pkl(check_saving_path)
-                target_policy_name = self.get_policy_name(*target_policy_parameter)
-                qa_saving_name = f"{target_policy_name}_{offline_trajectory_name[:-4]}_q"
-                qa_save_path = os.path.join("Offline_data",data_env_name,behaviroal_policy_name,qa_saving_name)
+                if not (self.whether_file_exists(dudu) or self.whether_file_exists(dudu[:-5] + "_q.pkl")):
+                    print("enter not exists")
+                    env_copy_list = self.create_deep_copies(env=target_env_list[h], batch_size=batch_size)
+                    check_saving_path = os.path.join(folder_path, prifix)
+                    self.save_as_pkl(check_saving_path, [1])
 
-                prime_saving_name = f"{target_policy_name}_{offline_trajectory_name[:-4]}_q_prime"
-                prime_saving_path = os.path.join("Offline_data",data_env_name,behaviroal_policy_name,prime_saving_name)
-                self.save_as_pkl(qa_save_path,qa_results)
-                self.save_as_txt(qa_save_path,qa_results)
+                    qa_results = []
+                    q_prime_results = []
 
-                self.save_as_pkl(prime_saving_path,q_prime_results)
-                self.save_as_txt(prime_saving_path,q_prime_results)
+                    for traj in trajectory:
+                        total_len = len(traj["observations"])
+                        states = traj["observations"]
+                        actions = traj["actions"]
+                        next_states = traj["next_steps"]
+                        next_actions = policy.predict(np.array(next_states))
 
-                print(f"finish train q(s, a) , q (s', pi(a)) for env {data_env_name} \n "
-                      f"behaviroal policy {behaviroal_policy_name} \n"
-                      f"dataset name {offline_trajectory_name} \n"
-                      f"target policy name {self.get_policy_name(*target_policy_parameter)}")
-            else:
-                print(f" q(s, a) , q (s', pi(a)) for env {data_env_name} \n "
-                      f"behaviroal policy {behaviroal_policy_name} \n"
-                      f"dataset name {offline_trajectory_name} \n"
-                      f"target policy name {self.get_policy_name(*target_policy_parameter)} \n"
-                      f"already Exist")
+                        for j in range(0, total_len, batch_size):
+                            actual_batch_size = min(batch_size, total_len - j)
+                            state_action_policy_env_pairs = (
+                                states[j:j + actual_batch_size], actions[j:j + actual_batch_size], policy,
+                                env_copy_list[:actual_batch_size])
+                            batch_results = self.run_simulation(state_action_policy_env_pairs,
+                                                                max_timestep=max_timestep, gamma=gamma)
+
+                            next_state_action_policy_env_pairs = (
+                                next_states[j:j + actual_batch_size], next_actions[j:j + actual_batch_size], policy,
+                                env_copy_list[:actual_batch_size])
+                            prime_results = self.run_simulation(next_state_action_policy_env_pairs,
+                                                                max_timestep=max_timestep, gamma=gamma)
+
+                            qa_results.extend(batch_results)
+                            q_prime_results.extend(prime_results)
+
+                    target_policy_name = self.get_policy_name(*target_policy_parameter)
+
+                    qa_saving_name = f"{target_env_name}_Policy_{target_policy_name}_{offline_trajectory_name[:-4]}_q"
+                    qa_save_path = os.path.join("Offline_data", data_env_name, behaviroal_policy_name, qa_saving_name)
+
+                    prime_saving_name = f"{target_env_name}_Policy_{target_policy_name}_{offline_trajectory_name[:-4]}_q_prime"
+                    prime_saving_path = os.path.join("Offline_data", data_env_name, behaviroal_policy_name,
+                                                     prime_saving_name)
+
+                    self.delete_as_pkl(check_saving_path)
+                    self.save_as_pkl(qa_save_path, np.array(qa_results))
+                    self.save_as_pkl(prime_saving_path, np.array(q_prime_results))
+
+                    print(f"finish train q(s, a) , q (s', pi(a)) for env {target_env_name_list[h]} \n "
+                          f"behaviroal policy {behaviroal_policy_name} \n"
+                          f"dataset name {offline_trajectory_name} \n"
+                          f"target policy name {self.get_policy_name(*target_policy_parameter)} \n \n")
+
+                else:
+                    print(f" q(s, a) , q (s', pi(a)) for env {target_env_name_list[h]} \n "
+                          f"behaviroal policy {behaviroal_policy_name} \n"
+                          f"dataset name {offline_trajectory_name} \n"
+                          f"target policy name {self.get_policy_name(*target_policy_parameter)} \n"
+                          f"already Exist \n \n")
 
         else:
             print(f"  Data file: env {data_env_name} \n "
                   f"behaviroal policy {behaviroal_policy_name} \n"
                   f"dataset name {offline_trajectory_name} "
-                  f"does not exist \n")
+                  f"does not exist \n \n")
 
     def train_whole_qa(self, offline_trajectory_name_list, behavioral_env_parameter_map,
                        behavioral_policy_parameter_map, target_env_parameter_map,
@@ -1360,101 +1426,187 @@ class Hopper_edi(ABC):
 
         for behavioral_param, target_param, trajectory_name in all_combinations:
             behavioral_env_name = behavioral_env_name_list[behavioral_param[0]]
-            behavioral_input = behavioral_param.copy()
+            behavioral_input = copy.deepcopy(behavioral_param)
             behavioral_input[0] = behavioral_env_name
 
             target_env_name = target_env_name_list[target_param[0]]
-            target_input = target_param.copy()
+            target_input = copy.deepcopy(target_param)
             target_input[0] = target_env_name
 
-            print("target: ", target_input[0])
 
             self.train_qa(offline_trajectory_name=trajectory_name,
                           data_env_name=behavioral_env_name,
                           behaviroal_policy_parameter=behavioral_input,
+                          target_env_parameter_map = target_env_parameter_map,
                           target_policy_parameter=target_input,
                           batch_size=batch_size,
                           max_timestep=max_timestep,
                           gamma=gamma)
-    # def train_whole_qa(self,offline_trajectory_name_list,behavioral_env_parameter_map,
-    #                    behavioral_policy_parameter_map,target_env_parameter_map,
-    #                    target_parameter_map,batch_size=100,max_timestep=1000,
-    #                    gamma=0.99):
-    #     behavioral_env_list, behavioral_env_name_list = self.get_env_list(behavioral_env_parameter_map)
-    #     behavioral_parameter = self.generate_policy_parameter_tuples(behavioral_env_name_list, behavioral_policy_parameter_map)
-    #
-    #     target_env_list,target_env_name_list = self.get_env_list(target_env_parameter_map)
-    #     target_parameter = self.generate_policy_parameter_tuples(target_env_name_list,target_parameter_map)
-    #     for i in range(len(behavioral_parameter)):
-    #         behavioral_env_name = behavioral_env_name_list[behavioral_parameter[i][0]]
-    #
-    #         behavioral_input = behavioral_parameter[i].copy()
-    #         behavioral_input[0] = behavioral_env_name_list[behavioral_parameter[i][0]]
-    #         for h in range(len(target_parameter)):
-    #             print("target : ",target_parameter[h][0])
-    #             target_env_name = target_env_name_list[target_parameter[h][0]]
-    #             target_input = target_parameter[h].copy()
-    #             target_input[0] = target_env_name
-    #
-    #             for j in range(len(offline_trajectory_name_list)):
-    #                 self.train_qa(offline_trajectory_name=offline_trajectory_name_list[j],
-    #                               data_env_name=behavioral_env_name,
-    #                               behaviroal_policy_parameter=behavioral_input,
-    #                               target_policy_parameter = target_input,
-    #                               batch_size = batch_size,
-    #                               max_timestep = max_timestep,
-    #                               gamma=gamma)
+
+    def train_one_qa(self, environment,environment_name,dataset_path,  target_policy_parameter, batch_size=100, max_timestep=1000,
+                     gamma=0.99):
+        trajectory = self.load_from_pkl(dataset_path[:-4])
+        qa_results = []
+        q_prime_results = []
+        policy = self.get_policy(*target_policy_parameter)
+
+        env_name_parts = dataset_path.split(os.sep)
+        data_env_name = env_name_parts[1]
+        behavioral_policy_name = env_name_parts[2]
+        offline_trajectory_name = env_name_parts[3]
+
+        env_copy_list = self.create_deep_copies(env=environment, batch_size=batch_size)
+
+        folder_path = os.path.join("Offline_data", data_env_name, behavioral_policy_name)
+        self.create_folder(folder_path)
+
+        print(f"start train q(s, a) , q (s', pi(a)) for env {environment_name} \n"
+              f"behaviroal policy {behavioral_policy_name} \n"
+              f"dataset name {offline_trajectory_name} \n"
+              f"target policy name {self.get_policy_name(*target_policy_parameter)}")
+
+        for i in range(len(trajectory)):
+            total_len = len(trajectory[i]["observations"])
+            states = trajectory[i]["observations"]
+            actions = trajectory[i]["actions"]
+
+            next_states = trajectory[i]["next_steps"]
+            next_actions = policy.predict(np.array(next_states))
+            for j in range(0, total_len, batch_size):
+                actual_batch_size = min(batch_size, total_len - j)
+                state_action_policy_env_pairs = (
+                    states[j:j + actual_batch_size], actions[j:j + actual_batch_size], policy,
+                    env_copy_list[:actual_batch_size])
+                batch_results = self.run_simulation(state_action_policy_env_pairs, max_timestep=max_timestep,
+                                                    gamma=gamma)
+
+                next_state_action_policy_env_pairs = (
+                next_states[j:j + actual_batch_size], next_actions[j:j + actual_batch_size], policy,
+                env_copy_list[:actual_batch_size])
+                prime_results = self.run_simulation(next_state_action_policy_env_pairs, max_timestep=max_timestep,
+                                                    gamma=gamma)
+
+                qa_results.extend(batch_results)
+                q_prime_results.extend(prime_results)
+
+        target_policy_name = self.get_policy_name(*target_policy_parameter)
+        qa_saving_name = f"{environment_name}_Policy_{target_policy_name}_{offline_trajectory_name[:-4]}_q"
+        qa_save_path = os.path.join("Offline_data", data_env_name, behavioral_policy_name, qa_saving_name)
+
+        prime_saving_name = f"{environment_name}_Policy_{target_policy_name}_{offline_trajectory_name[:-4]}_q_prime"
+        prime_saving_path = os.path.join("Offline_data", data_env_name, behavioral_policy_name, prime_saving_name)
+
+        self.save_as_pkl(qa_save_path, qa_results)
+        self.save_as_pkl(prime_saving_path, q_prime_results)
+
+
+        print(f"finish train q(s, a) , q (s', pi(a)) for env {data_env_name} \n"
+              f"behaviroal policy {behavioral_policy_name} \n"
+              f"dataset name {offline_trajectory_name} \n"
+              f"target policy name {self.get_policy_name(*target_policy_parameter)}")
+    def get_data_q(self,environment_name,algorithm_trajectory_list,target_env_parameter_map,target_policy_parameter_map):
+        parameter_tuples = self.generate_policy_parameter_tuples([environment_name], algorithm_trajectory_list[0])
+        q_list = []
+        q_prime_list = []
+        data = []
+        target_env_list, target_env_name_list = self.get_env_list(target_env_parameter_map)
+        target_tuples = self.generate_policy_parameter_tuples(target_env_name_list,target_policy_parameter_map)
+        input_target_tuple = copy.deepcopy(target_tuples)
+        target_policy_name_list = []
+
+        for hi in range(len(target_tuples)):
+            for _ in range(len(target_env_list)):
+                q_list.append([])
+                q_prime_list.append([])
+            current_name = target_env_name_list[target_tuples[hi][0]]
+            input_target_tuple[hi][0] = current_name
+
+        for i in range(len(parameter_tuples)):
+            input = parameter_tuples[i].copy()
+            input[0] = environment_name
+            current_policy_name = self.get_policy_name(*input)
+            target_policy_name_list.append(current_policy_name)
+            for j in range(len(algorithm_trajectory_list[1])):
+                current_offline_data_name = algorithm_trajectory_list[1][j]
+                current_offline_data_path = os.path.join("Offline_data",environment_name,current_policy_name,current_offline_data_name)
+                if i == 0  and j == 0:
+                    data = self.load_from_pkl(current_offline_data_path[:-4])
+                else:
+                    traj = self.load_from_pkl(current_offline_data_path[:-4])
+                    for i in range(len(traj)):
+                        data.append(traj[i])
+                for h in range(len(input_target_tuple)):
+                    for u in range(len(target_env_name_list)):
+                        current_target_policy_name = self.get_policy_name(*input_target_tuple[h])
+                        target_q_name = f"{target_env_name_list[u]}_Policy_{current_target_policy_name}_{current_offline_data_name[:-4]}_q"
+                        target_prime_name = target_q_name + "_prime"
+                        target_q_path = os.path.join("Offline_data", environment_name, current_policy_name,
+                                                     target_q_name)
+                        target_prime_path = os.path.join("Offline_data", environment_name, current_policy_name,
+                                                         target_prime_name)
+                        target_environment_name = copy.deepcopy(target_env_name_list[u])
+                        target_environment = copy.deepcopy(target_env_list[u])
+                        if not self.whether_file_exists(target_q_path + ".pkl"):
+                            self.train_one_qa(environment=target_environment,environment_name=target_environment_name,dataset_path=current_offline_data_path,
+                                              target_policy_parameter=input_target_tuple[h])
+                            q_list[h*len(target_env_name_list)+u].extend(self.load_from_pkl(target_q_path))
+                            q_prime_list[h*len(target_env_name_list)+u].extend(self.load_from_pkl(target_prime_path))
+                        else:
+                            print("targetq   length : ",len(self.load_from_pkl(target_q_path)))
+                            q_list[h*len(target_env_name_list)+u].extend(self.load_from_pkl(target_q_path))
+                            q_prime_list[h*len(target_env_name_list)+u].extend(self.load_from_pkl(target_prime_path))
+        return q_list,q_prime_list,data,target_policy_name_list
 
 
 
 
-    def get_data_q(self,behavioral_parameter_list,target_env_parameter_map,target_policy_parameter_map):
-        '''
 
-        :param behavioral_parameter_list:
-            element: [ behavioral environment, behavioral_policy_name, offline_dataset_name]
-        :param target_env_parameter_map:
-        :param target_policy_parameter_map:
-        :return:
-        '''
-        q_sa = []
-        q_prime = []
-        dataset = []
-        env_list, env_name_list = self.get_env_list(target_env_parameter_map)
-        target_parameter_list = self.generate_policy_parameter_tuples(env_name_list, target_policy_parameter_map)
-        for i in range(len(behavioral_parameter_list)):
-            current_behavioral_env_name,current_behavioral_policy_name,current_behavioral_offline_dataset_name = behavioral_parameter_list[i][0],behavioral_parameter_list[i][1],behavioral_parameter_list[i][2]
-            dataset_path = os.path.join("Offline_data",current_behavioral_env_name,current_behavioral_policy_name,current_behavioral_offline_dataset_name)
-            if self.whether_file_exists(dataset_path):
-                dataset.extend(self.load_from_pkl(dataset_path[:-4]))
 
-            else:
-                print(f"dataset {dataset_path} does not exist. go to next one")
 
-    def get_ranking(self,ranking_method_name,behavioral_parameter_list,target_env_parameter_map,target_policy_parameter_map):
+    #true_env_parameter_map, [behaviroal_map, [offline_trajectory_name]]
+    def get_ranking(self, experiment_name, ranking_method_name, true_env_name,
+                    algorithm_trajectory_list,
+                    target_env_parameter_map, target_policy_parameter_map,gamma=0.99):
         Bvft_folder = "Bvft_Records"
-
         Q_result_folder = "Exp_result"
-        folder_name = f"{self.env_name_list[env_index]}"
-        Q_saving_folder = os.path.join(Q_result_folder,folder_name)
-        self.create_folder(Q_saving_folder)
-        method_folder_name = f"target_{self.target_trajectory_num}_trajectories_{self.target_traj_sa_number}_sa_normal_{self.trajectory_num}_trajectory_{self.traj_sa_number}_sa_{self.self_method_name}"
-        method_folder_name = os.path.join(Q_saving_folder,method_folder_name)
-        self.create_folder(method_folder_name)
-        for j in range(len(self.policy_list)):
-            policy_name = self.policy_name_list[j]
-            Q_result_saving_path = os.path.join(method_folder_name,policy_name)
-            q_list = []
-            r_plus_vfsp = []
-            for i in range(len(self.env_list)):
-                q_list.append(self.q_sa[(i)*len(self.policy_list)+(j+1)-1])
-                r_plus_vfsp.append(self.r_plus_vfsp[(i)*len(self.policy_list)+(j+1)-1])
-            result = self.select_Q(q_list=q_list,r_plus_vfsp=r_plus_vfsp,policy_namei=policy_name)
+
+        exp_folder = experiment_name
+        parameter_path = os.path.join(Q_result_folder,exp_folder,"parameter")
+        self.create_folder(os.path.join(Q_result_folder,exp_folder))
+
+        self.save_as_pkl(parameter_path,[true_env_name,algorithm_trajectory_list,target_env_parameter_map,target_policy_parameter_map])
+        self.save_as_txt(parameter_path, [true_env_name, algorithm_trajectory_list, target_env_parameter_map,
+                                          target_policy_parameter_map])
+
+        target_env_list, target_env_name_list = self.get_env_list(target_env_parameter_map)
+
+        saving_folder = os.path.join(Q_result_folder,exp_folder,ranking_method_name)
+        self.create_folder(saving_folder)
+
+        q_list,q_prime_list,data,target_policy_name_list = self.get_data_q(environment_name=true_env_name,
+                                                   algorithm_trajectory_list=algorithm_trajectory_list,
+                                                   target_env_parameter_map=target_env_parameter_map,
+                                                   target_policy_parameter_map=target_policy_parameter_map)
+
+
+        for j in range(len(target_policy_name_list)):
+            policy_name = target_policy_name_list[j]
+            Q_result_saving_path = os.path.join(saving_folder, policy_name)
+            q_sa = []
+            q_prime = []
+            for h in range(len(target_env_name_list)):
+                q_sa.append(np.array(q_list[j*len(target_env_name_list)+h]))
+                q_prime.append(np.array(q_prime_list[j*len(target_env_name_list)+h]))
+
+            env = target_env_list[0]
+            result = self.select_Q(q_list=q_sa, q_prime=q_prime, policy_namei=policy_name,dataset=data,env=env,gamma=gamma)
             index = np.argmin(result)
-            save_list = [self.env_name_list[index]]
+            save_list = [target_env_name_list[index]]
             self.save_as_txt(Q_result_saving_path, save_list)
             self.save_as_pkl(Q_result_saving_path, save_list)
             self.delete_files_in_folder(Bvft_folder)
+
+
 
 
 
