@@ -770,8 +770,6 @@ class Hopper_edi(ABC):
         return precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, plot_name_list
     def get_NMSE(self,experiment_name,algorithm_name,normalization_factor):
         print("Plot FQE MSE")
-
-
         policy_folder = os.path.join("Policy_operation","Policy_trained")
         self.create_folder(policy_folder)
 
@@ -787,21 +785,25 @@ class Hopper_edi(ABC):
         current_target_env_list, current_target_env_name_list = self.get_env_list(para_list[2])
         current_target_policy_parameters = self.generate_policy_parameter_tuples(current_target_env_name_list,
                                                                                  para_list[3])
-
         true_env_name = para_list[0]
         policy_performance_env_folder = os.path.join(policy_performance_folder, true_env_name)
 
         target_policy_folder = os.path.join("Exp_result",experiment_name,algorithm_name)
 
-        for policy_file_name in os.listdir(target_policy_folder):
-            policy_name = policy_file_name[:-4]
-            env_path = os.path.join(target_policy_folder,policy_name)
+        true_policy_parameters = self.generate_policy_parameter_tuples([true_env_name],para_list[1])
+        for i in range(len(true_policy_parameters)):
+            input_tup = copy.deepcopy(true_policy_parameters[i])
+            input_tup[0] = self.get_env(true_env_name)
+            true_policy_name = self.get_policy_name(*input_tup)
+            for policy_file_name in os.listdir(target_policy_folder):
+                policy_name = policy_file_name[:-4]
+                env_path = os.path.join(target_policy_folder, policy_name)
 
-            current_target_env = self.load_from_pkl(env_path)
-            prediction_list.append(self.load_policy_performance(policy_name,current_target_env))
-            true_list.append(self.load_policy_performance(policy_name,true_env_name))
+                current_target_env = self.load_from_pkl(env_path)
+                prediction_list.append(self.load_policy_performance(policy_name, current_target_env))
+                true_list.append(self.load_policy_performance(true_policy_name, true_env_name))
         NMSE, standard_error = self.normalized_mean_square_error_with_error_bar(true_list, prediction_list,
-                                                                           normalization_factor)
+                                                                                normalization_factor)
         return NMSE, standard_error
 
     ##true_env_name,algorithm_trajectory_list,target_env_parameter_map,target_policy_parameter_map
@@ -815,7 +817,7 @@ class Hopper_edi(ABC):
                 repo_name = self_data_saving_path[j]
                 experiment_name = experiment_name_list[i]
                 NMSE,standard_error = self.get_NMSE(experiment_name=experiment_name,
-                                                    algorithm_name = repo_name)
+                                                    algorithm_name = repo_name,normalization_factor=normalization_factor)
                 means.append(NMSE)
                 SE.append(standard_error)
                 labels.append(self_data_saving_path[j]+"_"+experiment_name_list[i])
