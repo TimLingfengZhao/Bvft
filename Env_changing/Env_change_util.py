@@ -605,6 +605,7 @@ class Hopper_edi(ABC):
             os.makedirs(folder_path)
 
         group_width = 1.0
+        print(labels)
         n_bars = len(labels)
         bar_width = group_width / n_bars
 
@@ -774,7 +775,7 @@ class Hopper_edi(ABC):
         self.create_folder(policy_folder)
 
         policy_performance_folder = os.path.join("Policy_operation","Policy_performance")
-        policy_total_dictionary = self.load_from_pkl(policy_performance_folder)
+        self.create_folder(policy_performance_folder)
 
         true_list = []
         prediction_list = []
@@ -790,17 +791,22 @@ class Hopper_edi(ABC):
 
         target_policy_folder = os.path.join("Exp_result",experiment_name,algorithm_name)
 
-        true_policy_parameters = self.generate_policy_parameter_tuples([true_env_name],para_list[1])
+        true_policy_parameters = self.generate_policy_parameter_tuples([true_env_name],para_list[1][0])
+
         for i in range(len(true_policy_parameters)):
             input_tup = copy.deepcopy(true_policy_parameters[i])
-            input_tup[0] = self.get_env(true_env_name)
+            input_tup[0] = true_env_name
+            # print(input_tup)
+            # sys.exit()
             true_policy_name = self.get_policy_name(*input_tup)
             for policy_file_name in os.listdir(target_policy_folder):
                 policy_name = policy_file_name[:-4]
                 env_path = os.path.join(target_policy_folder, policy_name)
 
-                current_target_env = self.load_from_pkl(env_path)
+                current_target_env = self.load_from_pkl(env_path)[0]
                 prediction_list.append(self.load_policy_performance(policy_name, current_target_env))
+                # print(true_env_name)
+                # print(true_policy_name)
                 true_list.append(self.load_policy_performance(true_policy_name, true_env_name))
         NMSE, standard_error = self.normalized_mean_square_error_with_error_bar(true_list, prediction_list,
                                                                                 normalization_factor)
