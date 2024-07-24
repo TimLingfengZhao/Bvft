@@ -612,7 +612,8 @@ class Hopper_edi(ABC):
         indices = np.arange(1)
 
         fig, ax = plt.subplots()
-
+        print(len(colors))
+        print(len(labels))
         for i in range(n_bars):
             bar_x_positions = indices - (group_width - bar_width) / 2 + i * bar_width
 
@@ -826,10 +827,11 @@ class Hopper_edi(ABC):
                                                     algorithm_name = repo_name,normalization_factor=normalization_factor)
                 means.append(NMSE)
                 SE.append(standard_error)
-                labels.append(self_data_saving_path[j]+"_"+experiment_name_list[i])
+                if i == 0 :
+                    labels.append(self_data_saving_path[j])
         name_list = ['hopper-v4']
-
-        Figure_saving_path = os.path.join("Exp_result", "K_statistics",saving_folder_name,"Figure_6L_plot")
+        self.create_folder(os.path.join("Exp_result", "K_statistics",saving_folder_name,"Figure_6R_plot"))
+        Figure_saving_path = os.path.join("Exp_result", "K_statistics",saving_folder_name,"Figure_6R_plot")
         #
         colors = self.generate_unique_colors(len(self_data_saving_path))
         figure_name = 'Normalized e MSE of FQE min max'
