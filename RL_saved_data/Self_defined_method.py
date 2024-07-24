@@ -48,6 +48,7 @@ class Bvft_poli(policy_select):
         self.save_as_txt(policy_saving_path,Bvft_final_resolution_loss)
         self.draw_Bvft_resolution_loss_graph(Bvft_final_resolution_loss, self.FQE_saving_step_list, resolution_list,
                                         save_folder_name, line_name_list, group_list)
+
         return less_index_list
 class Bvft_zero(policy_select):
     def select_Q(self,q_functions,q_name_functions,policy_name_listi,q_sa,r_plus_vfsp):

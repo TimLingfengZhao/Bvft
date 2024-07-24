@@ -1,7 +1,7 @@
 import sys
 from Env_change_util import *
 from Math_util import *
-from top_k_cal import *
+
 from Run_hopper_parameter import *
 
 if __name__ == '__main__':
@@ -14,9 +14,9 @@ if __name__ == '__main__':
                             target_policy_training_parameter_map=behavioral_policy_map)
 
     # 第二步：保存在各个环境策略性能
-    hopper_exp.train_policy_performance(env_parameter_map=env_parameter_map, policy_parameter_map=policy_parameter_map,
+    hopper_exp.train_policy_performance(evaluate_env_parameter_map=true_env_parameter_map,policy_env_parameter_map=env_parameter_map, policy_parameter_map=policy_parameter_map,
                                         policy_evaluation_parameter_map=policy_evaluation_parameter_map)
-    hopper_exp.train_policy_performance(env_parameter_map=env_parameter_map, policy_parameter_map=behavioral_policy_map,
+    hopper_exp.train_policy_performance(evaluate_env_parameter_map=true_env_parameter_map,policy_env_parameter_map=env_parameter_map, policy_parameter_map=behavioral_policy_map,
                                         policy_evaluation_parameter_map=policy_evaluation_parameter_map)
 
     # 第三步：生成离线数据
@@ -41,15 +41,24 @@ if __name__ == '__main__':
     true_env_list, true_env_name_list = hopper_exp.get_env_list(true_env_parameter_map)
     experiment_name_list = []
     experiment_dataset_name = "experiment"
-    for i in range(len(true_env_name_list)):
-        hopper_exp.get_ranking(experiment_name=str(i) + "_" + experiment_dataset_name,
-                               ranking_method_name=ranking_method_name,
-                               algorithm_trajectory_list=algorithm_trajectory_list, true_env_name=true_env_name_list[i],
-                               target_env_parameter_map=env_parameter_map,
-                               target_policy_parameter_map=policy_parameter_map, gamma=gamma)
-        experiment_name_list.append(str(i) + "_" + experiment_dataset_name)
+    ranking_method_name_list = ["Bvft_","Bvft_zero","Env_zero","Env_one","Env_two","Bvft_abs","arg_i_max_j"]
+    for ranking_method_name in ranking_method_name_list:
+        hopper_exp = globals()[ranking_method_name]()
+        for i in range(len(true_env_name_list)):
+            hopper_exp.get_ranking(experiment_name=str(i) + "_" + experiment_dataset_name,
+                                   ranking_method_name=ranking_method_name,
+                                   algorithm_trajectory_list=algorithm_trajectory_list, true_env_name=true_env_name_list[i],
+                                   target_env_parameter_map=env_parameter_map,
+                                   target_policy_parameter_map=policy_parameter_map, gamma=gamma)
+            experiment_name_list.append(str(i) + "_" + experiment_dataset_name)
 
     # 第六步：绘制图表 k precision 和 k regret
     #experiment name list:想要添加的饰演名称 在Exp_result 文件夹里面选择
     hopper_exp.draw_figure_6L(saving_folder_name="experiment_3env_3policy", experiment_name_list=experiment_name_list,
-                              method_name_list=["BVFT"], k=k, **policy_evaluation_parameter_map)
+                              method_name_list=ranking_method_name_list, k=k, **policy_evaluation_parameter_map)
+
+    #绘制figure 6R
+    hopper_exp.draw_figure_6R(saving_folder_name="experiment_3env_3policy",
+                              experiment_name_list=experiment_name_list,
+                              method_name_list=ranking_method_name_list,
+                              normalization_factor = 0)

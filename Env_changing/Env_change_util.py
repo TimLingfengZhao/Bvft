@@ -138,249 +138,7 @@ class RandomPolicy:
         return np.array([self.array for _ in range(len(states))])
 
 
-class CustomDataLoader:
-    def __init__(self, dataset):
-        self.dataset = dataset
-        self.current = 0
-        self.size = 0
-        self.length = len(dataset)
-        for i in range(len(dataset)):
-            self.size += len(dataset[i]["actions"])
 
-    def get_iter_length(self, iteration_number):
-        return len(self.dataset[iteration_number]["observations"])
-
-    def get_state_shape(self):
-        first_state = self.dataset[0]["observations"]
-        return np.array(first_state).shape
-
-    def sample(self, iteration_number):
-        dones = np.array(self.dataset[iteration_number]["dones"])
-        states = np.array(self.dataset[iteration_number]["observations"])
-        actions = np.array(self.dataset[iteration_number]["actions"])
-        padded_next_states = np.array(self.dataset[iteration_number]["next_steps"])
-        rewards = np.array(self.dataset[iteration_number]["rewards"])
-
-        return states, actions, padded_next_states, rewards, dones
-
-
-def delete_files_in_folder(folder_path):
-    if not os.path.exists(folder_path):
-        print("The folder does not exist.")
-        return
-    for filename in os.listdir(folder_path):
-        file_path = os.path.join(folder_path, filename)
-        try:
-            if os.path.isfile(file_path) or os.path.islink(file_path):
-                os.unlink(file_path)
-                print(f"Deleted {file_path}")
-            elif os.path.isdir(file_path):
-                print(f"Skipping directory {file_path}")
-        except Exception as e:
-            print(f'Failed to delete {file_path}. Reason: {e}')
-
-class BvftRecord:
-    def __init__(self):
-        self.resolutions = []
-        self.losses = []
-        self.loss_matrices = []
-        self.group_counts = []
-        self.avg_q = []
-        self.optimal_grouping_skyline = []
-        self.e_q_star_diff = []
-        self.bellman_residual = []
-        self.ranking = []
-
-    def record_resolution(self, resolution):
-        self.resolutions.append(resolution)
-
-    def record_ranking(self,ranking):
-        self.ranking = ranking
-
-    def record_losses(self, max_loss):
-        self.losses.append(max_loss)
-
-    def record_loss_matrix(self, matrix):
-        self.loss_matrices.append(matrix)
-
-    def record_group_count(self, count):
-        self.group_counts.append(count)
-
-    def record_avg_q(self, avg_q):
-        self.avg_q.append(avg_q)
-
-    def record_optimal_grouping_skyline(self, skyline):
-        self.optimal_grouping_skyline.append(skyline)
-
-    def record_e_q_star_diff(self, diff):
-        self.e_q_star_diff = diff
-
-    def record_bellman_residual(self, br):
-        self.bellman_residual = br
-
-    def save(self, directory="Bvft_Records", file_prefix="BvftRecord_"):
-        os.makedirs(directory, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = os.path.join(directory, f"{file_prefix}.pkl")
-        with open(filename, "wb") as file:
-            pickle.dump(self, file)
-        print(f"Record saved to {filename}")
-        return filename
-
-    @staticmethod
-    def load(filepath):
-        with open(filepath, "rb") as file:
-            return pickle.load(file)
-    def summary(self):
-        pass
-class BVFT_(object):
-    def __init__(self, q_sa, r_plus_vfsp, data, gamma, rmax, rmin,file_name_pre, record: BvftRecord = BvftRecord(), q_type='torch_actor_critic_cont',
-                 verbose=False, bins=None, data_size=5000,trajectory_num=276):
-        self.data = data                                                        #Data D
-        self.gamma = gamma                                                      #gamma
-        self.res = 0                                                            #\epsilon k (discretization parameter set)
-        self.q_sa_discrete = []                                                 #discreate q function
-        self.q_to_data_map = []                                                 # to do
-        self.q_size = len(q_sa)                                          #how many (s,a) pairs (q function length)
-        self.verbose = verbose                                                  #if true, print log
-        if bins is None:
-            bins = [2,  4, 5,  7, 8,  10, 11, 12, 16, 19, 22,23]
-        self.bins = bins                                                        #used for discretizing Q-values
-        self.q_sa = q_sa                                                    #all trajectory q s a
-        self.r_plus_vfsp = r_plus_vfsp                                                 #reward
-                                      #all q functions
-        self.record = record
-        self.file_name = file_name_pre
-        self.n = data_size
-
-
-        if self.verbose:
-            print(F"Data size = {self.n}")
-        self.record.avg_q = [np.sum(qsa) for qsa in self.q_sa]
-        self.vmax = np.max(self.q_sa)
-        self.vmin = np.min(self.q_sa)
-
-
-    def discretize(self):                                       #discritization step
-        self.q_sa_discrete = []
-        self.q_to_data_map = []
-        bins = int((self.vmax - self.vmin) / self.res) + 1
-
-        for q in self.q_sa:
-            discretized_q = np.digitize(q, np.linspace(self.vmin, self.vmax, bins), right=True) #q belong to which interval
-            self.q_sa_discrete.append(discretized_q)
-            q_to_data_map = {}
-            for i, q_val in enumerate(discretized_q):
-                if q_val not in q_to_data_map:
-                    q_to_data_map[q_val] = i
-                else:
-                    if isinstance(q_to_data_map[q_val], int):
-                        q_to_data_map[q_val] = [q_to_data_map[q_val]]
-                    q_to_data_map[q_val].append(i)
-            self.q_to_data_map.append(q_to_data_map)                      #from q value to the position it in discretized_q
-
-    def get_groups(self, q1, q2):
-        q1_dic = self.q_to_data_map[q1]
-        q2_inds, q2_dic = self.q_sa_discrete[q2], self.q_to_data_map[q2] #dic: indices from q value in the map
-        groups = []
-        for key in q1_dic:
-            if isinstance(q1_dic[key], list):
-                q1_list = q1_dic[key]
-                set1 = set(q1_list)
-                for p1 in q1_list:
-                    if p1 in set1 and isinstance(q2_dic[q2_inds[p1]], list):
-                        set2 = set(q2_dic[q2_inds[p1]])
-                        intersect = set1.intersection(set2)              #intersection
-                        set1 = set1.difference(intersect)                #in set1 but not in intersection
-                        if len(intersect) > 1:
-                            groups.append(list(intersect))               #piecewise constant function
-
-        return groups
-
-
-
-    def compute_loss(self, q1, groups):                                 #
-        Tf = np.array(self.r_plus_vfsp[q1].copy())
-
-        for group in groups:
-            Tf[group] = np.mean(Tf[group])
-        diff = self.q_sa[q1] - Tf
-        return np.sqrt(np.mean(diff ** 2))  #square loss function
-
-    def get_bins(self, groups):
-        group_sizes = [len(g) for g in groups]                                  #group size
-        bin_ind = np.digitize(group_sizes, self.bins, right=True)               #categorize each group size to bins
-        percent_bins = np.zeros(len(self.bins) + 1)    #total group size
-        count_bins = np.zeros(len(self.bins) + 1)      #count of groups in each bin
-        for i in range(len(group_sizes)):
-            count_bins[bin_ind[i] + 1] += 1
-            percent_bins[bin_ind[i] + 1] += group_sizes[i]
-        percent_bins[0] = self.n - np.sum(percent_bins)
-        count_bins[0] = percent_bins[0]    #groups that do not fit into any of predefined bins
-        return percent_bins, count_bins
-
-    def run(self, resolution=1e-2):
-        self.res = resolution
-        if self.verbose:
-            print(F"Being  discretizing outputs of Q functions on batch data with resolution = {resolution}")
-        self.discretize()
-        if self.verbose:
-            print("Starting pairwise comparison")
-        percent_histos = []
-        count_histos = []
-        group_count = []
-        loss_matrix = np.zeros((self.q_size, self.q_size))
-        for q1 in range(self.q_size):
-            for q2 in range(q1, self.q_size):
-                groups = self.get_groups(q1, q2)
-                # percent_bins, count_bins = self.get_bins(groups)
-                # percent_histos.append(percent_bins)
-                # count_histos.append(count_bins)
-                group_count.append(len(groups))
-
-                loss_matrix[q1, q2] = self.compute_loss(q1, groups)
-                # if self.verbose:
-                #     print("loss |Q{}; Q{}| = {}".format(q1, q2, loss_matrix[q1, q2]))
-
-                if q1 != q2:
-                    loss_matrix[q2, q1] = self.compute_loss(q2, groups)
-                    # if self.verbose:
-                    #     print("loss |Q{}; Q{}| = {}".format(q2, q1, loss_matrix[q2, q1]))
-
-        # average_percent_bins = np.mean(np.array(percent_histos), axis=0) / self.n
-        # average_count_bins = np.mean(np.array(count_histos), axis=0)
-        average_group_count = np.mean(group_count)
-        if self.verbose:
-            print(np.max(loss_matrix, axis=1))
-        self.record.resolutions.append(resolution)
-        self.record.losses.append(np.max(loss_matrix, axis=1))
-        self.record.loss_matrices.append(loss_matrix)
-        # self.record.percent_bin_histogram.append(average_percent_bins)
-        # self.record.count_bin_histogram.append(average_count_bins)
-        self.get_br_ranking()
-        self.record.group_counts.append(average_group_count)
-        if not os.path.exists("Bvft_Records"):
-            os.makedirs("Bvft_Records")
-        self.record.save(directory="Bvft_Records",file_prefix=self.file_name)
-
-
-    def compute_optimal_group_skyline(self):
-        groups = self.get_groups(self.q_size-1, self.q_size-1)
-        loss = [self.compute_loss(q, groups) for q in range(self.q_size)]
-        self.record.optimal_grouping_skyline.append(np.array(loss))
-
-    def compute_e_q_star_diff(self):
-        q_star = self.q_sa[-1]
-        e_q_star_diff = [np.sqrt(np.mean((q - q_star) ** 2)) for q in self.q_sa[:-1]] + [0.0]
-        self.record.e_q_star_diff = np.array(e_q_star_diff)
-
-
-    def get_br_ranking(self):
-        br = [np.sqrt(np.sum((self.q_sa[q] - self.r_plus_vfsp[q]) ** 2)) for q in range(self.q_size)]
-        br_rank = np.argsort(br)
-        self.record.bellman_residual = br
-        self.record.record_ranking(br_rank)
-        return br_rank
 
 class Hopper_edi(ABC):
 
@@ -615,9 +373,35 @@ class Hopper_edi(ABC):
         unique_numbers = random.sample(range(range_start, range_end + 1), n)
         return unique_numbers
 
+    def draw_Bvft_resolution_loss_graph(self,Bvft_final_resolution_loss,
+                                      resolution_list,
+                                        line_name_list, group_list,plot_saving_path):
+        fig, ax = plt.subplots(figsize=(10, 6))
 
+        x_list = []
+        for i in range(len(resolution_list)):
+            x_list.append(str(resolution_list[i]) + "res" + "_" + str(group_list[i]) + "groups")
+        x_positions = list(range(len(x_list)))
+        for index, y_values in enumerate(Bvft_final_resolution_loss):
+            ax.plot(x_positions, y_values, label=line_name_list[index])
+
+        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.3), ncol=3)
+        ax.set_xticks(x_positions)  # Set the x positions
+        ax.set_xticklabels(x_list, rotation=45, ha="right")
+        ax.set_title("mean loss with different policy")
+        ax.set_ylabel('Bvft_loss')
+        ax.set_xlabel('resolutions_groups')
+
+        Policy_ranking_saving_place = "Policy_ranking_saving_place"
+        Policy_k_saving_place = "Policy_k_saving_place"
+        policy_result = os.path.join(Policy_ranking_saving_place,Policy_k_saving_place)
+
+        Plot_saving_path = plot_saving_path
+
+        plt.savefig(plot_saving_path, bbox_inches='tight')
+        plt.close()
     @abstractmethod
-    def select_Q(self,q_list,q_prime,policy_namei,dataset,env,gamma=0.99):
+    def select_Q(self,q_list,q_prime,policy_namei,dataset,env,gamma=0.99,line_name_list = [],res_plot_save_path ="e"):
         pass
     def remove_duplicates(self,lst):
         seen = set()
@@ -628,6 +412,35 @@ class Hopper_edi(ABC):
                 result.append(item)
         return result
 
+    def normalized_mean_square_error_with_error_bar(self,actual, predicted, NMSE_normalization_factor):
+
+        if len(actual) != len(predicted):
+            raise ValueError("The length of actual and predicted values must be the same.")
+
+        squared_errors = [(a - p) ** 2 for a, p in zip(actual, predicted)]
+
+        mse = sum(squared_errors) / len(actual)
+
+        mean_actual = sum(actual) / len(actual)
+        mean_predicted = sum(predicted) / len(predicted)
+        range_squared = (max(actual) - min(actual)) ** 2
+        if (NMSE_normalization_factor == 1):
+            range_squared = sum((x - mean_actual) ** 2 for x in actual) / len(actual)
+        # range_squared = mean_actual * mean_predicted
+        if range_squared == 0:
+            raise ValueError("The range of actual values is zero. NMSE cannot be calculated.")
+
+        nmse = mse / range_squared
+
+        mean_squared_errors = mse
+        variance_squared_errors = sum((se - mean_squared_errors) ** 2 for se in squared_errors) / (
+                    len(squared_errors) - 1)
+
+        sd_mse = variance_squared_errors / len(squared_errors)
+
+        se_mse = sd_mse ** 0.5
+        se_mse = se_mse / range_squared
+        return nmse, se_mse
     def generate_unique_colors(self,number_of_colors):
 
         cmap = plt.get_cmap('tab20')
@@ -699,7 +512,6 @@ class Hopper_edi(ABC):
         policy_folder = os.path.join("Policy_operation","Policy_trained")
 
         policy_performance = []
-        print("policy name list : ",policy_name_list)
 
         for i in range(len(policy_name_list)):
             policy_path= os.path.join(policy_folder,policy_name_list[i])
@@ -714,6 +526,7 @@ class Hopper_edi(ABC):
 
 
         # Return the ranking of the policy names
+        # print("policy performance : ",policy_performance)
         return self.rank_elements_larger_higher(policy_performance)
 
     # policy_name = policy_name, true_env_name = true_env_name, true_policy_name = true_policy_name
@@ -735,33 +548,26 @@ class Hopper_edi(ABC):
 #(experiment_name=run_list[i],ranking_list = Ranking_list[num_index][i],
                                                          #  Policy_name_list = Policy_name_list[i],
                                                           # k=k)
-    def calculate_top_k_precision(self, experiment_name, rank_list, Policy_name_list, k=5):
+    def calculate_top_k_precision(self, experiment_name, rank_list, Policy_name_list,k=5):
         device = self.device
 
         exp_parameter_path = os.path.join("Exp_result", experiment_name, "parameter")
         exp_parameter = self.load_from_pkl(exp_parameter_path)
         true_env_name = exp_parameter[0]
 
-        policy_performance_list = [self.load_policy_performance(true_env_name=true_env_name, policy_name=policy_name)
-                                   for policy_name in Policy_name_list]
-        policy_ranking_groundtruth = self.rank_elements_larger_higher(policy_performance_list)
+        policy_performance_list = [self.load_policy_performance(true_env_name=true_env_name, policy_name=policy_name) for
+                                   policy_name in Policy_name_list]
 
-        print("Ground truth ranking:", policy_ranking_groundtruth)
-        print("Rank list:", rank_list)
+        ground_truth = self.rank_elements_larger_higher(policy_performance_list)
 
         k_precision_list = []
         for i in range(1, k + 1):
-            top_k_pred = set([idx for idx, rank in enumerate(rank_list) if rank <= i])
-            top_k_true = set([idx for idx, rank in enumerate(policy_ranking_groundtruth) if rank <= i])
-
-            correct_predictions = len(top_k_pred.intersection(top_k_true))
-            precision = correct_predictions / i
-
-            k_precision_list.append(precision)
-            print(f"Top-{i} Precision: {precision}, Top-{i} Predicted: {top_k_pred}, Top-{i} True: {top_k_true}")
-
-        print("Final k precision list:", k_precision_list)
-        # sys.exit()
+            proportion = 0
+            for pos in rank_list:
+                if (rank_list[pos-1 ] <= i - 1 and ground_truth[pos-1 ] <= i - 1):
+                    proportion += 1
+            proportion = proportion / i
+            k_precision_list.append(proportion)
         return k_precision_list
 
 
@@ -793,6 +599,39 @@ class Hopper_edi(ABC):
         sem = std_dev / np.sqrt(len(data_list))
         ci = 2 * sem
         return mean, ci
+    def draw_mse_graph(self,combinations, means, colors, standard_errors, labels, folder_path,
+                       filename="FQE_MSES.png", figure_name='Normalized MSE of FQE'):
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+
+        group_width = 1.0
+        n_bars = len(labels)
+        bar_width = group_width / n_bars
+
+        indices = np.arange(1)
+
+        fig, ax = plt.subplots()
+
+        for i in range(n_bars):
+            bar_x_positions = indices - (group_width - bar_width) / 2 + i * bar_width
+
+            errors_below = standard_errors[i]
+            errors_above = standard_errors[i]
+
+            ax.bar(bar_x_positions, means[i], yerr=[[errors_below], [errors_above]],
+                   capsize=5, alpha=0.7, color=colors[i], label=labels[i], width=bar_width)
+
+        ax.set_ylabel('Normalized MSE')
+        ax.set_title(figure_name )
+
+        ax.set_xticks(indices)
+        ax.set_xticklabels(combinations)
+
+        ax.legend(loc='upper right')
+
+        plt.tight_layout()
+        plt.savefig(os.path.join(folder_path, filename))
+        plt.close()
     def calculate_k(self, experiment_name_list,saving_folder_name, k ,plot_name_list,evaluate_time=30,max_timestep=1000,gamma=0.99):
         Ranking_list = []
         Policy_name_list = []
@@ -833,6 +672,9 @@ class Hopper_edi(ABC):
                     #当前algorithm的排名
                     self.get_data_ranking(experiment_name=run_list[runs],method_name = data_address_lists[data_address_index],
                                           policy_name_list=Policy_name_list[runs]))
+            # print("data address lists : ",data_address_lists)
+            # print(Ranking_list)
+            # sys.exit()
 
 
         Precision_list = []
@@ -926,7 +768,70 @@ class Hopper_edi(ABC):
         self.save_as_txt(plot_name_saving_path, plot_name_list)
 
         return precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, plot_name_list
+    def get_NMSE(self,experiment_name,algorithm_name,normalization_factor):
+        print("Plot FQE MSE")
 
+
+        policy_folder = os.path.join("Policy_operation","Policy_trained")
+        self.create_folder(policy_folder)
+
+        policy_performance_folder = os.path.join("Policy_operation","Policy_performance")
+        policy_total_dictionary = self.load_from_pkl(policy_performance_folder)
+
+        true_list = []
+        prediction_list = []
+
+        exp_parameter_path = os.path.join("Exp_result", experiment_name, "parameter")
+        # true_env_name, algorithm_trajectory_list, target_env_parameter_map, target_policy_parameter_map
+        para_list = self.load_from_pkl(exp_parameter_path)
+        current_target_env_list, current_target_env_name_list = self.get_env_list(para_list[2])
+        current_target_policy_parameters = self.generate_policy_parameter_tuples(current_target_env_name_list,
+                                                                                 para_list[3])
+
+        true_env_name = para_list[0]
+        policy_performance_env_folder = os.path.join(policy_performance_folder, true_env_name)
+
+        target_policy_folder = os.path.join("Exp_result",experiment_name,algorithm_name)
+
+        for policy_file_name in os.listdir(target_policy_folder):
+            policy_name = policy_file_name[:-4]
+            env_path = os.path.join(target_policy_folder,policy_name)
+
+            current_target_env = self.load_from_pkl(env_path)
+            prediction_list.append(self.load_policy_performance(policy_name,current_target_env))
+            true_list.append(self.load_policy_performance(policy_name,true_env_name))
+        NMSE, standard_error = self.normalized_mean_square_error_with_error_bar(true_list, prediction_list,
+                                                                           normalization_factor)
+        return NMSE, standard_error
+
+    ##true_env_name,algorithm_trajectory_list,target_env_parameter_map,target_policy_parameter_map
+    def draw_figure_6R(self,saving_folder_name,experiment_name_list,method_name_list,normalization_factor):
+        means = []
+        SE = []
+        labels = []
+        self_data_saving_path = method_name_list
+        for i in range(len(experiment_name_list)):
+            for j in range(len(self_data_saving_path)):
+                repo_name = self_data_saving_path[j]
+                experiment_name = experiment_name_list[i]
+                NMSE,standard_error = self.get_NMSE(experiment_name=experiment_name,
+                                                    algorithm_name = repo_name)
+                means.append(NMSE)
+                SE.append(standard_error)
+                labels.append(self_data_saving_path[j]+"_"+experiment_name_list[i])
+        name_list = ['hopper-v4']
+
+        Figure_saving_path = os.path.join("Exp_result", "K_statistics",saving_folder_name,"Figure_6L_plot")
+        #
+        colors = self.generate_unique_colors(len(self_data_saving_path))
+        figure_name = 'Normalized e MSE of FQE min max'
+        filename = "Figure6R_max_min_NMSE_graph"
+        if normalization_factor == 1:
+            figure_name = 'Normalized MSE of FQE groundtruth variance'
+            filename = "Figure6R_groundtruth_variance_NMSE_graph"
+        self.draw_mse_graph(combinations=name_list, means=means, colors=colors, standard_errors=SE,
+                       labels=labels, folder_path=Figure_saving_path,
+                       filename=filename, figure_name=figure_name)
     def draw_figure_6L(self,saving_folder_name,experiment_name_list,method_name_list,k=5,evaluate_time=30,max_timestep=1000,gamma=0.99):
         Result_saving_place = 'Exp_result'
         Result_k = 'K_statistics'
@@ -947,17 +852,17 @@ class Hopper_edi(ABC):
         k_regret_ci_saving_path = os.path.join(Result_k_save_path, regret_ci_name)
         plot_name_saving_path = os.path.join(Result_k_save_path, plot_name)
 
-        if os.path.exists(k_precision_mean_saving_path):
-            precision_mean_list = self.load_from_pkl(k_precision_mean_saving_path)
-            regret_mean_list = self.load_from_pkl(k_regret_mean_saving_path)
-            precision_ci_list = self.load_from_pkl(k_precision_ci_saving_path)
-            regret_ci_list = self.load_from_pkl(k_regret_ci_saving_path)
-            line_name_list = self.load_from_pkl(plot_name_saving_path)
-        else:
-            precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(
-               experiment_name_list = experiment_name_list, saving_folder_name = saving_folder_name,k = k,plot_name_list = method_name_list,
-                evaluate_time =evaluate_time,max_timestep = max_timestep, gamma=gamma
-            )
+        # if os.path.exists(k_precision_mean_saving_path):
+        #     precision_mean_list = self.load_from_pkl(k_precision_mean_saving_path)
+        #     regret_mean_list = self.load_from_pkl(k_regret_mean_saving_path)
+        #     precision_ci_list = self.load_from_pkl(k_precision_ci_saving_path)
+        #     regret_ci_list = self.load_from_pkl(k_regret_ci_saving_path)
+        #     line_name_list = self.load_from_pkl(plot_name_saving_path)
+        # else:
+        precision_mean_list, regret_mean_list, precision_ci_list, regret_ci_list, line_name_list = self.calculate_k(
+           experiment_name_list = experiment_name_list, saving_folder_name = saving_folder_name,k = k,plot_name_list = method_name_list,
+            evaluate_time =evaluate_time,max_timestep = max_timestep, gamma=gamma
+        )
 
         plot_mean_list = [precision_mean_list, regret_mean_list]
         plot_ci_list = [precision_ci_list, regret_ci_list]
@@ -970,13 +875,15 @@ class Hopper_edi(ABC):
 
         self.plot_subplots(data=plot_mean_list, save_path=plot_folder, y_axis_names=y_axis_names,
                            line_names=line_name_list, colors=colors, ci=plot_ci_list)
-
-    def plot_subplots(self, data, save_path, y_axis_names, line_names, colors, ci):
+    def plot_subplots(self,data, save_path, y_axis_names, line_names, colors, ci):
         num_subplots = len(data)
         fig, axes = plt.subplots(num_subplots, figsize=(10, 5 * num_subplots), squeeze=False)
-
+        print(data)
+        print(ci)
         for i, subplot_data in enumerate(data):
+
             for j, line_data in enumerate(subplot_data):
+                # print("len line data : ", len(line_data))
                 x_values = list(range(1, len(line_data) + 1))
 
                 top = []
@@ -985,15 +892,16 @@ class Hopper_edi(ABC):
                 for z in range(len(line_data)):
                     top.append(line_data[z] + ci[i][j][z])
                     bot.append(line_data[z] - ci[i][j][z])
-
                 axes[i, 0].plot(x_values, line_data, label=line_names[j], color=colors[j])
+
                 axes[i, 0].fill_between(x_values, bot, top, color=colors[j], alpha=0.2)
 
             axes[i, 0].set_ylabel(y_axis_names[i])
             axes[i, 0].legend()
 
         plt.tight_layout()
-        saving_path = os.path.join(save_path, "regret_precision.png")
+        saving_path = "regret_precision.png"
+        saving_path = os.path.join(save_path, saving_path)
         plt.savefig(saving_path)
         plt.close()
 
@@ -1227,26 +1135,28 @@ class Hopper_edi(ABC):
                             parameter_tuples.append(
                                 [env_name_index, algorithm_name, learning_rate, hidden_layer, total_step])
         return parameter_tuples
-    def train_policy_performance(self,env_parameter_map,policy_parameter_map,policy_evaluation_parameter_map):
-        env_list, env_name_list = self.get_env_list(env_parameter_map)
+    def train_policy_performance(self,evaluate_env_parameter_map,policy_env_parameter_map,policy_parameter_map,policy_evaluation_parameter_map):
+        evaluate_env_list, evaluate_env_name_list = self.get_env_list(evaluate_env_parameter_map)
+        env_list, env_name_list = self.get_env_list(policy_env_parameter_map)
         parameter_tuples = self.generate_policy_parameter_tuples(env_name_list,policy_parameter_map)
         for params in parameter_tuples:
-            env = env_list[params[0]]
-            params[0] = env_name_list[params[0]]
-            policy_performance_path = self.get_trained_policy_path(*params)
-            performance = [0]
-            if not os.path.exists( policy_performance_path+ '.pkl'):
-                self.save_as_pkl(policy_performance_path, performance)
-                self.save_as_txt(policy_performance_path, performance)
-                performance = self.load_from_pkl(policy_performance_path)
-                policy = self.get_policy(*params)
-                performance[0] = self.evaluate_policy(policy=policy, env=env, **policy_evaluation_parameter_map)
-                # print(final_result_dict)
-                self.save_as_pkl(policy_performance_path, performance)
-                self.save_as_txt(policy_performance_path, performance)
-                print(f"finished evaluated policy {policy_performance_path}")
-            else:
-                print(f"already exist policy performance {policy_performance_path}")
+            for env in evaluate_env_list:
+                input_tup = copy.deepcopy(params)
+                input_tup[0]= env_name_list[params[0]]
+                policy_performance_path = self.get_trained_policy_path(*input_tup)
+                performance = [0]
+                if not os.path.exists(policy_performance_path + '.pkl'):
+                    self.save_as_pkl(policy_performance_path, performance)
+                    self.save_as_txt(policy_performance_path, performance)
+                    performance = self.load_from_pkl(policy_performance_path)
+                    policy = self.get_policy(*input_tup)
+                    performance[0] = self.evaluate_policy(policy=policy, env=env, **policy_evaluation_parameter_map)
+                    # print(final_result_dict)
+                    self.save_as_pkl(policy_performance_path, performance)
+                    self.save_as_txt(policy_performance_path, performance)
+                    print(f"finished evaluated policy {policy_performance_path}")
+                else:
+                    print(f"already exist policy performance {policy_performance_path}")
 
 
 
@@ -1633,9 +1543,15 @@ class Hopper_edi(ABC):
                 q_prime.append(np.array(q_prime_list[j*len(target_env_name_list)+h]))
 
             env = target_env_list[0]
-            result = self.select_Q(q_list=q_sa, q_prime=q_prime, policy_namei=policy_name,dataset=data,env=env,gamma=gamma)
+            line_name_list = []
+            for i in range(len(target_env_name_list)):
+                line_name_list.append(target_env_name_list[i]+"_Policy_"+policy_name)
+            self.create_folder(os.path.join("Exp_result",experiment_name,"BVFT_res_plot"))
+            res_plot_save_path = os.path.join("Exp_result",experiment_name,"BVFT_res_plot",policy_name + ".png")
+            result = self.select_Q(q_list=q_sa, q_prime=q_prime, policy_namei=policy_name,dataset=data,env=env,gamma=gamma,line_name_list=line_name_list,res_plot_save_path =res_plot_save_path )
             index = np.argmin(result)
             save_list = [target_env_name_list[index]]
+
             self.save_as_txt(Q_result_saving_path, save_list)
             self.save_as_pkl(Q_result_saving_path, save_list)
             self.delete_files_in_folder(Bvft_folder)

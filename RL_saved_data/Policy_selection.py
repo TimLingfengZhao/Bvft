@@ -290,36 +290,36 @@ class policy_select(ABC):
             except Exception as e:
                 print(f'Failed to delete {file_path}. Reason: {e}')
 
-    def calculate_top_k_precision(self, env, policy_name_list, rank_list, k=2):
-        policy_performance_list = self.load_policy_performance(policy_name_list, env)
-        policy_ranking_groundtruth = self.rank_elements(policy_performance_list)
-
-        k_precision_list = []
-        for i in range(1, k + 1):
-            top_k_predicted = set(rank_list[:i])
-            top_k_true = set(policy_ranking_groundtruth[:i])
-            intersection = top_k_predicted.intersection(top_k_true)
-            proportion = len(intersection) / i
-            k_precision_list.append(proportion)
-        return k_precision_list
-
-    # def calculate_top_k_precision(self,initial_state, env, policy_name_list, rank_list, k=2):
-    #     # ranking_list 给了前k个policy的坐标
-    #
-    #     device = self.device
-    #
+    # def calculate_top_k_precision(self, env, policy_name_list, rank_list, k=2):
     #     policy_performance_list = self.load_policy_performance(policy_name_list, env)
     #     policy_ranking_groundtruth = self.rank_elements(policy_performance_list)
     #
     #     k_precision_list = []
     #     for i in range(1, k + 1):
-    #         proportion = 0
-    #         for pos in rank_list:
-    #             if (rank_list[pos - 1] <= i - 1 and policy_ranking_groundtruth[pos - 1] <= i - 1):
-    #                 proportion += 1
-    #         proportion = proportion / i
+    #         top_k_predicted = set(rank_list[:i])
+    #         top_k_true = set(policy_ranking_groundtruth[:i])
+    #         intersection = top_k_predicted.intersection(top_k_true)
+    #         proportion = len(intersection) / i
     #         k_precision_list.append(proportion)
     #     return k_precision_list
+
+    def calculate_top_k_precision(self, env, policy_name_list, rank_list, k=2):
+        # ranking_list 给了前k个policy的坐标
+
+        device = self.device
+
+        policy_performance_list = self.load_policy_performance(policy_name_list, env)
+        policy_ranking_groundtruth = self.rank_elements(policy_performance_list)
+
+        k_precision_list = []
+        for i in range(1, k + 1):
+            proportion = 0
+            for pos in rank_list:
+                if (rank_list[pos - 1] <= i - 1 and policy_ranking_groundtruth[pos - 1] <= i - 1):
+                    proportion += 1
+            proportion = proportion / i
+            k_precision_list.append(proportion)
+        return k_precision_list
     def calculate_top_k_normalized_regret(self,ranking_list, policy_name_list, env, k=2):
         print("calcualte top k normalized regret")
         policy_performance_list = self.load_policy_performance(policy_name_list, env)
